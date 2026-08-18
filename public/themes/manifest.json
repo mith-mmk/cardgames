@@ -4,7 +4,10 @@
     {
       "id": "classic",
       "name": { "ja": "クラシック", "en": "Classic" },
-      "description": { "ja": "読みやすい伝統的なカード", "en": "A traditional, highly legible deck" },
+      "description": {
+        "ja": "読みやすい伝統的なカード",
+        "en": "A traditional, highly legible deck"
+      },
       "artist": "Solitaire Collections team (original generated court illustration)",
       "license": "Project-original artwork; see asset provenance",
       "front": "svg-master",
@@ -26,7 +29,10 @@
     {
       "id": "wa",
       "name": { "ja": "和風", "en": "Wa" },
-      "description": { "ja": "麻の葉をモチーフにした落ち着いた柄", "en": "A calm asanoha-inspired pattern" },
+      "description": {
+        "ja": "麻の葉をモチーフにした落ち着いた柄",
+        "en": "A calm asanoha-inspired pattern"
+      },
       "artist": "Solitaire Collections team (original generated court illustration)",
       "license": "Project-original artwork; see asset provenance",
       "front": "svg-master",
@@ -48,7 +54,10 @@
     {
       "id": "maid-san",
       "name": { "ja": "メイドさん", "en": "Maid-san" },
-      "description": { "ja": "上品でかわいいちびキャラ向け配色", "en": "A refined, cute palette for chibi art" },
+      "description": {
+        "ja": "上品でかわいいちびキャラ向け配色",
+        "en": "A refined, cute palette for chibi art"
+      },
       "artist": "Solitaire Collections team (original generated court illustration)",
       "license": "Project-original artwork; see asset provenance",
       "front": "svg-master",

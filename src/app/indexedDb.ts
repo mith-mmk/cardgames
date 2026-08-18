@@ -7,7 +7,7 @@ const STATE_KEY = 'v1';
 const database = openDB(DB_NAME, 1, {
   upgrade(db) {
     db.createObjectStore(STORE_NAME);
-  }
+  },
 });
 
 export async function readPersistentState<T>(): Promise<T | undefined> {

@@ -46,7 +46,9 @@ test('draws when the face-down stock card itself is clicked', async ({ page }) =
 test('draws from stock even when a card is selected', async ({ page }) => {
   await page.goto('/');
   await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
-  const selectedCard = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
+  const selectedCard = page
+    .locator('.pile-tableau .card-slot:last-child .playing-card.face-up')
+    .first();
   await selectedCard.click();
   await expect(selectedCard).toHaveClass(/is-selected/);
   await page.locator('.pile-stock').click();
@@ -59,10 +61,16 @@ test('changes the theme and card back in settings', async ({ page }) => {
   await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
   await page.getByRole('button', { name: /設定|Settings/ }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  await page.locator('.theme-swatch').filter({ hasText: /アニメ調|Anime/ }).click();
+  await page
+    .locator('.theme-swatch')
+    .filter({ hasText: /アニメ調|Anime/ })
+    .click();
   await page.locator('.back-picker button').nth(1).click();
   await page.getByRole('button', { name: /閉じる|Close/ }).click();
-  await expect(page.locator('.playing-card.face-down .card-back').first()).toHaveAttribute('src', /\/themes\/anime\/back-02\.svg$/);
+  await expect(page.locator('.playing-card.face-down .card-back').first()).toHaveAttribute(
+    'src',
+    /\/themes\/anime\/back-02\.svg$/,
+  );
 });
 
 test('moves the exact pointer-dragged card without leaving a stale selection', async ({ page }) => {
@@ -76,7 +84,9 @@ test('moves the exact pointer-dragged card without leaving a stale selection', a
   expect(targetBox).not.toBeNull();
   await page.mouse.move(sourceBox!.x + sourceBox!.width / 2, sourceBox!.y + sourceBox!.height / 2);
   await page.mouse.down();
-  await page.mouse.move(targetBox!.x + targetBox!.width / 2, targetBox!.y + targetBox!.height / 2, { steps: 8 });
+  await page.mouse.move(targetBox!.x + targetBox!.width / 2, targetBox!.y + targetBox!.height / 2, {
+    steps: 8,
+  });
   await page.mouse.up();
   await expect(emptyCell.locator('.playing-card')).toHaveCount(1);
   await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
@@ -94,7 +104,9 @@ test('moves a FreeCell card with pointer drag', async ({ page }) => {
   expect(targetBox).not.toBeNull();
   await page.mouse.move(sourceBox!.x + sourceBox!.width / 2, sourceBox!.y + sourceBox!.height / 2);
   await page.mouse.down();
-  await page.mouse.move(targetBox!.x + targetBox!.width / 2, targetBox!.y + targetBox!.height / 2, { steps: 8 });
+  await page.mouse.move(targetBox!.x + targetBox!.width / 2, targetBox!.y + targetBox!.height / 2, {
+    steps: 8,
+  });
   await page.mouse.up();
   await expect(page.locator('.pile-cell .playing-card')).toHaveCount(1);
   await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
@@ -103,7 +115,10 @@ test('moves a FreeCell card with pointer drag', async ({ page }) => {
 test('shows a pointer-following ghost for the whole dragged tableau stack', async ({ page }) => {
   await page.goto('/');
   await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
-  const sourcePile = page.locator('.pile-tableau').filter({ has: page.locator('.playing-card.face-up') }).first();
+  const sourcePile = page
+    .locator('.pile-tableau')
+    .filter({ has: page.locator('.playing-card.face-up') })
+    .first();
   const source = sourcePile.locator('.card-slot .playing-card.face-up').first();
   const stackCount = await sourcePile.locator('.card-slot .playing-card.face-up').count();
   const sourceBox = await source.boundingBox();
@@ -124,7 +139,9 @@ test('shows a pointer-following ghost for the whole dragged tableau stack', asyn
   expect(firstGhostBox).not.toBeNull();
 
   await page.mouse.move(startX + 64, startY + 48, { steps: 2 });
-  await expect.poll(async () => (await page.locator('.drag-ghost').boundingBox())?.x ?? -Infinity).toBeGreaterThan(firstGhostBox!.x + 20);
+  await expect
+    .poll(async () => (await page.locator('.drag-ghost').boundingBox())?.x ?? -Infinity)
+    .toBeGreaterThan(firstGhostBox!.x + 20);
   await page.mouse.up();
   await expect(page.locator('.drag-ghost')).toHaveCount(0);
 });
@@ -136,7 +153,11 @@ test('ignores a non-primary pointer drag', async ({ page }) => {
   const sourceBox = await source.boundingBox();
   expect(sourceBox).not.toBeNull();
   await page.mouse.move(sourceBox!.x + sourceBox!.width / 2, sourceBox!.y + sourceBox!.height / 2);
-  await page.mouse.click(sourceBox!.x + sourceBox!.width / 2, sourceBox!.y + sourceBox!.height / 2, { button: 'right' });
+  await page.mouse.click(
+    sourceBox!.x + sourceBox!.width / 2,
+    sourceBox!.y + sourceBox!.height / 2,
+    { button: 'right' },
+  );
   await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
 });
 
@@ -179,14 +200,108 @@ test('supports keyboard draw on the stock pile', async ({ page }) => {
 test('double-clicks an exposed ace to its foundation exactly once', async ({ page }) => {
   await page.goto('/');
   await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
-  let ace = page.locator('.pile-tableau .card-slot:last-child .playing-card[aria-label^="A of "]').first();
-  for (let attempt = 0; attempt < 80 && await ace.count() === 0; attempt += 1) {
+  let ace = page
+    .locator('.pile-tableau .card-slot:last-child .playing-card[aria-label^="A of "]')
+    .first();
+  for (let attempt = 0; attempt < 80 && (await ace.count()) === 0; attempt += 1) {
     await page.getByRole('button', { name: /新しいゲーム|New game/ }).click();
-    ace = page.locator('.pile-tableau .card-slot:last-child .playing-card[aria-label^="A of "]').first();
+    ace = page
+      .locator('.pile-tableau .card-slot:last-child .playing-card[aria-label^="A of "]')
+      .first();
   }
   await expect(ace).toBeVisible();
   const foundationsBefore = await page.locator('.pile-foundation .playing-card').count();
   await ace.dispatchEvent('dblclick');
-  await expect(page.locator('.action-status')).toContainText(/自動で移動しました|Moved automatically/, { timeout: 1000 });
+  await expect(page.locator('.action-status')).toContainText(
+    /自動で移動しました|Moved automatically/,
+    { timeout: 1000 },
+  );
   await expect(page.locator('.pile-foundation .playing-card')).toHaveCount(foundationsBefore + 1);
+});
+
+test('keeps pyramid interaction on exposed cards and removes an exposed king in one tap', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'Pyramid' }).click();
+  await expect(page.locator('.game-pyramid .pile-tableau.is-covered-pyramid-pile')).toHaveCount(21);
+  await expect(
+    page.locator('.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card'),
+  ).toHaveCount(7);
+
+  let king = page
+    .locator(
+      '.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card[aria-label^="K of "]',
+    )
+    .first();
+  for (let attempt = 0; attempt < 80 && (await king.count()) === 0; attempt += 1) {
+    await page.getByRole('button', { name: /新しいゲーム|New game/ }).click();
+    king = page
+      .locator(
+        '.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card[aria-label^="K of "]',
+      )
+      .first();
+  }
+  await expect(king).toBeVisible();
+  const removedBefore = await page.locator('.pile-removed .playing-card').count();
+  await king.click();
+  await expect(page.locator('.pile-removed .playing-card')).toHaveCount(removedBefore + 1);
+  await expect(page.locator('.pile-tableau.is-empty-pyramid-pile')).toHaveCount(1);
+});
+
+test('pairs an exposed pyramid card with the drawn waste card', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'Pyramid' }).click();
+  const rank = (label: string) => {
+    const value = label.split(' ')[0];
+    return ({ A: 1, J: 11, Q: 12, K: 13 } as Record<string, number>)[value] ?? Number(value);
+  };
+  const newGame = page.getByRole('button', { name: /新しいゲーム|New game/ });
+  let paired = false;
+
+  for (let attempt = 0; attempt < 80 && !paired; attempt += 1) {
+    if (attempt > 0) await newGame.click();
+    await page.locator('.pile-stock').click();
+    const waste = page.locator('.pile-waste .playing-card').last();
+    if ((await waste.count()) === 0) continue;
+    const wasteLabel = await waste.getAttribute('aria-label');
+    if (!wasteLabel || rank(wasteLabel) === 13) continue;
+    const exposed = page.locator(
+      '.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card',
+    );
+    const targetRank = 13 - rank(wasteLabel);
+    let target = -1;
+    for (let index = 0; index < (await exposed.count()); index += 1) {
+      const label = await exposed.nth(index).getAttribute('aria-label');
+      if (label && rank(label) === targetRank) {
+        target = index;
+        break;
+      }
+    }
+    if (target < 0) continue;
+
+    const removedBefore = await page.locator('.pile-removed .playing-card').count();
+    await waste.click();
+    await expect(waste).toHaveClass(/is-selected/);
+    await exposed.nth(target).click();
+    await expect(page.locator('.pile-removed .playing-card')).toHaveCount(removedBefore + 2);
+    paired = true;
+  }
+
+  expect(paired).toBe(true);
+});
+
+test('does not begin a drag ghost for a pyramid removal card', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'Pyramid' }).click();
+  const card = page
+    .locator('.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card')
+    .first();
+  const box = await card.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box!.x + box!.width / 2 + 24, box!.y + box!.height / 2 + 24, { steps: 2 });
+  await expect(page.locator('.drag-ghost')).toHaveCount(0);
+  await page.mouse.up();
 });

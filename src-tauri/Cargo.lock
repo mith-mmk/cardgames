@@ -2846,7 +2846,7 @@ dependencies = [
 
 [[package]]
 name = "solitaire-collections"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "serde",
  "serde_json",

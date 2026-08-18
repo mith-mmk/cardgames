@@ -6,8 +6,13 @@ const projectEnv = { ...process.env, TAURI_ENV_PLATFORM: '' };
 const tauriEnv = { ...process.env, TAURI_ENV_PLATFORM: 'windows' };
 
 function build(env, label) {
-  const result = spawnSync(npm, ['run', 'build'], { env, stdio: 'inherit', shell: process.platform === 'win32' });
-  if (result.status !== 0) throw new Error(`${label} build failed${result.error ? `: ${result.error.message}` : ''}`);
+  const result = spawnSync(npm, ['run', 'build'], {
+    env,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
+  if (result.status !== 0)
+    throw new Error(`${label} build failed${result.error ? `: ${result.error.message}` : ''}`);
 }
 
 function hasWorkbox() {

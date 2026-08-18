@@ -1,8 +1,75 @@
 import type { Language, MotionMode } from './types';
 import { writePersistentState } from './indexedDb';
-export type AppPreferences = { language: Language; theme: string; cardBack: string; motion: MotionMode; largeCards: boolean; leftHanded: boolean };
-export type SavedGame = { gameId: string; seed: string; snapshot: unknown; savedAt: number };
-const KEY = 'solitaire-collections:v1'; const defaults: AppPreferences = { language: 'ja', theme: 'classic', cardBack: 'midnight', motion: 'standard', largeCards: false, leftHanded: false }; type Store = { preferences: AppPreferences; current?: SavedGame; recent: string[]; favorites: string[] };
-function read(): Store { try { const value = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<Store> | null; return { preferences: { ...defaults, ...value?.preferences }, current: value?.current, recent: value?.recent ?? [], favorites: value?.favorites ?? [] }; } catch { return { preferences: defaults, recent: [], favorites: [] }; } }
-function write(store: Store) { localStorage.setItem(KEY, JSON.stringify(store)); void writePersistentState(store).catch(() => undefined); }
-export const storage = { get: read, setPreferences: (preferences: AppPreferences) => { const state = read(); write({ ...state, preferences }); }, save: (game: SavedGame) => { const state = read(); write({ ...state, current: game, recent: [game.gameId, ...state.recent.filter((id) => id !== game.gameId)].slice(0, 8) }); }, clearCurrent: () => { const state = read(); delete state.current; write(state); }, toggleFavorite: (gameId: string) => { const state = read(); state.favorites = state.favorites.includes(gameId) ? state.favorites.filter((id) => id !== gameId) : [...state.favorites, gameId]; write(state); } };
+export type AppPreferences = {
+  language: Language;
+  theme: string;
+  cardBack: string;
+  motion: MotionMode;
+  largeCards: boolean;
+  leftHanded: boolean;
+};
+export type SavedGame = {
+  gameId: string;
+  seed: string;
+  snapshot: unknown;
+  savedAt: number;
+};
+const KEY = 'solitaire-collections:v1';
+const defaults: AppPreferences = {
+  language: 'ja',
+  theme: 'classic',
+  cardBack: 'midnight',
+  motion: 'standard',
+  largeCards: false,
+  leftHanded: false,
+};
+type Store = {
+  preferences: AppPreferences;
+  current?: SavedGame;
+  recent: string[];
+  favorites: string[];
+};
+function read(): Store {
+  try {
+    const value = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<Store> | null;
+    return {
+      preferences: { ...defaults, ...value?.preferences },
+      current: value?.current,
+      recent: value?.recent ?? [],
+      favorites: value?.favorites ?? [],
+    };
+  } catch {
+    return { preferences: defaults, recent: [], favorites: [] };
+  }
+}
+function write(store: Store) {
+  localStorage.setItem(KEY, JSON.stringify(store));
+  void writePersistentState(store).catch(() => undefined);
+}
+export const storage = {
+  get: read,
+  setPreferences: (preferences: AppPreferences) => {
+    const state = read();
+    write({ ...state, preferences });
+  },
+  save: (game: SavedGame) => {
+    const state = read();
+    write({
+      ...state,
+      current: game,
+      recent: [game.gameId, ...state.recent.filter((id) => id !== game.gameId)].slice(0, 8),
+    });
+  },
+  clearCurrent: () => {
+    const state = read();
+    delete state.current;
+    write(state);
+  },
+  toggleFavorite: (gameId: string) => {
+    const state = read();
+    state.favorites = state.favorites.includes(gameId)
+      ? state.favorites.filter((id) => id !== gameId)
+      : [...state.favorites, gameId];
+    write(state);
+  },
+};
