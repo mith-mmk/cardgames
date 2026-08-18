@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Solitaire Collections">
+  <rect width="512" height="512" rx="112" fill="#08251f"/>
+  <rect x="106" y="76" width="220" height="304" rx="24" fill="#f6f1df" stroke="#d8b45c" stroke-width="16" transform="rotate(-10 216 228)"/>
+  <rect x="190" y="126" width="220" height="304" rx="24" fill="#b43e47" stroke="#f6f1df" stroke-width="16" transform="rotate(10 300 278)"/>
+  <path d="M270 214c-28-44-98-14-63 39l63 78 63-78c35-53-35-83-63-39Z" fill="#f6f1df"/>
+</svg>

@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "themes": [
+    {
+      "id": "classic",
+      "name": { "ja": "クラシック", "en": "Classic" },
+      "description": { "ja": "読みやすい伝統的なカード", "en": "A traditional, highly legible deck" },
+      "artist": "Solitaire Collections team (original generated court illustration)",
+      "license": "Project-original artwork; see asset provenance",
+      "front": "svg-master",
+      "courtArtwork": "/themes/classic/court-queen.png",
+      "promptSummary": "Original adult classical court queen, engraved ornament, no text or existing characters.",
+      "backs": ["/themes/classic/back-01.svg", "/themes/classic/back-02.svg"]
+    },
+    {
+      "id": "anime",
+      "name": { "ja": "アニメ調", "en": "Anime" },
+      "description": { "ja": "明るく輪郭のある配色", "en": "Bright colors with crisp outlines" },
+      "artist": "Solitaire Collections team (original generated court illustration)",
+      "license": "Project-original artwork; see asset provenance",
+      "front": "svg-master",
+      "courtArtwork": "/themes/anime/court-queen.png",
+      "promptSummary": "Original adult fantasy queen in polished Japanese animation style, no text or existing characters.",
+      "backs": ["/themes/anime/back-01.svg", "/themes/anime/back-02.svg"]
+    },
+    {
+      "id": "wa",
+      "name": { "ja": "和風", "en": "Wa" },
+      "description": { "ja": "麻の葉をモチーフにした落ち着いた柄", "en": "A calm asanoha-inspired pattern" },
+      "artist": "Solitaire Collections team (original generated court illustration)",
+      "license": "Project-original artwork; see asset provenance",
+      "front": "svg-master",
+      "courtArtwork": "/themes/wa/court-queen.png",
+      "promptSummary": "Original adult court lady with kimono, cranes, maple leaves and traditional Japanese motifs.",
+      "backs": ["/themes/wa/back-01.svg", "/themes/wa/back-02.svg"]
+    },
+    {
+      "id": "friendly",
+      "name": { "ja": "デフォルメ", "en": "Friendly" },
+      "description": { "ja": "親しみやすい幾何学模様", "en": "A playful geometric pattern" },
+      "artist": "Solitaire Collections team (original generated court illustration)",
+      "license": "Project-original artwork; see asset provenance",
+      "front": "svg-master",
+      "courtArtwork": "/themes/friendly/court-queen.png",
+      "promptSummary": "Original adult queen in rounded, friendly deformed illustration style.",
+      "backs": ["/themes/friendly/back-01.svg", "/themes/friendly/back-02.svg"]
+    },
+    {
+      "id": "maid-san",
+      "name": { "ja": "メイドさん", "en": "Maid-san" },
+      "description": { "ja": "上品でかわいいちびキャラ向け配色", "en": "A refined, cute palette for chibi art" },
+      "artist": "Solitaire Collections team (original generated court illustration)",
+      "license": "Project-original artwork; see asset provenance",
+      "front": "svg-master",
+      "courtArtwork": "/themes/maid-san/court-queen.png",
+      "promptSummary": "Original adult maid in a modest Victorian uniform with tea service, chibi proportions and no sexualization.",
+      "backs": ["/themes/maid-san/back-01.svg", "/themes/maid-san/back-02.svg"]
+    }
+  ]
+}

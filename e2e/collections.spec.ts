@@ -1,0 +1,192 @@
+import { expect, test } from '@playwright/test';
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.clear());
+});
+
+test('shows the five initial games', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.game-tile')).toHaveCount(5);
+  await expect(page.locator('.game-tile').filter({ hasText: 'Klondike' })).toHaveCount(1);
+  await expect(page.locator('.game-tile').filter({ hasText: 'FreeCell' })).toHaveCount(1);
+  await expect(page.locator('.game-tile').filter({ hasText: 'Spider' })).toHaveCount(1);
+  await expect(page.locator('.game-tile').filter({ hasText: 'Calculation' })).toHaveCount(1);
+  await expect(page.locator('.game-tile').filter({ hasText: 'Pyramid' })).toHaveCount(1);
+});
+
+test('starts a game from the whole tile and keyboard activation', async ({ page }) => {
+  await page.goto('/');
+  const tile = page.locator('.game-tile').filter({ hasText: 'Klondike' });
+  await tile.click();
+  await expect(page.locator('.game-title h1')).toHaveText('Klondike');
+  await page.locator('.back-button').click();
+  await tile.focus();
+  await tile.press('Enter');
+  await expect(page.locator('.game-title h1')).toHaveText('Klondike');
+});
+
+test('starts Klondike and draws from the stock', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  await expect(page.locator('.game-title h1')).toHaveText('Klondike');
+  await expect(page.locator('.pile-stock')).toBeVisible();
+  await page.locator('.pile-stock').click();
+  await expect(page.locator('.table-stats')).toContainText('1');
+});
+
+test('draws when the face-down stock card itself is clicked', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  await page.locator('.pile-stock .playing-card.face-down').last().click();
+  await expect(page.locator('.table-stats')).toContainText('1');
+  await page.locator('.pile-stock .playing-card.face-down').last().click();
+  await expect(page.locator('.table-stats')).toContainText('2');
+});
+
+test('draws from stock even when a card is selected', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  const selectedCard = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
+  await selectedCard.click();
+  await expect(selectedCard).toHaveClass(/is-selected/);
+  await page.locator('.pile-stock').click();
+  await expect(page.locator('.table-stats')).toContainText('1');
+  await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
+});
+
+test('changes the theme and card back in settings', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  await page.getByRole('button', { name: /設定|Settings/ }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.locator('.theme-swatch').filter({ hasText: /アニメ調|Anime/ }).click();
+  await page.locator('.back-picker button').nth(1).click();
+  await page.getByRole('button', { name: /閉じる|Close/ }).click();
+  await expect(page.locator('.playing-card.face-down .card-back').first()).toHaveAttribute('src', /\/themes\/anime\/back-02\.svg$/);
+});
+
+test('moves the exact pointer-dragged card without leaving a stale selection', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  const source = page.locator('.pile-tableau .card-slot:last-child .playing-card').first();
+  const emptyCell = page.locator('.pile-cell').first();
+  const sourceBox = await source.boundingBox();
+  const targetBox = await emptyCell.boundingBox();
+  expect(sourceBox).not.toBeNull();
+  expect(targetBox).not.toBeNull();
+  await page.mouse.move(sourceBox!.x + sourceBox!.width / 2, sourceBox!.y + sourceBox!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(targetBox!.x + targetBox!.width / 2, targetBox!.y + targetBox!.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(emptyCell.locator('.playing-card')).toHaveCount(1);
+  await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
+  await expect(page.locator('.table-stats')).toContainText('1');
+});
+
+test('moves a FreeCell card with pointer drag', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
+  const target = page.locator('.pile-cell').first();
+  const sourceBox = await source.boundingBox();
+  const targetBox = await target.boundingBox();
+  expect(sourceBox).not.toBeNull();
+  expect(targetBox).not.toBeNull();
+  await page.mouse.move(sourceBox!.x + sourceBox!.width / 2, sourceBox!.y + sourceBox!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(targetBox!.x + targetBox!.width / 2, targetBox!.y + targetBox!.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(page.locator('.pile-cell .playing-card')).toHaveCount(1);
+  await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
+});
+
+test('shows a pointer-following ghost for the whole dragged tableau stack', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  const sourcePile = page.locator('.pile-tableau').filter({ has: page.locator('.playing-card.face-up') }).first();
+  const source = sourcePile.locator('.card-slot .playing-card.face-up').first();
+  const stackCount = await sourcePile.locator('.card-slot .playing-card.face-up').count();
+  const sourceBox = await source.boundingBox();
+  expect(sourceBox).not.toBeNull();
+  expect(stackCount).toBeGreaterThan(1);
+
+  // The first card's exposed top strip is the hit area; the later cards are
+  // intentionally painted above its center in a real tableau.
+  const startX = sourceBox!.x + sourceBox!.width / 2;
+  const startY = sourceBox!.y + 10;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX + 24, startY + 24, { steps: 2 });
+  await expect(page.locator('.drag-ghost')).toBeVisible();
+  await expect(page.locator('.drag-ghost-card')).toHaveCount(stackCount);
+  await expect(source).toHaveCSS('opacity', '0');
+  const firstGhostBox = await page.locator('.drag-ghost').boundingBox();
+  expect(firstGhostBox).not.toBeNull();
+
+  await page.mouse.move(startX + 64, startY + 48, { steps: 2 });
+  await expect.poll(async () => (await page.locator('.drag-ghost').boundingBox())?.x ?? -Infinity).toBeGreaterThan(firstGhostBox!.x + 20);
+  await page.mouse.up();
+  await expect(page.locator('.drag-ghost')).toHaveCount(0);
+});
+
+test('ignores a non-primary pointer drag', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
+  const sourceBox = await source.boundingBox();
+  expect(sourceBox).not.toBeNull();
+  await page.mouse.move(sourceBox!.x + sourceBox!.width / 2, sourceBox!.y + sourceBox!.height / 2);
+  await page.mouse.click(sourceBox!.x + sourceBox!.width / 2, sourceBox!.y + sourceBox!.height / 2, { button: 'right' });
+  await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
+});
+
+test('moves a selected FreeCell card to a highlighted empty cell by click', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
+  await source.click();
+  await expect(source).toHaveClass(/is-selected/);
+  const target = page.locator('.pile-cell.is-legal-target').first();
+  await expect(target).toBeVisible();
+  await target.click();
+  await expect(page.locator('.pile-cell .playing-card')).toHaveCount(1);
+  await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
+});
+
+test('supports Enter on a face-up card and Space on an empty pile', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
+  await source.focus();
+  await source.press('Enter');
+  await expect(source).toHaveClass(/is-selected/);
+  const target = page.locator('.pile-cell.is-legal-target').first();
+  await target.focus();
+  await target.press('Space');
+  await expect(page.locator('.pile-cell .playing-card')).toHaveCount(1);
+  await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
+});
+
+test('supports keyboard draw on the stock pile', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  const stock = page.locator('.pile-stock');
+  await stock.focus();
+  await stock.press('Enter');
+  await expect(page.locator('.table-stats')).toContainText('1');
+});
+
+test('double-clicks an exposed ace to its foundation exactly once', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  let ace = page.locator('.pile-tableau .card-slot:last-child .playing-card[aria-label^="A of "]').first();
+  for (let attempt = 0; attempt < 80 && await ace.count() === 0; attempt += 1) {
+    await page.getByRole('button', { name: /新しいゲーム|New game/ }).click();
+    ace = page.locator('.pile-tableau .card-slot:last-child .playing-card[aria-label^="A of "]').first();
+  }
+  await expect(ace).toBeVisible();
+  const foundationsBefore = await page.locator('.pile-foundation .playing-card').count();
+  await ace.dispatchEvent('dblclick');
+  await expect(page.locator('.action-status')).toContainText(/自動で移動しました|Moved automatically/, { timeout: 1000 });
+  await expect(page.locator('.pile-foundation .playing-card')).toHaveCount(foundationsBefore + 1);
+});
