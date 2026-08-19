@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { interpolate, text } from './i18n';
+import { ModalDialog } from './ModalDialog';
 import { storage } from './persistence';
 import type { Language, MotionMode } from './types';
 import type { ThemeAsset } from './ui';
@@ -19,62 +19,14 @@ export function Settings({
   onClose: () => void;
 }) {
   const t = text(language);
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const dialogRef = useRef<HTMLElement>(null);
-  const restoreRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    restoreRef.current = document.activeElement as HTMLElement;
-    closeRef.current?.focus();
-    const onKey = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-      if (event.key !== 'Tab' || !dialogRef.current) return;
-      const focusable = Array.from(
-        dialogRef.current.querySelectorAll<HTMLElement>(
-          'button,select,input,[tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter((element) => !element.hasAttribute('disabled'));
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      restoreRef.current?.focus();
-    };
-  }, [onClose]);
   return (
-    <div
-      className="modal-scrim"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
+    <ModalDialog
+      className="settings-modal"
+      closeLabel={t.close}
+      onClose={onClose}
+      title={t.settings}
+      titleId="settings-title"
     >
-      <section
-        className="settings-modal"
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="settings-title"
-      >
-        <div className="modal-head">
-          <h2 id="settings-title">{t.settings}</h2>
-          <button ref={closeRef} className="icon-button" onClick={onClose} aria-label={t.close}>
-            ×
-          </button>
-        </div>
         <label>
           {t.theme}
           <div className="theme-picker">
@@ -126,7 +78,6 @@ export function Settings({
             <option value="none">{t.none}</option>
           </select>
         </label>
-      </section>
-    </div>
+    </ModalDialog>
   );
 }

@@ -3,6 +3,7 @@ import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerE
 import { CardView } from './CardView';
 import { ClearEffect } from './ClearEffect';
 import { DragGhost } from './DragGhost';
+import { GameHelp } from './GameHelp';
 import { interpolate, text } from './i18n';
 import { storage } from './persistence';
 import type { Card, GameDefinition, GameSession, Language, Pile } from './types';
@@ -32,6 +33,7 @@ export function GameScreen({
   const [, redraw] = useState(0);
   const [actionStatus, setActionStatus] = useState('');
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [dragGhost, setDragGhost] = useState<{
     pileId: string;
@@ -271,9 +273,14 @@ export function GameScreen({
           <h1>{definition.name[language]}</h1>
           <span className="game-family">{definition.family[language]}</span>
         </div>
-        <button className="icon-button" onClick={onSettings} aria-label={t.settings}>
-          ⚙
-        </button>
+        <div className="game-top-actions">
+          <button className="icon-button" onClick={() => setHelpOpen(true)} aria-label={t.help}>
+            ?
+          </button>
+          <button className="icon-button" onClick={onSettings} aria-label={t.settings}>
+            ⚙
+          </button>
+        </div>
       </header>
       <div
         className={`game-layout game-layout-${definition.id} ${isWideLayout ? 'game-wide-layout' : ''}`}
@@ -429,6 +436,9 @@ export function GameScreen({
         onSkip={() => setCelebrationDismissed(true)}
         skipLabel={t.skipCelebration}
       />
+      {helpOpen && (
+        <GameHelp definition={definition} language={language} onClose={() => setHelpOpen(false)} />
+      )}
       {snapshot.won && (
         <div className="win-banner" role="status">
           <span>✦</span>

@@ -130,6 +130,23 @@ test('changes the theme and card back in settings', async ({ page }) => {
   );
 });
 
+test('opens localized how-to-play help for the active game', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
+  await page.getByRole('button', { name: '遊び方' }).click();
+  const japaneseDialog = page.getByRole('dialog');
+  await expect(japaneseDialog).toContainText('Klondike の遊び方');
+  await expect(japaneseDialog).toContainText('4つの完成札を、各スートのAからKまで完成させます。');
+  await page.getByRole('button', { name: '閉じる' }).click();
+  await page.getByRole('button', { name: '一覧へ戻る' }).click();
+  await page.getByRole('button', { name: 'English', exact: true }).click();
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
+  await page.getByRole('button', { name: 'How to play' }).click();
+  const englishDialog = page.getByRole('dialog');
+  await expect(englishDialog).toContainText('How to play Klondike');
+  await expect(englishDialog).toContainText('Build all four suit foundations from Ace through King.');
+});
+
 test('moves the exact pointer-dragged card without leaving a stale selection', async ({ page }) => {
   await page.goto('/');
   await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();

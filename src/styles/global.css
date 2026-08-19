@@ -407,8 +407,13 @@ footer {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: auto;
+  margin: 0 auto;
   transform: translateX(20px);
+}
+.game-top-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
 }
 .game-title h1 {
   margin: 0;
@@ -906,7 +911,7 @@ footer {
 .modal-scrim {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 50;
   display: grid;
   place-items: center;
   padding: 20px;
@@ -914,6 +919,16 @@ footer {
 }
 .settings-modal {
   width: min(470px, 100%);
+  background: #202b28;
+  border: 1px solid #617a6a;
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 20px 70px #0009;
+}
+.game-help-modal {
+  width: min(680px, 100%);
+  max-height: min(760px, calc(100vh - 40px));
+  overflow: auto;
   background: #202b28;
   border: 1px solid #617a6a;
   border-radius: 18px;
@@ -929,6 +944,36 @@ footer {
 .modal-head h2 {
   margin: 0;
   font-size: 20px;
+}
+.help-section + .help-section {
+  border-top: 1px solid var(--line);
+  margin-top: 18px;
+  padding-top: 18px;
+}
+.help-section h3 {
+  margin: 0 0 8px;
+  color: var(--green);
+  font-size: 12px;
+}
+.help-section p,
+.help-section li {
+  color: #c4d1ca;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.help-section p {
+  margin: 0;
+}
+.help-section ol,
+.help-section ul {
+  margin: 0;
+  padding-left: 21px;
+}
+.help-section li + li {
+  margin-top: 7px;
+}
+.help-controls-section li {
+  color: #9fb1a8;
 }
 .settings-modal label {
   color: #9fb1a8;

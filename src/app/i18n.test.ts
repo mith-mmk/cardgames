@@ -16,4 +16,15 @@ describe('localized UI messages', () => {
     expect(text('ja').suits.hearts).toBe('ハート');
     expect(text('en').pileKinds.foundation).toBe('foundation');
   });
+
+  it('provides localized how-to-play instructions for every implemented game', () => {
+    const japaneseHelp = text('ja').gameHelp;
+    const englishHelp = text('en').gameHelp;
+    expect(Object.keys(japaneseHelp).sort()).toEqual(Object.keys(englishHelp).sort());
+    expect(Object.keys(japaneseHelp)).toHaveLength(21);
+    for (const rules of Object.values(japaneseHelp)) {
+      expect(rules.goal).not.toHaveLength(0);
+      expect(rules.steps.length).toBeGreaterThanOrEqual(3);
+    }
+  });
 });
