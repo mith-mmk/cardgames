@@ -15,6 +15,7 @@ import { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
 import { auntMary, easthaven, westcliff } from './klondikeVariants';
 import { blackWidow, scorpion, wasp } from './spiderVariantGames';
 import { clock, golf } from './golfClockGames';
+import { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
 
 export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
 export {
@@ -30,6 +31,7 @@ export { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
 export { auntMary, easthaven, westcliff } from './klondikeVariants';
 export { blackWidow, scorpion, wasp } from './spiderVariantGames';
 export { clock, golf } from './golfClockGames';
+export { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
 
 const DEFAULT_SEED = 'solitaire-default';
 const sameMove = (a: Move, b: Move): boolean => {
@@ -541,6 +543,19 @@ export const GAME_DEFINITIONS = {
   'aunt-mary': auntMary,
   golf,
   clock,
+  'agnes-sorel': KLONDIKE_FAMILY_WAVE_GAMES.agnesSorel,
+  'australian-patience': KLONDIKE_FAMILY_WAVE_GAMES.australianPatience,
+  whitehead: KLONDIKE_FAMILY_WAVE_GAMES.whitehead,
+  'thumb-and-pouch': KLONDIKE_FAMILY_WAVE_GAMES.thumbAndPouch,
+  'blind-alleys': KLONDIKE_FAMILY_WAVE_GAMES.blindAlleys,
+  batsford: KLONDIKE_FAMILY_WAVE_GAMES.batsford,
+  harp: KLONDIKE_FAMILY_WAVE_GAMES.harp,
+  'lady-jane': KLONDIKE_FAMILY_WAVE_GAMES.ladyJane,
+  bureau: KLONDIKE_FAMILY_WAVE_GAMES.bureau,
+  athena: KLONDIKE_FAMILY_WAVE_GAMES.athena,
+  'pas-seul': KLONDIKE_FAMILY_WAVE_GAMES.pasSeul,
+  chameleon: KLONDIKE_FAMILY_WAVE_GAMES.chameleon,
+  'superior-canfield': KLONDIKE_FAMILY_WAVE_GAMES.superiorCanfield,
 } as const;
 export type GameId = keyof typeof GAME_DEFINITIONS;
 export function getGameDefinition(id: GameId): GameDefinition {

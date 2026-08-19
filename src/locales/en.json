@@ -51,32 +51,214 @@
     "Click the stock, or press Enter or Space, to deal cards."
   ],
   "gameHelp": {
-    "klondike": {"goal": "Build all four suit foundations from Ace through King.", "steps": ["Build tableau columns downward in alternating colors. Only a King-led run can fill an empty column.", "Deal the stock three cards at a time. Use the top waste card, then recycle after the stock is empty.", "Move available Aces to foundations and build each suit up to King."]},
-    "freecell": {"goal": "Move every card to the four suit foundations from Ace through King.", "steps": ["All cards begin face up. Build tableau columns downward in alternating colors.", "Each of the four free cells holds one temporary card. Any card may fill an empty column.", "More empty cells and columns let you move longer ordered runs."]},
-    "spider": {"goal": "Remove eight same-suit King-to-Ace runs.", "steps": ["Build tableau cards down by rank. Only an ordered same-suit run may move as a group.", "When every tableau has a card, deal one stock card to each of the ten columns.", "A complete same-suit King-to-Ace run is removed automatically."]},
-    "calculation": {"goal": "Complete four 13-card foundations, each following its own rank interval.", "steps": ["The foundations start at A, 2, 3, and 4, then advance by 1, 2, 3, and 4 ranks. King wraps to Ace.", "Use the four tableau piles and waste as temporary storage while feeding foundations.", "Deal the stock one card at a time and watch for the next required rank."]},
-    "pyramid": {"goal": "Remove all 28 cards in the pyramid.", "steps": ["Only exposed cards, with no cards covering them, can be selected.", "Remove pairs whose ranks total 13. A King removes by itself.", "Deal one card at a time and pair the top waste card with an exposed card when possible."]},
-    "bakers-game": {"goal": "Build the four suit foundations from Ace through King.", "steps": ["Build tableau columns downward in the same suit. Any card may fill an empty column.", "Each of the four free cells holds one card. Use cells and empty columns to arrange same-suit runs.", "Move each suit to its foundation in ascending order."]},
-    "eight-off": {"goal": "Build the four suit foundations from Ace through King.", "steps": ["Four of the eight cells start occupied, and each cell holds one card.", "Build tableau columns downward in the same suit. Only a King may fill an empty column.", "Make space in the cells to organize the tableau and build foundations."]},
-    "seahaven-towers": {"goal": "Move every card to the four suit foundations from Ace through King.", "steps": ["Build the ten tableau columns downward in the same suit. Only a King may fill an empty column.", "Two of the four cells start occupied; each is a one-card temporary space.", "Only one card can move at a time, so plan the order in which you clear cells."]},
-    "spiderette": {"goal": "Complete a same-suit King-to-Ace run and remove all 52 cards.", "steps": ["Build tableau cards down by rank. Only an ordered same-suit run may move as a group.", "When every tableau has a card, deal one stock card to each of the seven columns.", "A complete same-suit King-to-Ace run is removed automatically."]},
-    "yukon": {"goal": "Build all four suit foundations from Ace through King.", "steps": ["Build tableau columns downward in alternating colors. Any card may fill an empty column.", "You may move any face-up suffix, even if its internal order is not arranged.", "Expose face-down cards by moving runs, then send cards to foundations."]},
-    "forty-thieves": {"goal": "Build eight foundations: two Ace-to-King piles of each suit.", "steps": ["Build the ten tableau columns downward in the same suit, moving one card at a time.", "Deal the stock one card at a time; the top waste card can be used on tableau or foundations.", "The stock has one pass, so prioritize foundation moves."]},
-    "forty-and-eight": {"goal": "Build eight foundations: two Ace-to-King piles of each suit.", "steps": ["Build the eight tableau columns downward in the same suit, moving one card at a time.", "Deal the stock one card at a time. After it is empty, recycle the waste once.", "Use the top waste card and grow foundations early."]},
-    "josephine": {"goal": "Build eight foundations: two Ace-to-King piles of each suit.", "steps": ["Build ten tableau columns downward in the same suit. Ordered same-suit runs may move together.", "Deal the stock one card at a time and use its top waste card. There is no redeal.", "Build each suit upward from Ace on the foundations."]},
-    "congress": {"goal": "Build eight foundations: two Ace-to-King piles of each suit.", "steps": ["Build the eight tableau columns downward regardless of suit, moving one card at a time.", "Deal the stock one card at a time and use its top waste card. There is no redeal.", "Build each suit upward from Ace on the foundations."]},
-    "diplomat": {"goal": "Build eight foundations: two Ace-to-King piles of each suit.", "steps": ["Build the eight face-up tableau columns downward regardless of suit, moving one card at a time.", "Deal the stock one card at a time and use its top waste card. There is no redeal.", "Balance foundation moves with creating empty columns."]},
-    "canfield": {"goal": "Starting at the base card, build each of the four foundations to 13 cards.", "steps": ["Foundations begin at the shown base rank and cycle from King back to Ace.", "Build tableau columns downward in alternating colors. Use the top reserve card and the waste.", "Deal the stock three cards at a time and recycle it when empty; reducing the reserve matters too."]},
-    "agnes-bernauer": {"goal": "Starting at the base card, build each of the four foundations to 13 cards.", "steps": ["Build tableau columns downward in alternating colors. Only the rank below the base card may fill an empty column.", "All seven reserve cards are face up. A stock deal puts one card on each reserve pile.", "Build same-suit foundations cyclically from the base rank."]},
-    "king-albert": {"goal": "Build the four suit foundations from Ace through King.", "steps": ["The nine tableau columns and reserve are all face up. Build tableau columns downward in alternating colors.", "Choose any reserve card to move. Any card may fill an empty column.", "There is no stock or hidden card, so plan from the visible layout."]},
-    "easthaven": {"goal": "Build the four suit foundations from Ace through King.", "steps": ["Build seven tableau columns downward in alternating colors; only the top card starts face up.", "When the stock is available, deal one card to each tableau column from left to right.", "Reveal hidden cards and move Kings into empty columns to open the board."]},
-    "westcliff": {"goal": "Build the four suit foundations from Ace through King.", "steps": ["Each of the seven tableau columns starts with three cards and its top card face up.", "Deal three cards from the stock to the waste and use only the waste top card.", "Build alternating-color descending runs and place a King in an empty column."]},
-    "aunt-mary": {"goal": "Build the four suit foundations from Ace through King.", "steps": ["Arrange the seven three-card tableau columns in alternating-color descending order.", "Deal one stock card to every tableau column when the stock is available.", "Expose hidden cards and send available Aces and sequences to the foundations."]},
-    "scorpion": {"goal": "Build a same-suit King-to-Ace run and remove all 52 cards.", "steps": ["Any face-up suffix can move as a group, even when it is not ordered. Place it on the next higher card of the same suit.", "Only a King-led run can fill an empty column.", "Deal the three stock cards to the first three columns. Complete King-to-Ace runs are removed automatically."]},
-    "wasp": {"goal": "Build a same-suit King-to-Ace run and remove all 52 cards.", "steps": ["Any face-up suffix can move as a group, even when it is not ordered. Place it on the next higher card of the same suit.", "Unlike Scorpion, any face-up card or run may fill an empty column.", "Deal the three stock cards to the first three columns. Complete King-to-Ace runs are removed automatically."]},
-    "black-widow": {"goal": "Remove eight same-suit King-to-Ace runs, clearing all 104 cards.", "steps": ["Build the ten tableau columns down by rank. Only ordered same-suit runs may move as a group.", "When every tableau has a card, deal one stock card to each column.", "A complete same-suit King-to-Ace run is removed automatically."]},
-    "golf": {"goal": "Clear all seven tableau columns.", "steps": ["Turn one stock card to start the waste pile.", "Move an exposed tableau card one rank above or below the waste card. Ace and King are adjacent.", "When no card can be played, deal another stock card. Clear the tableau before the stock runs out."]},
-    "clock": {"goal": "Reveal every card in the clock layout.", "steps": ["The twelve outer piles represent ranks 1 through 12; the centre pile represents Kings.", "Move the exposed card from the active pile to the pile named by its rank, then continue from that pile.", "Keep revealing cards. The game is won when all 52 cards are face up."]}
+    "klondike": {
+      "goal": "Build all four suit foundations from Ace through King.",
+      "steps": [
+        "Build tableau columns downward in alternating colors. Only a King-led run can fill an empty column.",
+        "Deal the stock three cards at a time. Use the top waste card, then recycle after the stock is empty.",
+        "Move available Aces to foundations and build each suit up to King."
+      ]
+    },
+    "freecell": {
+      "goal": "Move every card to the four suit foundations from Ace through King.",
+      "steps": [
+        "All cards begin face up. Build tableau columns downward in alternating colors.",
+        "Each of the four free cells holds one temporary card. Any card may fill an empty column.",
+        "More empty cells and columns let you move longer ordered runs."
+      ]
+    },
+    "spider": {
+      "goal": "Remove eight same-suit King-to-Ace runs.",
+      "steps": [
+        "Build tableau cards down by rank. Only an ordered same-suit run may move as a group.",
+        "When every tableau has a card, deal one stock card to each of the ten columns.",
+        "A complete same-suit King-to-Ace run is removed automatically."
+      ]
+    },
+    "calculation": {
+      "goal": "Complete four 13-card foundations, each following its own rank interval.",
+      "steps": [
+        "The foundations start at A, 2, 3, and 4, then advance by 1, 2, 3, and 4 ranks. King wraps to Ace.",
+        "Use the four tableau piles and waste as temporary storage while feeding foundations.",
+        "Deal the stock one card at a time and watch for the next required rank."
+      ]
+    },
+    "pyramid": {
+      "goal": "Remove all 28 cards in the pyramid.",
+      "steps": [
+        "Only exposed cards, with no cards covering them, can be selected.",
+        "Remove pairs whose ranks total 13. A King removes by itself.",
+        "Deal one card at a time and pair the top waste card with an exposed card when possible."
+      ]
+    },
+    "bakers-game": {
+      "goal": "Build the four suit foundations from Ace through King.",
+      "steps": [
+        "Build tableau columns downward in the same suit. Any card may fill an empty column.",
+        "Each of the four free cells holds one card. Use cells and empty columns to arrange same-suit runs.",
+        "Move each suit to its foundation in ascending order."
+      ]
+    },
+    "eight-off": {
+      "goal": "Build the four suit foundations from Ace through King.",
+      "steps": [
+        "Four of the eight cells start occupied, and each cell holds one card.",
+        "Build tableau columns downward in the same suit. Only a King may fill an empty column.",
+        "Make space in the cells to organize the tableau and build foundations."
+      ]
+    },
+    "seahaven-towers": {
+      "goal": "Move every card to the four suit foundations from Ace through King.",
+      "steps": [
+        "Build the ten tableau columns downward in the same suit. Only a King may fill an empty column.",
+        "Two of the four cells start occupied; each is a one-card temporary space.",
+        "Only one card can move at a time, so plan the order in which you clear cells."
+      ]
+    },
+    "spiderette": {
+      "goal": "Complete a same-suit King-to-Ace run and remove all 52 cards.",
+      "steps": [
+        "Build tableau cards down by rank. Only an ordered same-suit run may move as a group.",
+        "When every tableau has a card, deal one stock card to each of the seven columns.",
+        "A complete same-suit King-to-Ace run is removed automatically."
+      ]
+    },
+    "yukon": {
+      "goal": "Build all four suit foundations from Ace through King.",
+      "steps": [
+        "Build tableau columns downward in alternating colors. Any card may fill an empty column.",
+        "You may move any face-up suffix, even if its internal order is not arranged.",
+        "Expose face-down cards by moving runs, then send cards to foundations."
+      ]
+    },
+    "forty-thieves": {
+      "goal": "Build eight foundations: two Ace-to-King piles of each suit.",
+      "steps": [
+        "Build the ten tableau columns downward in the same suit, moving one card at a time.",
+        "Deal the stock one card at a time; the top waste card can be used on tableau or foundations.",
+        "The stock has one pass, so prioritize foundation moves."
+      ]
+    },
+    "forty-and-eight": {
+      "goal": "Build eight foundations: two Ace-to-King piles of each suit.",
+      "steps": [
+        "Build the eight tableau columns downward in the same suit, moving one card at a time.",
+        "Deal the stock one card at a time. After it is empty, recycle the waste once.",
+        "Use the top waste card and grow foundations early."
+      ]
+    },
+    "josephine": {
+      "goal": "Build eight foundations: two Ace-to-King piles of each suit.",
+      "steps": [
+        "Build ten tableau columns downward in the same suit. Ordered same-suit runs may move together.",
+        "Deal the stock one card at a time and use its top waste card. There is no redeal.",
+        "Build each suit upward from Ace on the foundations."
+      ]
+    },
+    "congress": {
+      "goal": "Build eight foundations: two Ace-to-King piles of each suit.",
+      "steps": [
+        "Build the eight tableau columns downward regardless of suit, moving one card at a time.",
+        "Deal the stock one card at a time and use its top waste card. There is no redeal.",
+        "Build each suit upward from Ace on the foundations."
+      ]
+    },
+    "diplomat": {
+      "goal": "Build eight foundations: two Ace-to-King piles of each suit.",
+      "steps": [
+        "Build the eight face-up tableau columns downward regardless of suit, moving one card at a time.",
+        "Deal the stock one card at a time and use its top waste card. There is no redeal.",
+        "Balance foundation moves with creating empty columns."
+      ]
+    },
+    "canfield": {
+      "goal": "Starting at the base card, build each of the four foundations to 13 cards.",
+      "steps": [
+        "Foundations begin at the shown base rank and cycle from King back to Ace.",
+        "Build tableau columns downward in alternating colors. Use the top reserve card and the waste.",
+        "Deal the stock three cards at a time and recycle it when empty; reducing the reserve matters too."
+      ]
+    },
+    "agnes-bernauer": {
+      "goal": "Starting at the base card, build each of the four foundations to 13 cards.",
+      "steps": [
+        "Build tableau columns downward in alternating colors. Only the rank below the base card may fill an empty column.",
+        "All seven reserve cards are face up. A stock deal puts one card on each reserve pile.",
+        "Build same-suit foundations cyclically from the base rank."
+      ]
+    },
+    "king-albert": {
+      "goal": "Build the four suit foundations from Ace through King.",
+      "steps": [
+        "The nine tableau columns and reserve are all face up. Build tableau columns downward in alternating colors.",
+        "Choose any reserve card to move. Any card may fill an empty column.",
+        "There is no stock or hidden card, so plan from the visible layout."
+      ]
+    },
+    "easthaven": {
+      "goal": "Build the four suit foundations from Ace through King.",
+      "steps": [
+        "Build seven tableau columns downward in alternating colors; only the top card starts face up.",
+        "When the stock is available, deal one card to each tableau column from left to right.",
+        "Reveal hidden cards and move Kings into empty columns to open the board."
+      ]
+    },
+    "westcliff": {
+      "goal": "Build the four suit foundations from Ace through King.",
+      "steps": [
+        "Each of the seven tableau columns starts with three cards and its top card face up.",
+        "Deal three cards from the stock to the waste and use only the waste top card.",
+        "Build alternating-color descending runs and place a King in an empty column."
+      ]
+    },
+    "aunt-mary": {
+      "goal": "Build the four suit foundations from Ace through King.",
+      "steps": [
+        "Arrange the seven three-card tableau columns in alternating-color descending order.",
+        "Deal one stock card to every tableau column when the stock is available.",
+        "Expose hidden cards and send available Aces and sequences to the foundations."
+      ]
+    },
+    "scorpion": {
+      "goal": "Build a same-suit King-to-Ace run and remove all 52 cards.",
+      "steps": [
+        "Any face-up suffix can move as a group, even when it is not ordered. Place it on the next higher card of the same suit.",
+        "Only a King-led run can fill an empty column.",
+        "Deal the three stock cards to the first three columns. Complete King-to-Ace runs are removed automatically."
+      ]
+    },
+    "wasp": {
+      "goal": "Build a same-suit King-to-Ace run and remove all 52 cards.",
+      "steps": [
+        "Any face-up suffix can move as a group, even when it is not ordered. Place it on the next higher card of the same suit.",
+        "Unlike Scorpion, any face-up card or run may fill an empty column.",
+        "Deal the three stock cards to the first three columns. Complete King-to-Ace runs are removed automatically."
+      ]
+    },
+    "black-widow": {
+      "goal": "Remove eight same-suit King-to-Ace runs, clearing all 104 cards.",
+      "steps": [
+        "Build the ten tableau columns down by rank. Only ordered same-suit runs may move as a group.",
+        "When every tableau has a card, deal one stock card to each column.",
+        "A complete same-suit King-to-Ace run is removed automatically."
+      ]
+    },
+    "golf": {
+      "goal": "Clear all seven tableau columns.",
+      "steps": [
+        "Turn one stock card to start the waste pile.",
+        "Move an exposed tableau card one rank above or below the waste card. Ace and King are adjacent.",
+        "When no card can be played, deal another stock card. Clear the tableau before the stock runs out."
+      ]
+    },
+    "clock": {
+      "goal": "Reveal every card in the clock layout.",
+      "steps": [
+        "The twelve outer piles represent ranks 1 through 12; the centre pile represents Kings.",
+        "Move the exposed card from the active pile to the pile named by its rank, then continue from that pile.",
+        "Keep revealing cards. The game is won when all 52 cards are face up."
+      ]
+    }
   },
   "helpTip": "Tap a card, then a destination. Empty piles are keyboard accessible.",
   "tableAria": "{game} table",

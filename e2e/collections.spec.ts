@@ -1,12 +1,18 @@
 import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.clear());
+  await page.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem(
+      'solitaire-collections:v1',
+      JSON.stringify({ preferences: { language: 'en' } }),
+    );
+  });
 });
 
 test('shows every currently implemented game', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-tile')).toHaveCount(26);
+  await expect(page.locator('.game-tile')).toHaveCount(39);
   for (const name of [
     'Klondike',
     'FreeCell',
@@ -34,6 +40,19 @@ test('shows every currently implemented game', async ({ page }) => {
     'Black Widow',
     'Golf',
     'Clock',
+    'Agnes Sorel',
+    'Australian Patience',
+    'Whitehead',
+    'Thumb and Pouch',
+    'Blind Alleys',
+    'Batsford',
+    'Harp',
+    'Lady Jane',
+    'Bureau',
+    'Athena',
+    'Pas Seul',
+    'Chameleon',
+    'Superior Canfield',
   ]) {
     await expect(page.getByRole('heading', { name, exact: true })).toHaveCount(1);
   }
@@ -62,16 +81,29 @@ test('starts each added game from its menu tile', async ({ page }) => {
     'Black Widow',
     'Golf',
     'Clock',
+    'Agnes Sorel',
+    'Australian Patience',
+    'Whitehead',
+    'Thumb and Pouch',
+    'Blind Alleys',
+    'Batsford',
+    'Harp',
+    'Lady Jane',
+    'Bureau',
+    'Athena',
+    'Pas Seul',
+    'Chameleon',
+    'Superior Canfield',
   ]) {
     await page.goto('/');
-    await page.locator('.game-tile').filter({ hasText: name }).click();
+    await page.getByRole('button', { name, exact: true }).click();
     await expect(page.locator('.game-title h1')).toHaveText(name);
   }
 });
 
 test('starts a game from the whole tile and keyboard activation', async ({ page }) => {
   await page.goto('/');
-  const tile = page.locator('.game-tile').filter({ hasText: 'Klondike' });
+  const tile = page.getByRole('button', { name: 'Klondike', exact: true });
   await tile.click();
   await expect(page.locator('.game-title h1')).toHaveText('Klondike');
   await page.locator('.back-button').click();
@@ -113,9 +145,38 @@ test('keeps the Clock layout centred without an internal scrollbar', async ({ pa
   await expect(board).toBeVisible();
 });
 
+test('keeps representative games usable in compact mobile landscape', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chrome', 'requires a coarse-pointer mobile viewport');
+  for (const viewport of [
+    { width: 568, height: 320 },
+    { width: 844, height: 390 },
+    { width: 1024, height: 768 },
+  ]) {
+    await page.setViewportSize(viewport);
+    for (const game of ['Klondike', 'Spider', 'Pyramid', 'Clock']) {
+      await page.goto('/');
+      await page.getByRole('button', { name: game, exact: true }).click();
+      const viewportBounds = await page.evaluate(() => ({
+        height: window.innerHeight,
+        width: window.innerWidth,
+      }));
+      const table = await page.locator('.table-area').boundingBox();
+      const controls = await page.locator('.game-controls').boundingBox();
+      expect(table).not.toBeNull();
+      expect(controls).not.toBeNull();
+      expect(table!.x + table!.width).toBeLessThanOrEqual(viewportBounds.width + 1);
+      expect(controls!.x + controls!.width).toBeLessThanOrEqual(viewportBounds.width + 1);
+      expect(controls!.y + controls!.height).toBeLessThanOrEqual(viewportBounds.height + 2);
+      await expect(page.locator('.game-controls button')).toHaveCount(5);
+    }
+  }
+});
+
 test('starts Klondike and draws from the stock', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
   await expect(page.locator('.game-title h1')).toHaveText('Klondike');
   await expect(page.locator('.pile-stock')).toBeVisible();
   await page.locator('.pile-stock').click();
@@ -124,7 +185,7 @@ test('starts Klondike and draws from the stock', async ({ page }) => {
 
 test('draws when the face-down stock card itself is clicked', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
   await page.locator('.pile-stock .playing-card.face-down').last().click();
   await expect(page.locator('.table-stats')).toContainText('1');
   await page.locator('.pile-stock .playing-card.face-down').last().click();
@@ -133,7 +194,7 @@ test('draws when the face-down stock card itself is clicked', async ({ page }) =
 
 test('draws from stock even when a card is selected', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
   const selectedCard = page
     .locator('.pile-tableau .card-slot:last-child .playing-card.face-up')
     .first();
@@ -146,7 +207,7 @@ test('draws from stock even when a card is selected', async ({ page }) => {
 
 test('prevents text selection on cards while retaining card controls', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
   const card = page.locator('.playing-card').first();
   await expect(card).toBeVisible();
   await expect(card).toHaveCSS('user-select', 'none');
@@ -158,7 +219,7 @@ test('prevents text selection on cards while retaining card controls', async ({ 
 
 test('changes the theme and card back in settings', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
   await page.getByRole('button', { name: /設定|Settings/ }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page
@@ -175,10 +236,11 @@ test('changes the theme and card back in settings', async ({ page }) => {
 
 test('opens localized how-to-play help for the active game', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: '日本語', exact: true }).click();
   await page.getByRole('button', { name: 'Klondike', exact: true }).click();
   await page.getByRole('button', { name: '遊び方' }).click();
   const japaneseDialog = page.getByRole('dialog');
-  await expect(japaneseDialog).toContainText('Klondike の遊び方');
+  await expect(japaneseDialog).toContainText('クロンダイク の遊び方');
   await expect(japaneseDialog).toContainText('4つの完成札を、各スートのAからKまで完成させます。');
   await page.getByRole('button', { name: '閉じる' }).click();
   await page.getByRole('button', { name: '一覧へ戻る' }).click();
@@ -194,7 +256,7 @@ test('opens localized how-to-play help for the active game', async ({ page }) =>
 
 test('moves the exact pointer-dragged card without leaving a stale selection', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  await page.getByRole('button', { name: 'FreeCell', exact: true }).click();
   const source = page.locator('.pile-tableau .card-slot:last-child .playing-card').first();
   const emptyCell = page.locator('.pile-cell').first();
   await emptyCell.scrollIntoViewIfNeeded();
@@ -215,7 +277,7 @@ test('moves the exact pointer-dragged card without leaving a stale selection', a
 
 test('moves a FreeCell card with pointer drag', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  await page.getByRole('button', { name: 'FreeCell', exact: true }).click();
   const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
   const target = page.locator('.pile-cell').first();
   await target.scrollIntoViewIfNeeded();
@@ -235,7 +297,7 @@ test('moves a FreeCell card with pointer drag', async ({ page }) => {
 
 test('shows a pointer-following ghost for the legal moving card only', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  await page.getByRole('button', { name: 'FreeCell', exact: true }).click();
   const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
   const sourceBox = await source.boundingBox();
   expect(sourceBox).not.toBeNull();
@@ -261,7 +323,7 @@ test('shows a pointer-following ghost for the legal moving card only', async ({ 
 
 test('recovers from an interrupted drag and accepts the next card move', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  await page.getByRole('button', { name: 'FreeCell', exact: true }).click();
   const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
   const target = page.locator('.pile-cell').first();
   await target.scrollIntoViewIfNeeded();
@@ -298,7 +360,7 @@ test('recovers from an interrupted drag and accepts the next card move', async (
 
 test('ignores a non-primary pointer drag', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  await page.getByRole('button', { name: 'FreeCell', exact: true }).click();
   const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
   const sourceBox = await source.boundingBox();
   expect(sourceBox).not.toBeNull();
@@ -313,7 +375,7 @@ test('ignores a non-primary pointer drag', async ({ page }) => {
 
 test('moves a selected FreeCell card to a highlighted empty cell by click', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  await page.getByRole('button', { name: 'FreeCell', exact: true }).click();
   const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
   await source.click();
   await expect(source).toHaveClass(/is-selected/);
@@ -326,7 +388,7 @@ test('moves a selected FreeCell card to a highlighted empty cell by click', asyn
 
 test('supports Enter on a face-up card and Space on an empty pile', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  await page.getByRole('button', { name: 'FreeCell', exact: true }).click();
   const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
   await source.focus();
   await source.press('Enter');
@@ -340,7 +402,7 @@ test('supports Enter on a face-up card and Space on an empty pile', async ({ pag
 
 test('supports keyboard draw on the stock pile', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
   const stock = page.locator('.pile-stock');
   await stock.focus();
   await stock.press('Enter');
@@ -349,7 +411,7 @@ test('supports keyboard draw on the stock pile', async ({ page }) => {
 
 test('double-clicks an exposed ace to its foundation exactly once', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  await page.getByRole('button', { name: 'FreeCell', exact: true }).click();
   let ace = page
     .locator('.pile-tableau .card-slot:last-child .playing-card[data-rank="A"]')
     .first();
@@ -371,7 +433,7 @@ test('keeps pyramid interaction on exposed cards and removes an exposed king in 
   page,
 }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'Pyramid' }).click();
+  await page.getByRole('button', { name: 'Pyramid', exact: true }).click();
   await expect(page.locator('.game-pyramid .pile-tableau.is-covered-pyramid-pile')).toHaveCount(21);
   await expect(
     page.locator('.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card'),
@@ -399,7 +461,7 @@ test('keeps pyramid interaction on exposed cards and removes an exposed king in 
 
 test('pairs an exposed pyramid card with the drawn waste card', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'Pyramid' }).click();
+  await page.getByRole('button', { name: 'Pyramid', exact: true }).click();
   const rank = (value: string) => {
     return ({ A: 1, J: 11, Q: 12, K: 13 } as Record<string, number>)[value] ?? Number(value);
   };
@@ -440,7 +502,7 @@ test('pairs an exposed pyramid card with the drawn waste card', async ({ page })
 
 test('does not begin a drag ghost for a pyramid removal card', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.game-tile').filter({ hasText: 'Pyramid' }).click();
+  await page.getByRole('button', { name: 'Pyramid', exact: true }).click();
   const card = page
     .locator('.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card')
     .first();

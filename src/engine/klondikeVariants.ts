@@ -15,7 +15,13 @@ type VariantRules = {
 
 const variants: VariantRules[] = [
   { id: 'easthaven', name: 'Easthaven', initialSizes: [1, 2, 3, 4, 5, 6, 7], dealMode: 'tableau' },
-  { id: 'westcliff', name: 'Westcliff', initialSizes: [3, 3, 3, 3, 3, 3, 3], dealMode: 'waste', wasteDraw: 3 },
+  {
+    id: 'westcliff',
+    name: 'Westcliff',
+    initialSizes: [3, 3, 3, 3, 3, 3, 3],
+    dealMode: 'waste',
+    wasteDraw: 3,
+  },
   { id: 'aunt-mary', name: 'Aunt Mary', initialSizes: [3, 3, 3, 3, 3, 3, 3], dealMode: 'tableau' },
 ];
 
@@ -23,17 +29,26 @@ function sameMove(a: Move, b: Move): boolean {
   if (a.type !== b.type || a.from !== b.from || a.to !== b.to) return false;
   if (a.type === 'draw' && b.type === 'draw') return (a.count ?? 1) === (b.count ?? 1);
   if (a.type === 'recycle' && b.type === 'recycle') return true;
-  return 'cardIds' in a && 'cardIds' in b && JSON.stringify(a.cardIds) === JSON.stringify(b.cardIds);
+  return (
+    'cardIds' in a && 'cardIds' in b && JSON.stringify(a.cardIds) === JSON.stringify(b.cardIds)
+  );
 }
 
 function checked(state: GameState, move: Move, legal: Move[], fn: () => ApplyResult): ApplyResult {
-  return legal.some((candidate) => sameMove(candidate, move)) ? fn() : { state, error: 'Illegal move' };
+  return legal.some((candidate) => sameMove(candidate, move))
+    ? fn()
+    : { state, error: 'Illegal move' };
 }
 
 function runIsLegal(cards: Card[], start: number): boolean {
   for (let index = start; index < cards.length; index += 1) {
     if (!cards[index].faceUp) return false;
-    if (index > start && (cards[index - 1].rank !== cards[index].rank + 1 || cardColor(cards[index - 1]) === cardColor(cards[index]))) return false;
+    if (
+      index > start &&
+      (cards[index - 1].rank !== cards[index].rank + 1 ||
+        cardColor(cards[index - 1]) === cardColor(cards[index]))
+    )
+      return false;
   }
   return true;
 }
@@ -43,20 +58,32 @@ function definitionFor(rules: VariantRules): GameDefinition {
     const moves: Move[] = [];
     const tableaus = TABLEAU_IDS.map((id) => state.piles[id]);
     const canPlace = (card: Card, destination: Card | undefined): boolean =>
-      destination ? destination.faceUp && destination.rank === card.rank + 1 && cardColor(destination) !== cardColor(card) : card.rank === 13;
+      destination
+        ? destination.faceUp &&
+          destination.rank === card.rank + 1 &&
+          cardColor(destination) !== cardColor(card)
+        : card.rank === 13;
     for (const source of [...tableaus, state.piles.waste]) {
       for (let start = source.cards.length - 1; start >= 0; start -= 1) {
         if (!runIsLegal(source.cards, start)) continue;
         const card = source.cards[start];
         for (const destination of tableaus) {
           if (destination.id !== source.id && canPlace(card, top(destination))) {
-            moves.push({ type: 'transfer', from: source.id, to: destination.id, cardIds: source.cards.slice(start).map((item) => item.id) });
+            moves.push({
+              type: 'transfer',
+              from: source.id,
+              to: destination.id,
+              cardIds: source.cards.slice(start).map((item) => item.id),
+            });
           }
         }
         if (start === source.cards.length - 1) {
           for (const foundation of FOUNDATION_IDS) {
             const pileState = state.piles[foundation];
-            if (card.rank === pileState.cards.length + 1 && (!pileState.cards.length || pileState.cards[0].suit === card.suit)) {
+            if (
+              card.rank === pileState.cards.length + 1 &&
+              (!pileState.cards.length || pileState.cards[0].suit === card.suit)
+            ) {
               moves.push({ type: 'transfer', from: source.id, to: foundation, cardIds: [card.id] });
             }
           }
@@ -64,7 +91,15 @@ function definitionFor(rules: VariantRules): GameDefinition {
       }
     }
     if (state.piles.stock.cards.length) {
-      moves.push({ type: 'draw', from: 'stock', to: rules.dealMode === 'waste' ? 'waste' : 't0', count: rules.dealMode === 'waste' ? Math.min(rules.wasteDraw ?? 1, state.piles.stock.cards.length) : Math.min(7, state.piles.stock.cards.length) });
+      moves.push({
+        type: 'draw',
+        from: 'stock',
+        to: rules.dealMode === 'waste' ? 'waste' : 't0',
+        count:
+          rules.dealMode === 'waste'
+            ? Math.min(rules.wasteDraw ?? 1, state.piles.stock.cards.length)
+            : Math.min(7, state.piles.stock.cards.length),
+      });
     } else if (rules.dealMode === 'waste' && state.piles.waste.cards.length) {
       moves.push({ type: 'recycle', from: 'waste', to: 'stock' });
     }
@@ -76,7 +111,12 @@ function definitionFor(rules: VariantRules): GameDefinition {
     decks: 1,
     create(seed = 'solitaire-default'): GameState {
       const deck = shuffledDeck(seed);
-      const piles = [pile('stock', 'stock'), pile('waste', 'waste'), ...FOUNDATION_IDS.map((id) => pile(id, 'foundation')), ...TABLEAU_IDS.map((id) => pile(id, 'tableau'))];
+      const piles = [
+        pile('stock', 'stock'),
+        pile('waste', 'waste'),
+        ...FOUNDATION_IDS.map((id) => pile(id, 'foundation')),
+        ...TABLEAU_IDS.map((id) => pile(id, 'tableau')),
+      ];
       let cursor = 0;
       rules.initialSizes.forEach((size, column) => {
         const target = piles.find((item) => item.id === `t${column}`)!;
@@ -86,7 +126,9 @@ function definitionFor(rules: VariantRules): GameDefinition {
           target.cards.push(card);
         }
       });
-      deck.slice(cursor).forEach((card) => piles.find((item) => item.id === 'stock')!.cards.push(card));
+      deck
+        .slice(cursor)
+        .forEach((card) => piles.find((item) => item.id === 'stock')!.cards.push(card));
       return makeState(rules.id, seed, piles, { options: { dealMode: rules.dealMode } });
     },
     legalMoves,
@@ -96,8 +138,14 @@ function definitionFor(rules: VariantRules): GameDefinition {
           const next = cloneState(state);
           if (rules.dealMode === 'waste') {
             const count = move.count ?? 1;
-            const cards = next.piles.stock.cards.splice(next.piles.stock.cards.length - count, count);
-            cards.forEach((card) => { card.faceUp = true; next.piles.waste.cards.push(card); });
+            const cards = next.piles.stock.cards.splice(
+              next.piles.stock.cards.length - count,
+              count,
+            );
+            cards.forEach((card) => {
+              card.faceUp = true;
+              next.piles.waste.cards.push(card);
+            });
           } else {
             for (const id of TABLEAU_IDS) {
               const card = next.piles.stock.cards.pop();
@@ -111,7 +159,12 @@ function definitionFor(rules: VariantRules): GameDefinition {
         }
         if (move.type === 'recycle') {
           const next = cloneState(state);
-          next.piles.stock.cards.push(...next.piles.waste.cards.splice(0).reverse().map((card) => ({ ...card, faceUp: false })));
+          next.piles.stock.cards.push(
+            ...next.piles.waste.cards
+              .splice(0)
+              .reverse()
+              .map((card) => ({ ...card, faceUp: false })),
+          );
           next.moveCount += 1;
           return { state: next };
         }

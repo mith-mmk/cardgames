@@ -6,12 +6,12 @@ CI currently performs required builds on Windows, Ubuntu, and macOS, covering
 the Windows installers, Linux packages (including AppImage/deb where supported
 by the runner), and the macOS application/dmg workflow.
 
-Android and iOS are planned Tauri 2 targets. Their SDK projects are intentionally
-not checked into this repository yet: `tauri android init` requires the Android
-SDK/NDK, and `tauri ios init` requires macOS, Xcode, and CocoaPods. CI verifies
-that the installed Tauri CLI exposes both workflows without generating a large,
-host-specific native tree. Mobile initialization and packaging should be run on
-the matching release host after the mobile UX has been validated.
+Android is initialized in `src-tauri/gen/android` and locks the activity to
+sensor landscape. The native tree is versioned with its orientation setting;
+Android packaging is intentionally deferred until the mobile UX is validated.
+The iOS target still requires macOS, Xcode, and CocoaPods. Its shared landscape
+UI is implemented now, while `tauri ios init` and the generated `Info.plist`
+orientation entries must be completed on a macOS release host.
 
 The app remains offline-first and stores data locally. Platform-specific storage,
 permissions, signing, and store metadata are not part of the current release.

@@ -3,7 +3,12 @@ import { cloneState, draw, makeState, pile, top, transfer } from './core';
 import { shuffledDeck } from './random';
 
 const DEFAULT_SEED = 'solitaire-default';
-const checked = (state: GameState, move: Move, legal: Move[], apply: () => ApplyResult): ApplyResult =>
+const checked = (
+  state: GameState,
+  move: Move,
+  legal: Move[],
+  apply: () => ApplyResult,
+): ApplyResult =>
   legal.some((candidate) => JSON.stringify(candidate) === JSON.stringify(move))
     ? apply()
     : { state, error: 'Illegal move' };
@@ -19,8 +24,12 @@ export const golf: GameDefinition = {
   decks: 1,
   create(seed = DEFAULT_SEED): GameState {
     const deck = shuffledDeck(seed);
-    const piles = [pile('stock', 'stock'), pile('waste', 'waste'), pile('removed', 'removed'),
-      ...Array.from({ length: 7 }, (_, i) => pile(`t${i}`, 'tableau'))];
+    const piles = [
+      pile('stock', 'stock'),
+      pile('waste', 'waste'),
+      pile('removed', 'removed'),
+      ...Array.from({ length: 7 }, (_, i) => pile(`t${i}`, 'tableau')),
+    ];
     deck.slice(0, 35).forEach((card, index) => {
       card.faceUp = true;
       piles.find((item) => item.id === `t${index % 7}`)!.cards.push(card);
@@ -54,8 +63,10 @@ export const golf: GameDefinition = {
       return { state: next };
     });
   },
-  hint: (state) => golf.legalMoves(state).find((move) => move.type === 'transfer') ?? golf.legalMoves(state)[0],
-  isWon: (state) => Array.from({ length: 7 }, (_, i) => state.piles[`t${i}`].cards.length === 0).every(Boolean),
+  hint: (state) =>
+    golf.legalMoves(state).find((move) => move.type === 'transfer') ?? golf.legalMoves(state)[0],
+  isWon: (state) =>
+    Array.from({ length: 7 }, (_, i) => state.piles[`t${i}`].cards.length === 0).every(Boolean),
 };
 
 /** Clock: twelve numbered piles plus the centre (13); the exposed card selects the next pile. */
@@ -70,7 +81,7 @@ export const clock: GameDefinition = {
       ...Array.from({ length: 13 }, (_, i) => pile(`clock${i + 1}`, 'tableau')),
     ];
     deck.forEach((card, index) => {
-      const target = piles[index % 13 + 1];
+      const target = piles[(index % 13) + 1];
       target.cards.push(card);
     });
     top(piles[13])!.faceUp = true;
@@ -89,7 +100,8 @@ export const clock: GameDefinition = {
       const next = cloneState(state);
       const source = next.piles[move.from];
       const target = next.piles[move.to];
-      if (!source || !target || top(source)?.id !== move.cardIds[0]) return { state, error: 'Card is not exposed' };
+      if (!source || !target || top(source)?.id !== move.cardIds[0])
+        return { state, error: 'Card is not exposed' };
       const card = source.cards.pop()!;
       card.faceUp = true;
       next.piles.removed.cards.push(card);
@@ -104,7 +116,8 @@ export const clock: GameDefinition = {
   },
   hint: (state) => clock.legalMoves(state)[0],
   isWon: (state) =>
-    Array.from({ length: 13 }, (_, index) => state.piles[`clock${index + 1}`].cards.length === 0).every(
-      Boolean,
-    ),
+    Array.from(
+      { length: 13 },
+      (_, index) => state.piles[`clock${index + 1}`].cards.length === 0,
+    ).every(Boolean),
 };

@@ -7,7 +7,7 @@ import { GameHelp } from './GameHelp';
 import { interpolate, text } from './i18n';
 import { storage } from './persistence';
 import type { Card, GameDefinition, GameSession, Language, Pile } from './types';
-import { clock, pileLayout } from './ui';
+import { clock, isCompactLandscape, pileLayout } from './ui';
 import type { ThemeAsset } from './ui';
 
 export function GameScreen({
@@ -60,8 +60,9 @@ export function GameScreen({
   }, []);
   const snapshot = session.getSnapshot();
   const piles = snapshot.piles;
+  const compactLandscape = isCompactLandscape();
   const isWideLayout =
-    definition.id !== 'clock' &&
+    !['clock', 'spider', 'pyramid'].includes(definition.id) &&
     (piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
       piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4);
   const isClock = definition.id === 'clock';
@@ -280,7 +281,7 @@ export function GameScreen({
   };
   return (
     <main
-      className={`game-screen game-${definition.id} motion-${preferences.motion} ${preferences.largeCards ? 'large-cards' : ''}`}
+      className={`game-screen game-${definition.id} motion-${preferences.motion} ${preferences.largeCards ? 'large-cards' : ''} ${compactLandscape ? 'compact-landscape' : ''}`}
     >
       <header className="game-topbar">
         <button className="back-button" onClick={onBack}>
@@ -359,7 +360,7 @@ export function GameScreen({
                         pile.kind === 'tableau' &&
                         piles.filter((item) => item.kind === 'tableau').length < 20 &&
                         !isClock
-                          ? `${index * 30}px`
+                          ? `${index * (compactLandscape ? (card.faceUp ? 12 : 8) : 30)}px`
                           : 0,
                       zIndex: index,
                     }}

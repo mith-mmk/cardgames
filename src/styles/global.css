@@ -1638,3 +1638,132 @@ footer {
     min-width: 1120px;
   }
 }
+
+/* Native mobile targets are landscape-only. Keep every board and its action
+   controls visible in short, touch-first viewports without an inner scroller. */
+@media (orientation: landscape) and (max-height: 900px) and (pointer: coarse) {
+  :root {
+    --card-w: clamp(44px, 6.2vw, 64px);
+    --card-h: clamp(64px, 8.9vw, 92px);
+  }
+
+  .app-shell {
+    min-height: 100dvh;
+    overflow: clip;
+  }
+
+  .game-screen,
+  .game-topbar,
+  .game-layout,
+  .game-layout-spider,
+  .game-wide-layout {
+    width: calc(100% - 20px);
+  }
+
+  .game-topbar {
+    height: 48px;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .game-title h1 {
+    font-size: 13px;
+  }
+
+  .game-family,
+  .back-button span {
+    display: none;
+  }
+
+  .game-layout,
+  .game-layout-spider,
+  .game-wide-layout {
+    display: grid;
+    height: calc(100dvh - 48px);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) 44px;
+    gap: 6px;
+    padding: 6px 0;
+  }
+
+  .table-area,
+  .game-layout-clock .table-area {
+    min-height: 0;
+    height: 100%;
+    padding: 8px;
+    overflow: auto;
+    scrollbar-width: none;
+    border-radius: 12px;
+  }
+
+  .table-area::-webkit-scrollbar {
+    display: none;
+  }
+
+  .table-stats {
+    gap: 12px;
+  }
+
+  .board,
+  .game-layout-clock .board,
+  .game-pyramid .board,
+  .game-spider .board,
+  .game-wide-layout .board {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: calc(100% - 24px);
+    margin-top: 6px;
+  }
+
+  .game-pyramid .board {
+    height: max(260px, calc(100% - 24px));
+  }
+
+  .game-controls,
+  .game-layout-spider .game-controls,
+  .game-wide-layout .game-controls {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(44px, 1fr));
+    gap: 5px;
+    padding: 0;
+  }
+
+  .game-control-group,
+  .game-layout-spider .game-control-group,
+  .game-wide-layout .game-control-group {
+    display: contents;
+  }
+
+  .game-controls button,
+  .game-layout-spider .game-controls button,
+  .game-wide-layout .game-controls button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 5px 3px;
+    font-size: 9px;
+  }
+
+  .game-controls button span {
+    display: inline;
+    margin: 0 0 0 3px;
+  }
+
+  .game-controls kbd,
+  .game-controls .control-rule,
+  .game-controls .tip,
+  .action-status {
+    display: none;
+  }
+
+  .modal-scrim {
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  }
+
+  .settings-modal,
+  .game-help-modal {
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);
+    padding: 16px;
+  }
+}

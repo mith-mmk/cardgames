@@ -20,7 +20,9 @@ describe('Klondike-family variants', () => {
 
   it('uses the documented layouts and stock actions', () => {
     const east = easthaven.create('layout-east');
-    expect(Array.from({ length: 7 }, (_, index) => east.piles[`t${index}`].cards.length)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(Array.from({ length: 7 }, (_, index) => east.piles[`t${index}`].cards.length)).toEqual([
+      1, 2, 3, 4, 5, 6, 7,
+    ]);
     expect(east.piles.stock.cards).toHaveLength(24);
     const eastDeal = easthaven.legalMoves(east).find((move) => move.type === 'draw');
     expect(eastDeal).toMatchObject({ type: 'draw', from: 'stock', to: 't0', count: 7 });
@@ -29,13 +31,17 @@ describe('Klondike-family variants', () => {
 
     for (const definition of [westcliff, auntMary]) {
       const state = definition.create(`layout-${definition.id}`);
-      expect(Array.from({ length: 7 }, (_, index) => state.piles[`t${index}`].cards.length)).toEqual(Array(7).fill(3));
+      expect(
+        Array.from({ length: 7 }, (_, index) => state.piles[`t${index}`].cards.length),
+      ).toEqual(Array(7).fill(3));
       const deal = definition.legalMoves(state).find((move) => move.type === 'draw');
       expect(deal?.type).toBe('draw');
       const after = definition.applyMove(state, deal!).state;
       expect(allCards(after)).toHaveLength(52);
     }
-    const westDeal = westcliff.legalMoves(westcliff.create('west-stock')).find((move) => move.type === 'draw');
+    const westDeal = westcliff
+      .legalMoves(westcliff.create('west-stock'))
+      .find((move) => move.type === 'draw');
     expect(westDeal).toMatchObject({ count: 3, to: 'waste' });
   });
 
@@ -43,7 +49,10 @@ describe('Klondike-family variants', () => {
     for (const definition of definitions as readonly GameDefinition[]) {
       const session = new GameSession(definition, `session-${definition.id}`);
       const before = JSON.stringify(session.state);
-      expect(session.move({ type: 'transfer', from: 'missing', to: 'missing', cardIds: ['missing'] }).error).toBeTruthy();
+      expect(
+        session.move({ type: 'transfer', from: 'missing', to: 'missing', cardIds: ['missing'] })
+          .error,
+      ).toBeTruthy();
       expect(JSON.stringify(session.state)).toBe(before);
       const legal = definition.legalMoves(session.state)[0];
       expect(legal).toBeDefined();

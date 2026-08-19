@@ -128,7 +128,7 @@ describe('open-cell/fan wave games', () => {
     expect(JSON.stringify(session.state)).toBe(initial);
   });
 
-  it('keeps Baker\'s Dozen as thirteen four-card columns', () => {
+  it("keeps Baker's Dozen as thirteen four-card columns", () => {
     const state = bakersDozen.create('bakers-dozen-layout');
     expect(Array.from({ length: 13 }, (_, index) => state.piles[`t${index}`].cards.length)).toEqual(
       Array(13).fill(4),

@@ -23,32 +23,241 @@ interface SpecialRules {
 const DEFAULT_SEED = 'solitaire-default';
 
 const RULES: readonly SpecialRules[] = [
-  { id: 'busy-aces', name: 'Busy Aces', decks: 1, layout: 'busy-aces', tableauSizes: Array(8).fill(4), foundationCount: 4, foundationRule: 'standard', build: 'alternate', stock: true },
-  { id: 'deuces', name: 'Deuces', decks: 1, layout: 'deuces', tableauSizes: Array(7).fill(4), foundationCount: 4, foundationRule: 'deuces', build: 'alternate', stock: true },
-  { id: 'aces-and-kings', name: 'Aces and Kings', decks: 1, layout: 'aces-and-kings', tableauSizes: Array(8).fill(4), foundationCount: 8, foundationRule: 'descending', build: 'alternate', stock: true },
-  { id: 'tournament', name: 'Tournament', decks: 2, layout: 'tournament', tableauSizes: Array(8).fill(5), foundationCount: 8, foundationRule: 'standard', build: 'same-suit', stock: true },
-  { id: 'colorado', name: 'Colorado', decks: 1, layout: 'colorado', tableauSizes: [1, 2, 3, 4, 5, 6, 7], foundationCount: 4, foundationRule: 'standard', build: 'alternate', stock: true },
-  { id: 'crescent', name: 'Crescent', decks: 2, layout: 'crescent', tableauSizes: Array(16).fill(4), foundationCount: 8, foundationRule: 'standard', build: 'same-suit', stock: true, moveRuns: false },
-  { id: 'crazy-quilt', name: 'Crazy Quilt', decks: 2, layout: 'grid', tableauSizes: Array(13).fill(8), foundationCount: 8, foundationRule: 'standard', build: 'alternate', allFaceUp: true, moveRuns: false },
-  { id: 'windmill', name: 'Windmill', decks: 2, layout: 'windmill', tableauSizes: Array(8).fill(4), foundationCount: 8, foundationRule: 'standard', build: 'same-suit', stock: true, moveRuns: false },
-  { id: 'sultan', name: 'Sultan', decks: 2, layout: 'sultan', tableauSizes: Array(8).fill(4), foundationCount: 8, foundationRule: 'descending', build: 'alternate', reserveCount: 8, stock: true, moveRuns: false },
-  { id: 'algerian-patience', name: 'Algerian Patience', decks: 2, layout: 'algerian', tableauSizes: Array(8).fill(4), foundationCount: 8, foundationRule: 'descending', build: 'alternate', reserveCount: 8, stock: true, moveRuns: true },
-  { id: 'indian', name: 'Indian', decks: 2, layout: 'indian', tableauSizes: Array(10).fill(4), foundationCount: 8, foundationRule: 'standard', build: 'alternate', stock: true, moveRuns: true },
-  { id: 'gypsy', name: 'Gypsy', decks: 2, layout: 'gypsy', tableauSizes: Array(8).fill(4), foundationCount: 8, foundationRule: 'standard', build: 'alternate', stock: true, moveRuns: true },
-  { id: 'carthage', name: 'Carthage', decks: 1, layout: 'carthage', tableauSizes: Array(8).fill(4), foundationCount: 4, foundationRule: 'standard', build: 'alternate', stock: true, moveRuns: false },
-  { id: 'carpet', name: 'Carpet', decks: 1, layout: 'carpet', tableauSizes: Array(10).fill(4), foundationCount: 4, foundationRule: 'standard', build: 'alternate', reserveCount: 8, stock: true, moveRuns: false },
-  { id: 'bristol', name: 'Bristol', decks: 1, layout: 'bristol', tableauSizes: Array(8).fill(4), foundationCount: 4, foundationRule: 'standard', build: 'any', stock: true, moveRuns: false },
-  { id: 'sir-tommy', name: 'Sir Tommy', decks: 1, layout: 'sir-tommy', tableauSizes: Array(7).fill(4), foundationCount: 4, foundationRule: 'standard', build: 'any', stock: true, moveRuns: false },
-  { id: 'auld-lang-syne', name: 'Auld Lang Syne', decks: 1, layout: 'auld-lang-syne', tableauSizes: Array(4).fill(4), foundationCount: 4, foundationRule: 'standard', build: 'same-suit', stock: true, moveRuns: false },
-  { id: 'osmosis', name: 'Osmosis', decks: 1, layout: 'osmosis', tableauSizes: Array(7).fill(4), foundationCount: 4, foundationRule: 'osmosis', build: 'alternate', stock: true, moveRuns: false },
-  { id: 'four-seasons', name: 'Four Seasons', decks: 1, layout: 'cross', tableauSizes: Array(12).fill(3), foundationCount: 4, foundationRule: 'standard', build: 'alternate', reserveCount: 4, stock: true, moveRuns: false },
+  {
+    id: 'busy-aces',
+    name: 'Busy Aces',
+    decks: 1,
+    layout: 'busy-aces',
+    tableauSizes: Array(8).fill(4),
+    foundationCount: 4,
+    foundationRule: 'standard',
+    build: 'alternate',
+    stock: true,
+  },
+  {
+    id: 'deuces',
+    name: 'Deuces',
+    decks: 1,
+    layout: 'deuces',
+    tableauSizes: Array(7).fill(4),
+    foundationCount: 4,
+    foundationRule: 'deuces',
+    build: 'alternate',
+    stock: true,
+  },
+  {
+    id: 'aces-and-kings',
+    name: 'Aces and Kings',
+    decks: 1,
+    layout: 'aces-and-kings',
+    tableauSizes: Array(8).fill(4),
+    foundationCount: 8,
+    foundationRule: 'descending',
+    build: 'alternate',
+    stock: true,
+  },
+  {
+    id: 'tournament',
+    name: 'Tournament',
+    decks: 2,
+    layout: 'tournament',
+    tableauSizes: Array(8).fill(5),
+    foundationCount: 8,
+    foundationRule: 'standard',
+    build: 'same-suit',
+    stock: true,
+  },
+  {
+    id: 'colorado',
+    name: 'Colorado',
+    decks: 1,
+    layout: 'colorado',
+    tableauSizes: [1, 2, 3, 4, 5, 6, 7],
+    foundationCount: 4,
+    foundationRule: 'standard',
+    build: 'alternate',
+    stock: true,
+  },
+  {
+    id: 'crescent',
+    name: 'Crescent',
+    decks: 2,
+    layout: 'crescent',
+    tableauSizes: Array(16).fill(4),
+    foundationCount: 8,
+    foundationRule: 'standard',
+    build: 'same-suit',
+    stock: true,
+    moveRuns: false,
+  },
+  {
+    id: 'crazy-quilt',
+    name: 'Crazy Quilt',
+    decks: 2,
+    layout: 'grid',
+    tableauSizes: Array(13).fill(8),
+    foundationCount: 8,
+    foundationRule: 'standard',
+    build: 'alternate',
+    allFaceUp: true,
+    moveRuns: false,
+  },
+  {
+    id: 'windmill',
+    name: 'Windmill',
+    decks: 2,
+    layout: 'windmill',
+    tableauSizes: Array(8).fill(4),
+    foundationCount: 8,
+    foundationRule: 'standard',
+    build: 'same-suit',
+    stock: true,
+    moveRuns: false,
+  },
+  {
+    id: 'sultan',
+    name: 'Sultan',
+    decks: 2,
+    layout: 'sultan',
+    tableauSizes: Array(8).fill(4),
+    foundationCount: 8,
+    foundationRule: 'descending',
+    build: 'alternate',
+    reserveCount: 8,
+    stock: true,
+    moveRuns: false,
+  },
+  {
+    id: 'algerian-patience',
+    name: 'Algerian Patience',
+    decks: 2,
+    layout: 'algerian',
+    tableauSizes: Array(8).fill(4),
+    foundationCount: 8,
+    foundationRule: 'descending',
+    build: 'alternate',
+    reserveCount: 8,
+    stock: true,
+    moveRuns: true,
+  },
+  {
+    id: 'indian',
+    name: 'Indian',
+    decks: 2,
+    layout: 'indian',
+    tableauSizes: Array(10).fill(4),
+    foundationCount: 8,
+    foundationRule: 'standard',
+    build: 'alternate',
+    stock: true,
+    moveRuns: true,
+  },
+  {
+    id: 'gypsy',
+    name: 'Gypsy',
+    decks: 2,
+    layout: 'gypsy',
+    tableauSizes: Array(8).fill(4),
+    foundationCount: 8,
+    foundationRule: 'standard',
+    build: 'alternate',
+    stock: true,
+    moveRuns: true,
+  },
+  {
+    id: 'carthage',
+    name: 'Carthage',
+    decks: 1,
+    layout: 'carthage',
+    tableauSizes: Array(8).fill(4),
+    foundationCount: 4,
+    foundationRule: 'standard',
+    build: 'alternate',
+    stock: true,
+    moveRuns: false,
+  },
+  {
+    id: 'carpet',
+    name: 'Carpet',
+    decks: 1,
+    layout: 'carpet',
+    tableauSizes: Array(10).fill(4),
+    foundationCount: 4,
+    foundationRule: 'standard',
+    build: 'alternate',
+    reserveCount: 8,
+    stock: true,
+    moveRuns: false,
+  },
+  {
+    id: 'bristol',
+    name: 'Bristol',
+    decks: 1,
+    layout: 'bristol',
+    tableauSizes: Array(8).fill(4),
+    foundationCount: 4,
+    foundationRule: 'standard',
+    build: 'any',
+    stock: true,
+    moveRuns: false,
+  },
+  {
+    id: 'sir-tommy',
+    name: 'Sir Tommy',
+    decks: 1,
+    layout: 'sir-tommy',
+    tableauSizes: Array(7).fill(4),
+    foundationCount: 4,
+    foundationRule: 'standard',
+    build: 'any',
+    stock: true,
+    moveRuns: false,
+  },
+  {
+    id: 'auld-lang-syne',
+    name: 'Auld Lang Syne',
+    decks: 1,
+    layout: 'auld-lang-syne',
+    tableauSizes: Array(4).fill(4),
+    foundationCount: 4,
+    foundationRule: 'standard',
+    build: 'same-suit',
+    stock: true,
+    moveRuns: false,
+  },
+  {
+    id: 'osmosis',
+    name: 'Osmosis',
+    decks: 1,
+    layout: 'osmosis',
+    tableauSizes: Array(7).fill(4),
+    foundationCount: 4,
+    foundationRule: 'osmosis',
+    build: 'alternate',
+    stock: true,
+    moveRuns: false,
+  },
+  {
+    id: 'four-seasons',
+    name: 'Four Seasons',
+    decks: 1,
+    layout: 'cross',
+    tableauSizes: Array(12).fill(3),
+    foundationCount: 4,
+    foundationRule: 'standard',
+    build: 'alternate',
+    reserveCount: 4,
+    stock: true,
+    moveRuns: false,
+  },
 ];
 
 function sameMove(a: Move, b: Move): boolean {
   if (a.type !== b.type || a.from !== b.from || a.to !== b.to) return false;
   if (a.type === 'draw' && b.type === 'draw') return (a.count ?? 1) === (b.count ?? 1);
   if (a.type === 'recycle' && b.type === 'recycle') return true;
-  if ('cardIds' in a && 'cardIds' in b) return JSON.stringify(a.cardIds) === JSON.stringify(b.cardIds);
+  if ('cardIds' in a && 'cardIds' in b)
+    return JSON.stringify(a.cardIds) === JSON.stringify(b.cardIds);
   return false;
 }
 
@@ -131,15 +340,28 @@ function createState(rules: SpecialRules, seed: string): GameState {
     });
   }
   return makeState(rules.id, seed, piles, {
-    options: { layout: rules.layout, tableauSizes: rules.tableauSizes, foundationRule: rules.foundationRule },
-    layout: { type: rules.layout, tableauCount: tableauIds.length, foundationCount: rules.foundationCount, reserveCount: reserveIds.length, wide: rules.decks === 2 },
+    options: {
+      layout: rules.layout,
+      tableauSizes: rules.tableauSizes,
+      foundationRule: rules.foundationRule,
+    },
+    layout: {
+      type: rules.layout,
+      tableauCount: tableauIds.length,
+      foundationCount: rules.foundationCount,
+      reserveCount: reserveIds.length,
+      wide: rules.decks === 2,
+    },
   });
 }
 
 function legalMovesFor(state: GameState, rules: SpecialRules): Move[] {
   const moves: Move[] = [];
   const tableaus = rules.tableauSizes.map((_, index) => state.piles[`t${index}`]);
-  const reserves = Array.from({ length: rules.reserveCount ?? 0 }, (_, index) => state.piles[`r${index}`]);
+  const reserves = Array.from(
+    { length: rules.reserveCount ?? 0 },
+    (_, index) => state.piles[`r${index}`],
+  );
   const sources = [...tableaus, ...reserves, ...(state.piles.waste ? [state.piles.waste] : [])];
   for (const source of sources) {
     if (!source.cards.length) continue;
@@ -205,7 +427,10 @@ function makeDefinition(rules: SpecialRules): GameDefinition {
       return { state: next };
     },
     isWon(state): boolean {
-      return Array.from({ length: rules.foundationCount }, (_, index) => state.piles[`f${index}`].cards.length).every((length) => length === 13);
+      return Array.from(
+        { length: rules.foundationCount },
+        (_, index) => state.piles[`f${index}`].cards.length,
+      ).every((length) => length === 13);
     },
     hint(state): Move | undefined {
       return legalMovesFor(state, rules)[0];

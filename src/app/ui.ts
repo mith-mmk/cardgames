@@ -68,8 +68,18 @@ export const clock = (seconds: number) =>
     .toString()
     .padStart(2, '0')}`;
 
+export const isCompactLandscape = () =>
+  typeof window !== 'undefined' &&
+  window.innerWidth > window.innerHeight &&
+  window.innerHeight <= 900 &&
+  window.matchMedia?.('(pointer: coarse)').matches;
+
 export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
-  const gap = typeof window !== 'undefined' && window.innerWidth <= 560 ? 64 : 108;
+  const gap = isCompactLandscape()
+    ? Math.max(40, Math.min(78, Math.round(window.innerWidth / 13)))
+    : typeof window !== 'undefined' && window.innerWidth <= 560
+      ? 64
+      : 108;
   const topPiles = piles.filter((item) =>
     ['stock', 'waste', 'cell', 'reserve'].includes(item.kind),
   );

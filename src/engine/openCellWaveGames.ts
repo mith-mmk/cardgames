@@ -28,22 +28,166 @@ interface WaveRules {
  * the same deterministic, testable GameDefinition contract.
  */
 const RULES: readonly WaveRules[] = [
-  { id: 'penguin', name: 'Penguin', layout: 'columns', tableauSizes: [7, 7, 7, 7, 6, 6, 5, 5], cellCount: 2, build: 'same-suit', moveRuns: true, emptyColumn: 'any' },
-  { id: 'beleaguered-castle', name: 'Beleaguered Castle', layout: 'columns', tableauSizes: Array(8).fill(6), cellCount: 4, build: 'alternate-color', moveRuns: false, emptyColumn: 'any' },
-  { id: 'citadel', name: 'Citadel', layout: 'columns', tableauSizes: Array(8).fill(6), cellCount: 4, build: 'alternate-color', moveRuns: false, emptyColumn: 'any' },
-  { id: 'fortress', name: 'Fortress', layout: 'columns', tableauSizes: [7, 7, 7, 7, 6, 6, 6, 6], build: 'alternate-color', moveRuns: true, emptyColumn: 'any' },
-  { id: 'chessboard', name: 'Chessboard', layout: 'columns', tableauSizes: Array(8).fill(6), cellCount: 4, build: 'same-suit', moveRuns: true, emptyColumn: 'king' },
-  { id: 'streets-and-alleys', name: 'Streets and Alleys', layout: 'columns', tableauSizes: [7, 7, 7, 7, 6, 6, 6, 6], build: 'same-suit', moveRuns: true, emptyColumn: 'any' },
-  { id: 'bakers-dozen', name: "Baker's Dozen", layout: 'columns', tableauSizes: Array(13).fill(4), build: 'alternate-color', moveRuns: false, emptyColumn: 'any' },
-  { id: 'castles-in-spain', name: 'Castles in Spain', layout: 'columns', tableauSizes: [7, 7, 7, 7, 6, 6, 6, 6], cellCount: 4, build: 'alternate-color', moveRuns: false, emptyColumn: 'king' },
-  { id: 'bisley', name: 'Bisley', layout: 'columns', tableauSizes: [7, 7, 7, 7, 6, 6, 6, 6], build: 'same-suit', moveRuns: false, emptyColumn: 'any' },
-  { id: 'flower-garden', name: 'Flower Garden', layout: 'fans', tableauSizes: Array(6).fill(6), reserveCount: 16, build: 'alternate-color', moveRuns: false, emptyColumn: 'any' },
-  { id: 'la-belle-lucie', name: 'La Belle Lucie', layout: 'fans', tableauSizes: Array(16).fill(3), reserveCount: 1, build: 'alternate-color', moveRuns: false, emptyColumn: 'any', recycle: true },
-  { id: 'shamrocks', name: 'Shamrocks', layout: 'fans', tableauSizes: Array(16).fill(3), reserveCount: 1, build: 'same-suit', moveRuns: false, emptyColumn: 'any', recycle: true },
-  { id: 'trefoil', name: 'Trefoil', layout: 'fans', tableauSizes: Array(16).fill(3), reserveCount: 4, build: 'same-suit', moveRuns: false, emptyColumn: 'any' },
-  { id: 'bear-river', name: 'Bear River', layout: 'columns', tableauSizes: [7, 7, 7, 7, 6, 6, 5, 5], cellCount: 2, build: 'alternate-color', moveRuns: true, emptyColumn: 'king' },
-  { id: 'cruel', name: 'Cruel', layout: 'columns', tableauSizes: Array(12).fill(4), reserveCount: 1, build: 'same-suit', moveRuns: false, emptyColumn: 'any', recycle: true },
-  { id: 'canister', name: 'Canister', layout: 'columns', tableauSizes: [5, 5, 5, 5, 5, 5, 5, 5, 4, 4], reserveCount: 2, build: 'alternate-color', moveRuns: true, emptyColumn: 'king', recycle: true },
+  {
+    id: 'penguin',
+    name: 'Penguin',
+    layout: 'columns',
+    tableauSizes: [7, 7, 7, 7, 6, 6, 5, 5],
+    cellCount: 2,
+    build: 'same-suit',
+    moveRuns: true,
+    emptyColumn: 'any',
+  },
+  {
+    id: 'beleaguered-castle',
+    name: 'Beleaguered Castle',
+    layout: 'columns',
+    tableauSizes: Array(8).fill(6),
+    cellCount: 4,
+    build: 'alternate-color',
+    moveRuns: false,
+    emptyColumn: 'any',
+  },
+  {
+    id: 'citadel',
+    name: 'Citadel',
+    layout: 'columns',
+    tableauSizes: Array(8).fill(6),
+    cellCount: 4,
+    build: 'alternate-color',
+    moveRuns: false,
+    emptyColumn: 'any',
+  },
+  {
+    id: 'fortress',
+    name: 'Fortress',
+    layout: 'columns',
+    tableauSizes: [7, 7, 7, 7, 6, 6, 6, 6],
+    build: 'alternate-color',
+    moveRuns: true,
+    emptyColumn: 'any',
+  },
+  {
+    id: 'chessboard',
+    name: 'Chessboard',
+    layout: 'columns',
+    tableauSizes: Array(8).fill(6),
+    cellCount: 4,
+    build: 'same-suit',
+    moveRuns: true,
+    emptyColumn: 'king',
+  },
+  {
+    id: 'streets-and-alleys',
+    name: 'Streets and Alleys',
+    layout: 'columns',
+    tableauSizes: [7, 7, 7, 7, 6, 6, 6, 6],
+    build: 'same-suit',
+    moveRuns: true,
+    emptyColumn: 'any',
+  },
+  {
+    id: 'bakers-dozen',
+    name: "Baker's Dozen",
+    layout: 'columns',
+    tableauSizes: Array(13).fill(4),
+    build: 'alternate-color',
+    moveRuns: false,
+    emptyColumn: 'any',
+  },
+  {
+    id: 'castles-in-spain',
+    name: 'Castles in Spain',
+    layout: 'columns',
+    tableauSizes: [7, 7, 7, 7, 6, 6, 6, 6],
+    cellCount: 4,
+    build: 'alternate-color',
+    moveRuns: false,
+    emptyColumn: 'king',
+  },
+  {
+    id: 'bisley',
+    name: 'Bisley',
+    layout: 'columns',
+    tableauSizes: [7, 7, 7, 7, 6, 6, 6, 6],
+    build: 'same-suit',
+    moveRuns: false,
+    emptyColumn: 'any',
+  },
+  {
+    id: 'flower-garden',
+    name: 'Flower Garden',
+    layout: 'fans',
+    tableauSizes: Array(6).fill(6),
+    reserveCount: 16,
+    build: 'alternate-color',
+    moveRuns: false,
+    emptyColumn: 'any',
+  },
+  {
+    id: 'la-belle-lucie',
+    name: 'La Belle Lucie',
+    layout: 'fans',
+    tableauSizes: Array(16).fill(3),
+    reserveCount: 1,
+    build: 'alternate-color',
+    moveRuns: false,
+    emptyColumn: 'any',
+    recycle: true,
+  },
+  {
+    id: 'shamrocks',
+    name: 'Shamrocks',
+    layout: 'fans',
+    tableauSizes: Array(16).fill(3),
+    reserveCount: 1,
+    build: 'same-suit',
+    moveRuns: false,
+    emptyColumn: 'any',
+    recycle: true,
+  },
+  {
+    id: 'trefoil',
+    name: 'Trefoil',
+    layout: 'fans',
+    tableauSizes: Array(16).fill(3),
+    reserveCount: 4,
+    build: 'same-suit',
+    moveRuns: false,
+    emptyColumn: 'any',
+  },
+  {
+    id: 'bear-river',
+    name: 'Bear River',
+    layout: 'columns',
+    tableauSizes: [7, 7, 7, 7, 6, 6, 5, 5],
+    cellCount: 2,
+    build: 'alternate-color',
+    moveRuns: true,
+    emptyColumn: 'king',
+  },
+  {
+    id: 'cruel',
+    name: 'Cruel',
+    layout: 'columns',
+    tableauSizes: Array(12).fill(4),
+    reserveCount: 1,
+    build: 'same-suit',
+    moveRuns: false,
+    emptyColumn: 'any',
+    recycle: true,
+  },
+  {
+    id: 'canister',
+    name: 'Canister',
+    layout: 'columns',
+    tableauSizes: [5, 5, 5, 5, 5, 5, 5, 5, 4, 4],
+    reserveCount: 2,
+    build: 'alternate-color',
+    moveRuns: true,
+    emptyColumn: 'king',
+    recycle: true,
+  },
 ];
 
 function ids(prefix: string, count: number): string[] {
@@ -65,7 +209,8 @@ function reserveIds(rules: WaveRules): string[] {
 function canBuild(card: Card, target: Card | undefined, rules: WaveRules): boolean {
   if (!target) return rules.emptyColumn === 'any' || card.rank === 13;
   if (rules.build === 'any') return target.rank === card.rank + 1;
-  if (rules.build === 'same-suit') return target.rank === card.rank + 1 && target.suit === card.suit;
+  if (rules.build === 'same-suit')
+    return target.rank === card.rank + 1 && target.suit === card.suit;
   const targetRed = target.suit === 'diamonds' || target.suit === 'hearts';
   const cardRed = card.suit === 'diamonds' || card.suit === 'hearts';
   return target.rank === card.rank + 1 && targetRed !== cardRed;
@@ -90,7 +235,11 @@ function sameMove(a: Move, b: Move): boolean {
   if (a.type !== b.type || a.from !== b.from || a.to !== b.to) return false;
   if (a.type === 'draw' && b.type === 'draw') return (a.count ?? 1) === (b.count ?? 1);
   if (a.type === 'recycle' && b.type === 'recycle') return true;
-  return a.type === 'transfer' && b.type === 'transfer' && JSON.stringify(a.cardIds) === JSON.stringify(b.cardIds);
+  return (
+    a.type === 'transfer' &&
+    b.type === 'transfer' &&
+    JSON.stringify(a.cardIds) === JSON.stringify(b.cardIds)
+  );
 }
 
 function createState(rules: WaveRules, seed: string): GameState {

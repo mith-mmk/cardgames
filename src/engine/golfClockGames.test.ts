@@ -16,15 +16,29 @@ describe('Golf and Clock', () => {
   it('Golf deals seven columns of five and accepts adjacent ranks only', () => {
     const state = golf.create('golf-layout');
     expect(Array.from({ length: 7 }, (_, i) => state.piles[`t${i}`].cards)).toHaveLength(7);
-    expect(Array.from({ length: 7 }, (_, i) => state.piles[`t${i}`].cards.length)).toEqual(Array(7).fill(5));
-    const drawn = golf.applyMove(state, { type: 'draw', from: 'stock', to: 'waste', count: 1 }).state;
+    expect(Array.from({ length: 7 }, (_, i) => state.piles[`t${i}`].cards.length)).toEqual(
+      Array(7).fill(5),
+    );
+    const drawn = golf.applyMove(state, {
+      type: 'draw',
+      from: 'stock',
+      to: 'waste',
+      count: 1,
+    }).state;
     const waste = drawn.piles.waste.cards.at(-1)!;
     expect(waste).toBeDefined();
     expect(golf.legalMoves(drawn).some((move) => move.type === 'transfer')).toBe(
-      Array.from({ length: 7 }, (_, i) => drawn.piles[`t${i}`].cards.at(-1)!).some((card) =>
-        Math.abs(card.rank - waste.rank) === 1 || (card.rank === 1 && waste.rank === 13) || (card.rank === 13 && waste.rank === 1)),
+      Array.from({ length: 7 }, (_, i) => drawn.piles[`t${i}`].cards.at(-1)!).some(
+        (card) =>
+          Math.abs(card.rank - waste.rank) === 1 ||
+          (card.rank === 1 && waste.rank === 13) ||
+          (card.rank === 13 && waste.rank === 1),
+      ),
     );
-    expect(golf.applyMove(drawn, { type: 'transfer', from: 't0', to: 'waste', cardIds: ['missing'] }).error).toBeTruthy();
+    expect(
+      golf.applyMove(drawn, { type: 'transfer', from: 't0', to: 'waste', cardIds: ['missing'] })
+        .error,
+    ).toBeTruthy();
   });
 
   it('Clock starts with twelve outer piles and a central active pile', () => {
@@ -37,7 +51,10 @@ describe('Golf and Clock', () => {
     const move = clock.legalMoves(state)[0];
     expect(move).toBeDefined();
     expect(move?.type).toBe('transfer');
-    expect(clock.applyMove(state, { type: 'transfer', from: 'wrong', to: 'clock1', cardIds: ['bad'] }).error).toBeTruthy();
+    expect(
+      clock.applyMove(state, { type: 'transfer', from: 'wrong', to: 'clock1', cardIds: ['bad'] })
+        .error,
+    ).toBeTruthy();
     if (!move || move.type !== 'transfer') throw new Error('Clock must expose a transfer move');
     const next = clock.applyMove(state, move).state;
     expect(next.meta.activePile).toBe(move.to);
@@ -55,18 +72,21 @@ describe('Golf and Clock', () => {
     expect(clock.isWon(state)).toBe(true);
   });
 
-  it.each([golf, clock] as readonly GameDefinition[])('supports undo and deterministic retry (%s)', (definition) => {
-    const session = new GameSession(definition, `session-${definition.id}`);
-    const before = JSON.stringify(session.state);
-    const move = definition.legalMoves(session.state)[0];
-    expect(move).toBeDefined();
-    expect(session.move(move!).error).toBeUndefined();
-    session.undo();
-    expect(JSON.stringify(session.state)).toBe(before);
-    session.move(move!);
-    const changed = JSON.stringify(session.state);
-    session.retry();
-    expect(JSON.stringify(session.state)).toBe(before);
-    expect(changed).not.toBe(before);
-  });
+  it.each([golf, clock] as readonly GameDefinition[])(
+    'supports undo and deterministic retry (%s)',
+    (definition) => {
+      const session = new GameSession(definition, `session-${definition.id}`);
+      const before = JSON.stringify(session.state);
+      const move = definition.legalMoves(session.state)[0];
+      expect(move).toBeDefined();
+      expect(session.move(move!).error).toBeUndefined();
+      session.undo();
+      expect(JSON.stringify(session.state)).toBe(before);
+      session.move(move!);
+      const changed = JSON.stringify(session.state);
+      session.retry();
+      expect(JSON.stringify(session.state)).toBe(before);
+      expect(changed).not.toBe(before);
+    },
+  );
 });

@@ -1,4 +1,5 @@
 import * as Engine from '../engine';
+import { EXPANSION_CATALOG } from './expansionCatalog';
 import type { Card, GameDefinition, GameSession, GameSnapshot, Pile, PileKind } from './types';
 type UnknownRecord = Record<string, unknown>;
 const runtime = Engine as unknown as UnknownRecord;
@@ -317,24 +318,177 @@ const fallbackGames: GameDefinition[] = [
     accent: '#e1a456',
   },
 ];
+
+const expansionCatalog: Record<string, Omit<GameDefinition, 'id'>> = {
+  'agnes-sorel': {
+    name: { ja: 'アグネス・ソレル', en: 'Agnes Sorel' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '追加配札を使うクロンダイク型です。',
+      en: 'A Klondike variant with additional tableau deals.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#cf7d9f',
+  },
+  'australian-patience': {
+    name: { ja: 'オーストラリアン・ペイシェンス', en: 'Australian Patience' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '同一スートで降順に作る難しい派生です。',
+      en: 'Build same-suit descending tableau runs.',
+    },
+    difficulty: 5,
+    decks: 1,
+    accent: '#d29465',
+  },
+  whitehead: {
+    name: { ja: 'ホワイトヘッド', en: 'Whitehead' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '全公開の列を同一スートで整理します。',
+      en: 'Arrange an open tableau in same-suit runs.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#b5a56e',
+  },
+  'thumb-and-pouch': {
+    name: { ja: 'サム・アンド・ポーチ', en: 'Thumb and Pouch' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '予備札を使うクロンダイク派生です。',
+      en: 'A reserve-based Klondike variant.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#b77b5f',
+  },
+  'blind-alleys': {
+    name: { ja: 'ブラインド・アレイズ', en: 'Blind Alleys' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '予備札と山札を計画的に使います。',
+      en: 'Plan carefully around reserve and stock cards.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#ad7793',
+  },
+  batsford: {
+    name: { ja: 'バッツフォード', en: 'Batsford' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '2組のカードで作る広いクロンダイク盤面です。',
+      en: 'A wide two-deck Klondike layout.',
+    },
+    difficulty: 5,
+    decks: 2,
+    accent: '#c77872',
+  },
+  harp: {
+    name: { ja: 'ハープ', en: 'Harp' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '2組のカードを整理する長い列の派生です。',
+      en: 'A two-deck long-tableau variant.',
+    },
+    difficulty: 5,
+    decks: 2,
+    accent: '#cf9c5e',
+  },
+  'lady-jane': {
+    name: { ja: 'レディ・ジェーン', en: 'Lady Jane' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '2組・9列で完成札を作ります。',
+      en: 'Build foundations across a two-deck nine-column table.',
+    },
+    difficulty: 5,
+    decks: 2,
+    accent: '#a86b9c',
+  },
+  bureau: {
+    name: { ja: 'ビューロー', en: 'Bureau' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '大きな予備札を活用する2組ゲームです。',
+      en: 'A two-deck game with a large reserve.',
+    },
+    difficulty: 5,
+    decks: 2,
+    accent: '#a9775c',
+  },
+  athena: {
+    name: { ja: 'アテナ', en: 'Athena' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '予備札を併用する2組の派生です。',
+      en: 'A two-deck variant with reserve cards.',
+    },
+    difficulty: 5,
+    decks: 2,
+    accent: '#688db3',
+  },
+  'pas-seul': {
+    name: { ja: 'パ・スール', en: 'Pas Seul' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: 'コンパクトな6列のクロンダイクです。',
+      en: 'A compact six-column Klondike variant.',
+    },
+    difficulty: 3,
+    decks: 1,
+    accent: '#8d9e6a',
+  },
+  chameleon: {
+    name: { ja: 'カメレオン', en: 'Chameleon' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '2組と予備札を組み合わせて遊びます。',
+      en: 'A two-deck reserve Klondike variant.',
+    },
+    difficulty: 5,
+    decks: 2,
+    accent: '#6d9f86',
+  },
+  'superior-canfield': {
+    name: { ja: 'スペリア・キャンフィールド', en: 'Superior Canfield' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '13枚の予備札を使うキャンフィールド派生です。',
+      en: 'A Canfield variant with a thirteen-card reserve.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#bd8155',
+  },
+};
+
 export function gameCatalog(): GameDefinition[] {
   const candidate = runtime.gameCatalog ?? runtime.GAME_DEFINITIONS ?? runtime.games;
   if (candidate && typeof candidate === 'object' && !Array.isArray(candidate))
-    return Object.values(candidate as Record<string, UnknownRecord>).map((item) => ({
-      id: String(item.id),
-      name: { ja: String(item.name), en: String(item.name) },
-      family: fallbackGames.find((game) => game.id === item.id)?.family ?? {
-        ja: 'ソリティア',
-        en: 'Solitaire',
-      },
-      description: fallbackGames.find((game) => game.id === item.id)?.description ?? {
-        ja: '',
-        en: '',
-      },
-      difficulty: fallbackGames.find((game) => game.id === item.id)?.difficulty ?? 3,
-      decks: Number(item.decks) === 2 ? 2 : 1,
-      accent: fallbackGames.find((game) => game.id === item.id)?.accent ?? '#c3e86a',
-    }));
+    return Object.values(candidate as Record<string, UnknownRecord>).map((item) => {
+      const metadata =
+        fallbackGames.find((game) => game.id === item.id) ??
+        EXPANSION_CATALOG[String(item.id) as keyof typeof EXPANSION_CATALOG] ??
+        expansionCatalog[String(item.id)];
+      return {
+        id: String(item.id),
+        name: metadata?.name ?? { ja: String(item.name), en: String(item.name) },
+        family: metadata?.family ?? {
+          ja: 'ソリティア',
+          en: 'Solitaire',
+        },
+        description: metadata?.description ?? {
+          ja: '',
+          en: '',
+        },
+        difficulty: metadata?.difficulty ?? 3,
+        decks: metadata?.decks ?? (Number(item.decks) === 2 ? 2 : 1),
+        accent: metadata?.accent ?? '#c3e86a',
+      };
+    });
   return Array.isArray(candidate) ? (candidate as GameDefinition[]) : fallbackGames;
 }
 function seededRandom(seed: string) {
