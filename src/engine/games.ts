@@ -1,6 +1,11 @@
 import { ApplyResult, Card, GameDefinition, GameState, Move, cardColor } from './types';
 import { cloneState, draw, faceUpRun, makeState, pile, top, transfer } from './core';
 import { shuffledDeck } from './random';
+import { bakersGame, eightOff, seahavenTowers } from './openCellGames';
+import { fortyThieves, spiderette, yukon } from './longRunGames';
+
+export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
+export { fortyThieves, spiderette, yukon } from './longRunGames';
 
 const DEFAULT_SEED = 'solitaire-default';
 const sameMove = (a: Move, b: Move): boolean => {
@@ -491,6 +496,12 @@ export const GAME_DEFINITIONS = {
   spider,
   calculation,
   pyramid,
+  'bakers-game': bakersGame,
+  'eight-off': eightOff,
+  'seahaven-towers': seahavenTowers,
+  spiderette,
+  yukon,
+  'forty-thieves': fortyThieves,
 } as const;
 export type GameId = keyof typeof GAME_DEFINITIONS;
 export function getGameDefinition(id: GameId): GameDefinition {

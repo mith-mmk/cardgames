@@ -47,6 +47,9 @@ export function GameScreen({
   } | null>(null);
   const snapshot = session.getSnapshot();
   const piles = snapshot.piles;
+  const isWideLayout =
+    piles.filter((pile) => pile.kind === 'tableau').length >= 10 ||
+    piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4;
   const isPyramid = definition.id === 'pyramid';
   const isPyramidPile = (pile: Pile) => /^p\d+$/.test(pile.id);
   const isPyramidExposed = (pile: Pile) => {
@@ -83,9 +86,8 @@ export function GameScreen({
       to?: string;
       cardIds?: string[];
     }>;
-  const canStartDrag = (pileId: string, cardId: string) =>
-    !isPyramid ||
-    legalMoves().some(
+  const transferMovesForCard = (pileId: string, cardId: string) =>
+    legalMoves().filter(
       (move) => move.type === 'transfer' && move.from === pileId && move.cardIds?.[0] === cardId,
     );
   const pointerDown = (
@@ -97,7 +99,7 @@ export function GameScreen({
     const sourcePile = piles.find((pile) => pile.id === pileId);
     const cardIndex = sourcePile?.cards.findIndex((item) => item.id === cardId) ?? -1;
     const card = cardIndex >= 0 ? sourcePile?.cards[cardIndex] : undefined;
-    if (!card?.faceUp || !sourcePile || !canStartDrag(pileId, cardId)) return;
+    if (!card?.faceUp || !sourcePile || !transferMovesForCard(pileId, cardId).length) return;
     pointerDrag.current = {
       pileId,
       cardId,
@@ -119,18 +121,23 @@ export function GameScreen({
       return false;
     active.dragging = true;
     const sourcePile = piles.find((pile) => pile.id === active.pileId);
-    const cardIndex = sourcePile?.cards.findIndex((item) => item.id === active.cardId) ?? -1;
-    if (sourcePile && cardIndex >= 0)
+    const moves = transferMovesForCard(active.pileId, active.cardId);
+    const cards =
+      moves[0]?.cardIds
+        ?.map((id) => sourcePile?.cards.find((card) => card.id === id))
+        .filter((card): card is Card => Boolean(card)) ?? [];
+    if (cards.length)
       setDragGhost({
         pileId: active.pileId,
-        cards: sourcePile.cards.slice(cardIndex),
+        cards,
         x: event.clientX,
         y: event.clientY,
       });
     const target = document
       .elementFromPoint(event.clientX, event.clientY)
       ?.closest<HTMLElement>('[data-pile-id]');
-    setDropTarget(target?.dataset.pileId ?? null);
+    const targetId = target?.dataset.pileId;
+    setDropTarget(targetId && moves.some((move) => move.to === targetId) ? targetId : null);
     return true;
   };
   const pointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -217,9 +224,11 @@ export function GameScreen({
       );
       if (single) return act(() => session.dispatch(single));
     }
-    if (pile.id === 'stock') {
+    if (pile.kind === 'stock') {
       const stockMove = moves.find(
-        (move) => move.from === 'stock' || (move.type === 'recycle' && move.from === 'waste'),
+        (move) =>
+          (move.type === 'draw' && move.from === pile.id) ||
+          (move.type === 'recycle' && move.to === pile.id),
       );
       if (stockMove) return act(() => session.dispatch(stockMove));
     }
@@ -276,7 +285,9 @@ export function GameScreen({
           ⚙
         </button>
       </header>
-      <div className={`game-layout game-layout-${definition.id}`}>
+      <div
+        className={`game-layout game-layout-${definition.id} ${isWideLayout ? 'game-wide-layout' : ''}`}
+      >
         <section className="table-area" aria-label={`${definition.name.en} table`}>
           <div className="table-stats">
             <span>

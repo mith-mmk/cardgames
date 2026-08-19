@@ -4,14 +4,39 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());
 });
 
-test('shows the five initial games', async ({ page }) => {
+test('shows every game in the first expansion batch', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-tile')).toHaveCount(5);
-  await expect(page.locator('.game-tile').filter({ hasText: 'Klondike' })).toHaveCount(1);
-  await expect(page.locator('.game-tile').filter({ hasText: 'FreeCell' })).toHaveCount(1);
-  await expect(page.locator('.game-tile').filter({ hasText: 'Spider' })).toHaveCount(1);
-  await expect(page.locator('.game-tile').filter({ hasText: 'Calculation' })).toHaveCount(1);
-  await expect(page.locator('.game-tile').filter({ hasText: 'Pyramid' })).toHaveCount(1);
+  await expect(page.locator('.game-tile')).toHaveCount(11);
+  for (const name of [
+    'Klondike',
+    'FreeCell',
+    'Spider',
+    'Calculation',
+    'Pyramid',
+    "Baker's Game",
+    'Eight Off',
+    'Seahaven Towers',
+    'Spiderette',
+    'Yukon',
+    'Forty Thieves',
+  ]) {
+    await expect(page.getByRole('heading', { name, exact: true })).toHaveCount(1);
+  }
+});
+
+test('starts each expansion game from its menu tile', async ({ page }) => {
+  for (const name of [
+    "Baker's Game",
+    'Eight Off',
+    'Seahaven Towers',
+    'Spiderette',
+    'Yukon',
+    'Forty Thieves',
+  ]) {
+    await page.goto('/');
+    await page.locator('.game-tile').filter({ hasText: name }).click();
+    await expect(page.locator('.game-title h1')).toHaveText(name);
+  }
 });
 
 test('starts a game from the whole tile and keyboard activation', async ({ page }) => {
@@ -112,28 +137,20 @@ test('moves a FreeCell card with pointer drag', async ({ page }) => {
   await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
 });
 
-test('shows a pointer-following ghost for the whole dragged tableau stack', async ({ page }) => {
+test('shows a pointer-following ghost for the legal moving card only', async ({ page }) => {
   await page.goto('/');
   await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
-  const sourcePile = page
-    .locator('.pile-tableau')
-    .filter({ has: page.locator('.playing-card.face-up') })
-    .first();
-  const source = sourcePile.locator('.card-slot .playing-card.face-up').first();
-  const stackCount = await sourcePile.locator('.card-slot .playing-card.face-up').count();
+  const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
   const sourceBox = await source.boundingBox();
   expect(sourceBox).not.toBeNull();
-  expect(stackCount).toBeGreaterThan(1);
 
-  // The first card's exposed top strip is the hit area; the later cards are
-  // intentionally painted above its center in a real tableau.
   const startX = sourceBox!.x + sourceBox!.width / 2;
-  const startY = sourceBox!.y + 10;
+  const startY = sourceBox!.y + sourceBox!.height / 2;
   await page.mouse.move(startX, startY);
   await page.mouse.down();
   await page.mouse.move(startX + 24, startY + 24, { steps: 2 });
   await expect(page.locator('.drag-ghost')).toBeVisible();
-  await expect(page.locator('.drag-ghost-card')).toHaveCount(stackCount);
+  await expect(page.locator('.drag-ghost-card')).toHaveCount(1);
   await expect(source).toHaveCSS('opacity', '0');
   const firstGhostBox = await page.locator('.drag-ghost').boundingBox();
   expect(firstGhostBox).not.toBeNull();

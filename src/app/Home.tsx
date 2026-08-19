@@ -57,8 +57,8 @@ export function Home({
           </h2>
           <p>
             {language === 'ja'
-              ? '5つの代表ゲームから選んで、あなただけのカードテーブルを始めましょう。'
-              : 'Choose from five classic games and make the table your own.'}
+              ? `${games.length}種類のゲームから選んで、あなただけのカードテーブルを始めましょう。`
+              : `Choose from ${games.length} games and make the table your own.`}
           </p>
         </div>
         <div className="hero-cards">

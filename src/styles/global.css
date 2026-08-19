@@ -1232,6 +1232,29 @@ footer {
 .game-layout-spider .game-controls .tip {
   display: none;
 }
+.game-wide-layout {
+  display: block;
+  width: min(1400px, calc(100% - 64px));
+}
+.game-wide-layout .board {
+  width: 1340px;
+  min-width: 1340px;
+}
+.game-wide-layout .game-controls {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  padding-top: 14px;
+  gap: 9px;
+}
+.game-wide-layout .game-controls button {
+  min-width: 128px;
+  flex: 0 0 auto;
+}
+.game-wide-layout .game-controls .control-rule,
+.game-wide-layout .game-controls .tip {
+  display: none;
+}
 
 @media (max-width: 800px) {
   .game-layout-spider .game-controls {
@@ -1239,12 +1262,13 @@ footer {
     grid-template-columns: repeat(3, 1fr);
     padding-top: 15px;
   }
+  .game-wide-layout .game-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding-top: 15px;
+  }
 }
 @media (max-width: 560px) {
-  .game-pyramid .board {
-    width: 800px;
-    min-width: 800px;
-  }
   .game-spider .board {
     width: 1120px;
     min-width: 1120px;

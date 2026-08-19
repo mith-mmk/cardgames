@@ -64,6 +64,78 @@ const fallbackGames: GameDefinition[] = [
     decks: 1,
     accent: '#73a8ff',
   },
+  {
+    id: 'bakers-game',
+    name: { ja: 'ベーカーズ・ゲーム', en: "Baker's Game" },
+    family: { ja: '空きセル系', en: 'Open-cell family' },
+    description: {
+      ja: '同一スートで降順に並べ、4つの空きセルを活用します。',
+      en: 'Build same-suit descending runs with four free cells.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#54b7a9',
+  },
+  {
+    id: 'eight-off',
+    name: { ja: 'エイト・オフ', en: 'Eight Off' },
+    family: { ja: '空きセル系', en: 'Open-cell family' },
+    description: {
+      ja: '8つの予備セルを使い、同一スートの列を完成させます。',
+      en: 'Use eight reserve cells to build same-suit foundations.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#49a6e8',
+  },
+  {
+    id: 'seahaven-towers',
+    name: { ja: 'シーヘイブン・タワーズ', en: 'Seahaven Towers' },
+    family: { ja: '空きセル系', en: 'Open-cell family' },
+    description: {
+      ja: '王だけを空列へ置ける、10列の空きセルゲームです。',
+      en: 'A ten-column open-cell game where only Kings fill empty columns.',
+    },
+    difficulty: 5,
+    decks: 1,
+    accent: '#6885e8',
+  },
+  {
+    id: 'spiderette',
+    name: { ja: 'スパイダレット', en: 'Spiderette' },
+    family: { ja: 'スパイダー系', en: 'Spider family' },
+    description: {
+      ja: '1組のカードで、同一スートのKからAまでの列を取り除きます。',
+      en: 'Clear same-suit King-to-Ace runs with a single deck.',
+    },
+    difficulty: 3,
+    decks: 1,
+    accent: '#ad7fe5',
+  },
+  {
+    id: 'yukon',
+    name: { ja: 'ユーコン', en: 'Yukon' },
+    family: { ja: 'スパイダー系', en: 'Long-run family' },
+    description: {
+      ja: '不整列の表向きカードを含む列ごと、場札間を移動できます。',
+      en: 'Move any face-up suffix, including unordered cards, between tableau columns.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#c790dc',
+  },
+  {
+    id: 'forty-thieves',
+    name: { ja: 'フォーティ・シーブズ', en: 'Forty Thieves' },
+    family: { ja: 'スパイダー系', en: 'Long-run family' },
+    description: {
+      ja: '2組・10列で、同一スートの降順列と8組の完成札を作ります。',
+      en: 'Build same-suit runs across ten columns and eight foundations.',
+    },
+    difficulty: 5,
+    decks: 2,
+    accent: '#e38b79',
+  },
 ];
 export function gameCatalog(): GameDefinition[] {
   const candidate = runtime.gameCatalog ?? runtime.GAME_DEFINITIONS ?? runtime.games;
