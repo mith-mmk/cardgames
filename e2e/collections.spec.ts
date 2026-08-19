@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
 
 test('shows every currently implemented game', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-tile')).toHaveCount(21);
+  await expect(page.locator('.game-tile')).toHaveCount(24);
   for (const name of [
     'Klondike',
     'FreeCell',
@@ -26,6 +26,9 @@ test('shows every currently implemented game', async ({ page }) => {
     'Canfield',
     'Agnes Bernauer',
     'King Albert',
+    'Easthaven',
+    'Westcliff',
+    'Aunt Mary',
     'Scorpion',
     'Wasp',
     'Black Widow',
@@ -49,6 +52,9 @@ test('starts each added game from its menu tile', async ({ page }) => {
     'Canfield',
     'Agnes Bernauer',
     'King Albert',
+    'Easthaven',
+    'Westcliff',
+    'Aunt Mary',
     'Scorpion',
     'Wasp',
     'Black Widow',

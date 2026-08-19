@@ -21,7 +21,7 @@ describe('localized UI messages', () => {
     const japaneseHelp = text('ja').gameHelp;
     const englishHelp = text('en').gameHelp;
     expect(Object.keys(japaneseHelp).sort()).toEqual(Object.keys(englishHelp).sort());
-    expect(Object.keys(japaneseHelp)).toHaveLength(21);
+    expect(Object.keys(japaneseHelp)).toHaveLength(24);
     for (const rules of Object.values(japaneseHelp)) {
       expect(rules.goal).not.toHaveLength(0);
       expect(rules.steps.length).toBeGreaterThanOrEqual(3);

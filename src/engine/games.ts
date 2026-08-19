@@ -12,6 +12,7 @@ import {
   yukon,
 } from './longRunGames';
 import { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
+import { auntMary, easthaven, westcliff } from './klondikeVariants';
 import { blackWidow, scorpion, wasp } from './spiderVariantGames';
 
 export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
@@ -25,6 +26,7 @@ export {
   yukon,
 } from './longRunGames';
 export { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
+export { auntMary, easthaven, westcliff } from './klondikeVariants';
 export { blackWidow, scorpion, wasp } from './spiderVariantGames';
 
 const DEFAULT_SEED = 'solitaire-default';
@@ -532,6 +534,9 @@ export const GAME_DEFINITIONS = {
   scorpion,
   wasp,
   'black-widow': blackWidow,
+  easthaven,
+  westcliff,
+  'aunt-mary': auntMary,
 } as const;
 export type GameId = keyof typeof GAME_DEFINITIONS;
 export function getGameDefinition(id: GameId): GameDefinition {

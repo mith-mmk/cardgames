@@ -221,6 +221,42 @@ const fallbackGames: GameDefinition[] = [
     accent: '#ba8a44',
   },
   {
+    id: 'easthaven',
+    name: { ja: 'イーストヘイブン', en: 'Easthaven' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: 'クロンダイク型の7列に、山札から各列へ一斉配札します。',
+      en: 'A seven-column Klondike layout with tableau-wide stock deals.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#c98d4d',
+  },
+  {
+    id: 'westcliff',
+    name: { ja: 'ウェストクリフ', en: 'Westcliff' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '7列に3枚ずつ配り、山札を3枚ずつめくるクロンダイク派生です。',
+      en: 'A seven-column variant with three-card rows and draw-three stock.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#b77a56',
+  },
+  {
+    id: 'aunt-mary',
+    name: { ja: 'アント・メアリー', en: 'Aunt Mary' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '7列の表向きの予備カードへ山札から一斉に配り、場を整理します。',
+      en: 'Deal stock cards across seven face-up tableau reserves to clear the board.',
+    },
+    difficulty: 3,
+    decks: 1,
+    accent: '#d59a69',
+  },
+  {
     id: 'scorpion',
     name: { ja: 'スコーピオン', en: 'Scorpion' },
     family: { ja: 'スパイダー系', en: 'Spider family' },
