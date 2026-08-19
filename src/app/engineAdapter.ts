@@ -136,6 +136,78 @@ const fallbackGames: GameDefinition[] = [
     decks: 2,
     accent: '#e38b79',
   },
+  {
+    id: 'canfield',
+    name: { ja: 'キャンフィールド', en: 'Canfield' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '13枚の予備札と循環する完成札を使う、コンパクトなゲームです。',
+      en: 'Use a 13-card reserve and cyclic foundations in this compact game.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#d89d56',
+  },
+  {
+    id: 'agnes-bernauer',
+    name: { ja: 'アグネス・ベルナウアー', en: 'Agnes Bernauer' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '7つの予備札を使い、交互色の降順列を作ります。',
+      en: 'Use seven reserve cards to build alternating-color descending runs.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#d47892',
+  },
+  {
+    id: 'king-albert',
+    name: { ja: 'キング・アルバート', en: 'King Albert' },
+    family: { ja: 'クロンダイク系', en: 'Klondike family' },
+    description: {
+      ja: '9列と予備札を使い、全表向きのカードを整理します。',
+      en: 'Arrange a fully face-up deal across nine columns and a reserve.',
+    },
+    difficulty: 5,
+    decks: 1,
+    accent: '#ba8a44',
+  },
+  {
+    id: 'scorpion',
+    name: { ja: 'スコーピオン', en: 'Scorpion' },
+    family: { ja: 'スパイダー系', en: 'Spider family' },
+    description: {
+      ja: '同一スートのKからAまでを完成させ、列を取り除きます。',
+      en: 'Build and remove same-suit King-to-Ace sequences.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#a86b8a',
+  },
+  {
+    id: 'wasp',
+    name: { ja: 'ワスプ', en: 'Wasp' },
+    family: { ja: 'スパイダー系', en: 'Spider family' },
+    description: {
+      ja: 'スコーピオン型の列を作り、空列にも移動できる派生です。',
+      en: 'A Scorpion-style game with additional empty-column flexibility.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#d0a151',
+  },
+  {
+    id: 'black-widow',
+    name: { ja: 'ブラック・ウィドウ', en: 'Black Widow' },
+    family: { ja: 'スパイダー系', en: 'Spider family' },
+    description: {
+      ja: '2組のカードで、同一スートの完成列を8組取り除きます。',
+      en: 'Clear eight same-suit complete runs across two decks.',
+    },
+    difficulty: 5,
+    decks: 2,
+    accent: '#994f59',
+  },
 ];
 export function gameCatalog(): GameDefinition[] {
   const candidate = runtime.gameCatalog ?? runtime.GAME_DEFINITIONS ?? runtime.games;

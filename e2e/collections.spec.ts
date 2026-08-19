@@ -4,9 +4,9 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());
 });
 
-test('shows every game in the first expansion batch', async ({ page }) => {
+test('shows every game in the first two expansion batches', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-tile')).toHaveCount(11);
+  await expect(page.locator('.game-tile')).toHaveCount(17);
   for (const name of [
     'Klondike',
     'FreeCell',
@@ -19,12 +19,18 @@ test('shows every game in the first expansion batch', async ({ page }) => {
     'Spiderette',
     'Yukon',
     'Forty Thieves',
+    'Canfield',
+    'Agnes Bernauer',
+    'King Albert',
+    'Scorpion',
+    'Wasp',
+    'Black Widow',
   ]) {
     await expect(page.getByRole('heading', { name, exact: true })).toHaveCount(1);
   }
 });
 
-test('starts each expansion game from its menu tile', async ({ page }) => {
+test('starts each added game from its menu tile', async ({ page }) => {
   for (const name of [
     "Baker's Game",
     'Eight Off',
@@ -32,6 +38,12 @@ test('starts each expansion game from its menu tile', async ({ page }) => {
     'Spiderette',
     'Yukon',
     'Forty Thieves',
+    'Canfield',
+    'Agnes Bernauer',
+    'King Albert',
+    'Scorpion',
+    'Wasp',
+    'Black Widow',
   ]) {
     await page.goto('/');
     await page.locator('.game-tile').filter({ hasText: name }).click();

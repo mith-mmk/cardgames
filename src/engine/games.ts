@@ -3,9 +3,13 @@ import { cloneState, draw, faceUpRun, makeState, pile, top, transfer } from './c
 import { shuffledDeck } from './random';
 import { bakersGame, eightOff, seahavenTowers } from './openCellGames';
 import { fortyThieves, spiderette, yukon } from './longRunGames';
+import { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
+import { blackWidow, scorpion, wasp } from './spiderVariantGames';
 
 export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
 export { fortyThieves, spiderette, yukon } from './longRunGames';
+export { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
+export { blackWidow, scorpion, wasp } from './spiderVariantGames';
 
 const DEFAULT_SEED = 'solitaire-default';
 const sameMove = (a: Move, b: Move): boolean => {
@@ -502,6 +506,12 @@ export const GAME_DEFINITIONS = {
   spiderette,
   yukon,
   'forty-thieves': fortyThieves,
+  canfield,
+  'agnes-bernauer': agnesBernauer,
+  'king-albert': kingAlbert,
+  scorpion,
+  wasp,
+  'black-widow': blackWidow,
 } as const;
 export type GameId = keyof typeof GAME_DEFINITIONS;
 export function getGameDefinition(id: GameId): GameDefinition {

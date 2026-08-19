@@ -48,7 +48,7 @@ export function GameScreen({
   const snapshot = session.getSnapshot();
   const piles = snapshot.piles;
   const isWideLayout =
-    piles.filter((pile) => pile.kind === 'tableau').length >= 10 ||
+    piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
     piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4;
   const isPyramid = definition.id === 'pyramid';
   const isPyramidPile = (pile: Pile) => /^p\d+$/.test(pile.id);
