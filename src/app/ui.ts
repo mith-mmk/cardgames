@@ -90,6 +90,22 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     return { left: `${(topPiles.length + foundations.length) * gap}px`, top: '0px', right: 'auto' };
   }
 
+  const clockPiles = tableaux.filter((item) => /^clock\d+$/.test(item.id));
+  if (clockPiles.length === 13 && /^clock\d+$/.test(pile.id)) {
+    const index = Number(pile.id.slice(5)) - 1;
+    if (index === 12) return { left: 'calc(50% - var(--card-w) / 2)', top: '220px', right: 'auto' };
+    const positions = [
+      [0, -190], [95, -165], [165, -95], [190, 0], [165, 95], [95, 165],
+      [0, 190], [-95, 165], [-165, 95], [-190, 0], [-165, -95], [-95, -165],
+    ];
+    const [x, y] = positions[index];
+    return {
+      left: `calc(50% - var(--card-w) / 2 + ${x}px)`,
+      top: `${220 + y}px`,
+      right: 'auto',
+    };
+  }
+
   const isPyramid = tableaux.length >= 20 && tableaux.every((item) => /^p\d+$/.test(item.id));
   if (isPyramid) {
     const index = Math.max(0, Number(pile.id.slice(1)));

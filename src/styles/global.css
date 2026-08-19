@@ -1546,6 +1546,12 @@ footer {
   min-height: 560px;
 }
 
+.game-layout-clock .board {
+  width: 760px;
+  min-width: 760px;
+  min-height: 560px;
+}
+
 /* Spider needs ten columns. Put its controls below the table on desktop so
    the board keeps its natural width instead of squeezing or clipping cards. */
 .game-spider .board {

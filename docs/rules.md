@@ -32,6 +32,8 @@ compare changes without silently changing an existing saved game.
 | Scorpion        | Spider/Yukon/long runs  | One 52-card deck, seven tableau columns and three stock cards, complete same-suit King-to-Ace runs are removed                               | [Scorpion rules](https://www.bvssolitaire.com/rules/scorpion.htm)                             | 2026-08-19 |
 | Wasp            | Spider/Yukon/long runs  | One 52-card deck, Scorpion-style tableau, completed same-suit King-to-Ace runs are removed; empty columns accept moves                       | [Wasp rules](https://www.bvssolitaire.com/rules/wasp.htm)                                     | 2026-08-19 |
 | Black Widow     | Spider/Yukon/long runs  | Two 52-card decks, ten tableau columns, remove eight completed same-suit King-to-Ace runs after stock deals                                  | [Black Widow rules](https://www.bvssolitaire.com/rules/black-widow.htm)                       | 2026-08-19 |
+| Golf            | Removal/compression     | One 52-card deck, seven tableau columns of five, play an exposed card one rank above or below the waste (A/K adjacent)                  | [Golf rules](https://www.pagat.com/solitaire/golf.html)                                      | 2026-08-19 |
+| Clock           | Special layout          | One 52-card deck in twelve numbered piles plus a centre King pile; each exposed card selects its destination pile by rank                | [Clock Patience rules](https://www.pagat.com/solitaire/clock.html)                           | 2026-08-19 |
 
 ## Compatibility notes
 

@@ -292,6 +292,30 @@ const fallbackGames: GameDefinition[] = [
     decks: 2,
     accent: '#994f59',
   },
+  {
+    id: 'golf',
+    name: { ja: 'ゴルフ', en: 'Golf' },
+    family: { ja: 'カード除去系', en: 'Removal games' },
+    description: {
+      ja: '7列のカードを、捨て札の上下1ランクへ移して取り除きます。',
+      en: 'Clear seven tableau columns by playing cards one rank above or below the waste.',
+    },
+    difficulty: 2,
+    decks: 1,
+    accent: '#75c6a5',
+  },
+  {
+    id: 'clock',
+    name: { ja: 'クロック', en: 'Clock' },
+    family: { ja: '特殊配置', en: 'Special layouts' },
+    description: {
+      ja: '時計盤の12山と中央から、カードの数字が示す山へ順に移します。',
+      en: 'Move the exposed card to the clock pile named by its rank until every card is revealed.',
+    },
+    difficulty: 4,
+    decks: 1,
+    accent: '#e1a456',
+  },
 ];
 export function gameCatalog(): GameDefinition[] {
   const candidate = runtime.gameCatalog ?? runtime.GAME_DEFINITIONS ?? runtime.games;

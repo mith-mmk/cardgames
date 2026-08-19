@@ -14,6 +14,7 @@ import {
 import { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
 import { auntMary, easthaven, westcliff } from './klondikeVariants';
 import { blackWidow, scorpion, wasp } from './spiderVariantGames';
+import { clock, golf } from './golfClockGames';
 
 export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
 export {
@@ -28,6 +29,7 @@ export {
 export { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
 export { auntMary, easthaven, westcliff } from './klondikeVariants';
 export { blackWidow, scorpion, wasp } from './spiderVariantGames';
+export { clock, golf } from './golfClockGames';
 
 const DEFAULT_SEED = 'solitaire-default';
 const sameMove = (a: Move, b: Move): boolean => {
@@ -537,6 +539,8 @@ export const GAME_DEFINITIONS = {
   easthaven,
   westcliff,
   'aunt-mary': auntMary,
+  golf,
+  clock,
 } as const;
 export type GameId = keyof typeof GAME_DEFINITIONS;
 export function getGameDefinition(id: GameId): GameDefinition {
