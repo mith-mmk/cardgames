@@ -1,6 +1,6 @@
 [package]
 name = "solitaire-collections"
-version = "0.1.10"
+version = "0.1.11"
 description = "Desktop shell for Solitaire Collections"
 authors = ["Solitaire Collections contributors"]
 edition = "2021"
