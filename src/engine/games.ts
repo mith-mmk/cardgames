@@ -17,6 +17,7 @@ import { blackWidow, scorpion, wasp } from './spiderVariantGames';
 import { clock, golf } from './golfClockGames';
 import { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
 import { OPEN_CELL_WAVE_GAMES } from './openCellWaveGames';
+import { SPIDER_FAMILY_WAVE_GAMES } from './spiderFamilyWave';
 
 export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
 export {
@@ -34,6 +35,7 @@ export { blackWidow, scorpion, wasp } from './spiderVariantGames';
 export { clock, golf } from './golfClockGames';
 export { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
 export { OPEN_CELL_WAVE_GAMES } from './openCellWaveGames';
+export { SPIDER_FAMILY_WAVE_GAMES } from './spiderFamilyWave';
 
 const DEFAULT_SEED = 'solitaire-default';
 const sameMove = (a: Move, b: Move): boolean => {
@@ -574,6 +576,15 @@ export const GAME_DEFINITIONS = {
   'bear-river': OPEN_CELL_WAVE_GAMES.bearRiver,
   cruel: OPEN_CELL_WAVE_GAMES.cruel,
   canister: OPEN_CELL_WAVE_GAMES.canister,
+  beetle: SPIDER_FAMILY_WAVE_GAMES.beetle,
+  'curds-and-whey': SPIDER_FAMILY_WAVE_GAMES.curdsAndWhey,
+  'mrs-mop': SPIDER_FAMILY_WAVE_GAMES.mrsMop,
+  'russian-solitaire': SPIDER_FAMILY_WAVE_GAMES.russianSolitaire,
+  alaska: SPIDER_FAMILY_WAVE_GAMES.alaska,
+  brisbane: SPIDER_FAMILY_WAVE_GAMES.brisbane,
+  applegate: SPIDER_FAMILY_WAVE_GAMES.applegate,
+  'miss-milligan': SPIDER_FAMILY_WAVE_GAMES.missMilligan,
+  interchange: SPIDER_FAMILY_WAVE_GAMES.interchange,
 } as const;
 export type GameId = keyof typeof GAME_DEFINITIONS;
 export function getGameDefinition(id: GameId): GameDefinition {

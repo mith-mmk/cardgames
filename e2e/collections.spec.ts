@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 
 test('shows every currently implemented game', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-tile')).toHaveCount(55);
+  await expect(page.locator('.game-tile')).toHaveCount(64);
   for (const name of [
     'Klondike',
     'FreeCell',
@@ -69,6 +69,15 @@ test('shows every currently implemented game', async ({ page }) => {
     'Bear River',
     'Cruel',
     'Canister',
+    'Beetle',
+    'Curds and Whey',
+    'Mrs Mop',
+    'Russian Solitaire',
+    'Alaska',
+    'Brisbane',
+    'Applegate',
+    'Miss Milligan',
+    'Interchange',
   ]) {
     await expect(page.getByRole('heading', { name, exact: true })).toHaveCount(1);
   }
@@ -126,6 +135,15 @@ test('starts each added game from its menu tile', async ({ page }) => {
     'Bear River',
     'Cruel',
     'Canister',
+    'Beetle',
+    'Curds and Whey',
+    'Mrs Mop',
+    'Russian Solitaire',
+    'Alaska',
+    'Brisbane',
+    'Applegate',
+    'Miss Milligan',
+    'Interchange',
   ]) {
     await page.goto('/');
     await page.getByRole('button', { name, exact: true }).click();
