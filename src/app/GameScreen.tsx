@@ -67,6 +67,10 @@ export function GameScreen({
       piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4);
   const isClock = definition.id === 'clock';
   const isPyramid = definition.id === 'pyramid';
+  const isDenseBoard =
+    piles.filter((pile) => pile.kind === 'tableau').length >= 12 ||
+    piles.filter((pile) => ['stock', 'waste', 'cell', 'reserve', 'foundation'].includes(pile.kind))
+      .length >= 12;
   const isPyramidPile = (pile: Pile) => /^p\d+$/.test(pile.id);
   const isPyramidExposed = (pile: Pile) => {
     if (!isPyramid || !isPyramidPile(pile) || !pile.cards.length) return false;
@@ -316,7 +320,7 @@ export function GameScreen({
               {t.time} <b>{clock(snapshot.elapsedSeconds)}</b>
             </span>
           </div>
-          <div className="board">
+          <div className={`board ${isDenseBoard ? 'dense-board' : ''}`}>
             {piles.map((pile) => (
               <div
                 className={`pile dynamic-pile pile-${pile.kind} ${isPyramid && isPyramidPile(pile) && !pile.cards.length ? 'is-empty-pyramid-pile' : ''} ${isPyramid && isPyramidPile(pile) && !isPyramidExposed(pile) ? 'is-covered-pyramid-pile' : ''} ${dropTarget === pile.id ? 'is-drop-target' : ''} ${legalTargetIds.has(pile.id) ? 'is-legal-target' : ''}`}
@@ -360,7 +364,7 @@ export function GameScreen({
                         pile.kind === 'tableau' &&
                         piles.filter((item) => item.kind === 'tableau').length < 20 &&
                         !isClock
-                          ? `${index * (compactLandscape ? (card.faceUp ? 12 : 8) : 30)}px`
+                          ? `${index * (compactLandscape ? (card.faceUp ? 30 : 16) : 30)}px`
                           : 0,
                       zIndex: index,
                     }}

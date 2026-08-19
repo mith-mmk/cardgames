@@ -16,6 +16,7 @@ import { auntMary, easthaven, westcliff } from './klondikeVariants';
 import { blackWidow, scorpion, wasp } from './spiderVariantGames';
 import { clock, golf } from './golfClockGames';
 import { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
+import { OPEN_CELL_WAVE_GAMES } from './openCellWaveGames';
 
 export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
 export {
@@ -32,6 +33,7 @@ export { auntMary, easthaven, westcliff } from './klondikeVariants';
 export { blackWidow, scorpion, wasp } from './spiderVariantGames';
 export { clock, golf } from './golfClockGames';
 export { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
+export { OPEN_CELL_WAVE_GAMES } from './openCellWaveGames';
 
 const DEFAULT_SEED = 'solitaire-default';
 const sameMove = (a: Move, b: Move): boolean => {
@@ -556,6 +558,22 @@ export const GAME_DEFINITIONS = {
   'pas-seul': KLONDIKE_FAMILY_WAVE_GAMES.pasSeul,
   chameleon: KLONDIKE_FAMILY_WAVE_GAMES.chameleon,
   'superior-canfield': KLONDIKE_FAMILY_WAVE_GAMES.superiorCanfield,
+  penguin: OPEN_CELL_WAVE_GAMES.penguin,
+  'beleaguered-castle': OPEN_CELL_WAVE_GAMES.beleagueredCastle,
+  citadel: OPEN_CELL_WAVE_GAMES.citadel,
+  fortress: OPEN_CELL_WAVE_GAMES.fortress,
+  chessboard: OPEN_CELL_WAVE_GAMES.chessboard,
+  'streets-and-alleys': OPEN_CELL_WAVE_GAMES.streetsAndAlleys,
+  'bakers-dozen': OPEN_CELL_WAVE_GAMES.bakersDozen,
+  'castles-in-spain': OPEN_CELL_WAVE_GAMES.castlesInSpain,
+  bisley: OPEN_CELL_WAVE_GAMES.bisley,
+  'flower-garden': OPEN_CELL_WAVE_GAMES.flowerGarden,
+  'la-belle-lucie': OPEN_CELL_WAVE_GAMES.laBelleLucie,
+  shamrocks: OPEN_CELL_WAVE_GAMES.shamrocks,
+  trefoil: OPEN_CELL_WAVE_GAMES.trefoil,
+  'bear-river': OPEN_CELL_WAVE_GAMES.bearRiver,
+  cruel: OPEN_CELL_WAVE_GAMES.cruel,
+  canister: OPEN_CELL_WAVE_GAMES.canister,
 } as const;
 export type GameId = keyof typeof GAME_DEFINITIONS;
 export function getGameDefinition(id: GameId): GameDefinition {

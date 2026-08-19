@@ -465,6 +465,9 @@ footer {
   position: relative;
   margin-top: 30px;
 }
+.dense-board {
+  min-height: 720px;
+}
 .pile {
   position: absolute;
   width: var(--card-w);
@@ -1716,6 +1719,15 @@ footer {
     margin-top: 6px;
   }
 
+  .dense-board {
+    min-height: 420px;
+  }
+
+  .game-screen.large-cards {
+    --card-w: clamp(44px, 6.2vw, 64px);
+    --card-h: clamp(64px, 8.9vw, 92px);
+  }
+
   .game-pyramid .board {
     height: max(260px, calc(100% - 24px));
   }
@@ -1741,7 +1753,7 @@ footer {
     min-width: 0;
     min-height: 44px;
     padding: 5px 3px;
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .game-controls button span {
@@ -1754,6 +1766,10 @@ footer {
   .game-controls .tip,
   .action-status {
     display: none;
+  }
+
+  .compact-landscape .playing-card {
+    touch-action: pan-y;
   }
 
   .modal-scrim {

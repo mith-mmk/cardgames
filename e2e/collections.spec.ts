@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 
 test('shows every currently implemented game', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-tile')).toHaveCount(39);
+  await expect(page.locator('.game-tile')).toHaveCount(55);
   for (const name of [
     'Klondike',
     'FreeCell',
@@ -53,6 +53,22 @@ test('shows every currently implemented game', async ({ page }) => {
     'Pas Seul',
     'Chameleon',
     'Superior Canfield',
+    'Penguin',
+    'Beleaguered Castle',
+    'Citadel',
+    'Fortress',
+    'Chessboard',
+    'Streets and Alleys',
+    "Baker's Dozen",
+    'Castles in Spain',
+    'Bisley',
+    'Flower Garden',
+    'La Belle Lucie',
+    'Shamrocks',
+    'Trefoil',
+    'Bear River',
+    'Cruel',
+    'Canister',
   ]) {
     await expect(page.getByRole('heading', { name, exact: true })).toHaveCount(1);
   }
@@ -94,6 +110,22 @@ test('starts each added game from its menu tile', async ({ page }) => {
     'Pas Seul',
     'Chameleon',
     'Superior Canfield',
+    'Penguin',
+    'Beleaguered Castle',
+    'Citadel',
+    'Fortress',
+    'Chessboard',
+    'Streets and Alleys',
+    "Baker's Dozen",
+    'Castles in Spain',
+    'Bisley',
+    'Flower Garden',
+    'La Belle Lucie',
+    'Shamrocks',
+    'Trefoil',
+    'Bear River',
+    'Cruel',
+    'Canister',
   ]) {
     await page.goto('/');
     await page.getByRole('button', { name, exact: true }).click();

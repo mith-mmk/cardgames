@@ -85,19 +85,28 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
   );
   const foundations = piles.filter((item) => item.kind === 'foundation');
   const tableaux = piles.filter((item) => item.kind === 'tableau');
+  const compact = isCompactLandscape();
+  const dense = tableaux.length >= 12 || topPiles.length + foundations.length >= 12;
+  const topColumns = dense ? (compact ? 10 : 8) : Number.MAX_SAFE_INTEGER;
+  const topRowGap = compact ? 70 : 135;
+  const topIndex = (candidate: Pile) =>
+    [...topPiles, ...foundations, ...piles.filter((item) => item.kind === 'removed')].indexOf(
+      candidate,
+    );
+  const topPosition = (index: number): CSSProperties => ({
+    left: `${(index % topColumns) * gap}px`,
+    top: `${Math.floor(index / topColumns) * topRowGap}px`,
+    right: 'auto',
+  });
 
   if (['stock', 'waste', 'cell', 'reserve'].includes(pile.kind)) {
-    return { left: `${topPiles.indexOf(pile) * gap}px`, top: '0px', right: 'auto' };
+    return topPosition(topIndex(pile));
   }
   if (pile.kind === 'foundation') {
-    return {
-      left: `${(topPiles.length + foundations.indexOf(pile)) * gap}px`,
-      top: '0px',
-      right: 'auto',
-    };
+    return topPosition(topIndex(pile));
   }
   if (pile.kind === 'removed') {
-    return { left: `${(topPiles.length + foundations.length) * gap}px`, top: '0px', right: 'auto' };
+    return topPosition(topIndex(pile));
   }
 
   const clockPiles = tableaux.filter((item) => /^clock\d+$/.test(item.id));
@@ -148,5 +157,13 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     .sort(
       (left, right) => Number(left.match(/\d+$/)?.[0] ?? 0) - Number(right.match(/\d+$/)?.[0] ?? 0),
     );
-  return { left: `${columns.indexOf(pile.id) * gap}px`, top: '180px', right: 'auto' };
+  const columnIndex = columns.indexOf(pile.id);
+  const tableauColumns = dense ? (compact ? 8 : 8) : Number.MAX_SAFE_INTEGER;
+  const topRows = dense ? Math.ceil((topPiles.length + foundations.length) / topColumns) : 0;
+  const tableauTop = dense ? topRows * topRowGap + (compact ? 8 : 24) : 180;
+  return {
+    left: `${(columnIndex % tableauColumns) * gap}px`,
+    top: `${tableauTop + Math.floor(columnIndex / tableauColumns) * (compact ? 112 : 170)}px`,
+    right: 'auto',
+  };
 }
