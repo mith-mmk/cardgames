@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 
 test('shows every currently implemented game', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-tile')).toHaveCount(83);
+  await expect(page.locator('.game-tile')).toHaveCount(100);
   for (const name of [
     'Klondike',
     'FreeCell',
@@ -97,6 +97,23 @@ test('shows every currently implemented game', async ({ page }) => {
     'Auld Lang Syne',
     'Osmosis',
     'Four Seasons',
+    'Giza',
+    'Cheops',
+    'Tri-Peaks',
+    'Black Hole',
+    'Accordion',
+    'Aces Up',
+    'Monte Carlo',
+    'Block Ten',
+    'Fourteen Out',
+    'Royal Marriage',
+    'Gay Gordons',
+    'Beehive',
+    'Nestor',
+    'Poker Squares',
+    'Cribbage Squares',
+    'Cribbage Solitaire',
+    'Bowling Solitaire',
   ]) {
     await expect(page.getByRole('heading', { name, exact: true })).toHaveCount(1);
   }
@@ -182,6 +199,23 @@ test('starts each added game from its menu tile', async ({ page }) => {
     'Auld Lang Syne',
     'Osmosis',
     'Four Seasons',
+    'Giza',
+    'Cheops',
+    'Tri-Peaks',
+    'Black Hole',
+    'Accordion',
+    'Aces Up',
+    'Monte Carlo',
+    'Block Ten',
+    'Fourteen Out',
+    'Royal Marriage',
+    'Gay Gordons',
+    'Beehive',
+    'Nestor',
+    'Poker Squares',
+    'Cribbage Squares',
+    'Cribbage Solitaire',
+    'Bowling Solitaire',
   ]) {
     await page.goto('/');
     await page.getByRole('button', { name, exact: true }).click();

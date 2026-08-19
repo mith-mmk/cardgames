@@ -19,6 +19,7 @@ import { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
 import { OPEN_CELL_WAVE_GAMES } from './openCellWaveGames';
 import { SPIDER_FAMILY_WAVE_GAMES } from './spiderFamilyWave';
 import { SPECIAL_GAMES } from './specialGames';
+import { REMOVAL_SCORING_GAMES } from './removalScoringGames';
 
 export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
 export {
@@ -38,6 +39,7 @@ export { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
 export { OPEN_CELL_WAVE_GAMES } from './openCellWaveGames';
 export { SPIDER_FAMILY_WAVE_GAMES } from './spiderFamilyWave';
 export { SPECIAL_GAMES } from './specialGames';
+export { REMOVAL_SCORING_GAMES } from './removalScoringGames';
 
 const DEFAULT_SEED = 'solitaire-default';
 const sameMove = (a: Move, b: Move): boolean => {
@@ -606,6 +608,23 @@ export const GAME_DEFINITIONS = {
   'auld-lang-syne': SPECIAL_GAMES.auldLangSyne,
   osmosis: SPECIAL_GAMES.osmosis,
   'four-seasons': SPECIAL_GAMES.fourSeasons,
+  giza: REMOVAL_SCORING_GAMES.giza,
+  cheops: REMOVAL_SCORING_GAMES.cheops,
+  'tri-peaks': REMOVAL_SCORING_GAMES.triPeaks,
+  'black-hole': REMOVAL_SCORING_GAMES.blackHole,
+  accordion: REMOVAL_SCORING_GAMES.accordion,
+  'aces-up': REMOVAL_SCORING_GAMES.acesUp,
+  'monte-carlo': REMOVAL_SCORING_GAMES.monteCarlo,
+  'block-ten': REMOVAL_SCORING_GAMES.blockTen,
+  'fourteen-out': REMOVAL_SCORING_GAMES.fourteenOut,
+  'royal-marriage': REMOVAL_SCORING_GAMES.royalMarriage,
+  'gay-gordons': REMOVAL_SCORING_GAMES.gayGordons,
+  beehive: REMOVAL_SCORING_GAMES.beehive,
+  nestor: REMOVAL_SCORING_GAMES.nestor,
+  'poker-squares': REMOVAL_SCORING_GAMES.pokerSquares,
+  'cribbage-squares': REMOVAL_SCORING_GAMES.cribbageSquares,
+  'cribbage-solitaire': REMOVAL_SCORING_GAMES.cribbageSolitaire,
+  'bowling-solitaire': REMOVAL_SCORING_GAMES.bowlingSolitaire,
 } as const;
 export type GameId = keyof typeof GAME_DEFINITIONS;
 export function getGameDefinition(id: GameId): GameDefinition {
