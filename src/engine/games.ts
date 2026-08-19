@@ -18,6 +18,7 @@ import { clock, golf } from './golfClockGames';
 import { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
 import { OPEN_CELL_WAVE_GAMES } from './openCellWaveGames';
 import { SPIDER_FAMILY_WAVE_GAMES } from './spiderFamilyWave';
+import { SPECIAL_GAMES } from './specialGames';
 
 export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
 export {
@@ -36,6 +37,7 @@ export { clock, golf } from './golfClockGames';
 export { KLONDIKE_FAMILY_WAVE_GAMES } from './klondikeFamilyWave';
 export { OPEN_CELL_WAVE_GAMES } from './openCellWaveGames';
 export { SPIDER_FAMILY_WAVE_GAMES } from './spiderFamilyWave';
+export { SPECIAL_GAMES } from './specialGames';
 
 const DEFAULT_SEED = 'solitaire-default';
 const sameMove = (a: Move, b: Move): boolean => {
@@ -585,6 +587,25 @@ export const GAME_DEFINITIONS = {
   applegate: SPIDER_FAMILY_WAVE_GAMES.applegate,
   'miss-milligan': SPIDER_FAMILY_WAVE_GAMES.missMilligan,
   interchange: SPIDER_FAMILY_WAVE_GAMES.interchange,
+  'busy-aces': SPECIAL_GAMES.busyAces,
+  deuces: SPECIAL_GAMES.deuces,
+  'aces-and-kings': SPECIAL_GAMES.acesAndKings,
+  tournament: SPECIAL_GAMES.tournament,
+  colorado: SPECIAL_GAMES.colorado,
+  crescent: SPECIAL_GAMES.crescent,
+  'crazy-quilt': SPECIAL_GAMES.crazyQuilt,
+  windmill: SPECIAL_GAMES.windmill,
+  sultan: SPECIAL_GAMES.sultan,
+  'algerian-patience': SPECIAL_GAMES.algerianPatience,
+  indian: SPECIAL_GAMES.indian,
+  gypsy: SPECIAL_GAMES.gypsy,
+  carthage: SPECIAL_GAMES.carthage,
+  carpet: SPECIAL_GAMES.carpet,
+  bristol: SPECIAL_GAMES.bristol,
+  'sir-tommy': SPECIAL_GAMES.sirTommy,
+  'auld-lang-syne': SPECIAL_GAMES.auldLangSyne,
+  osmosis: SPECIAL_GAMES.osmosis,
+  'four-seasons': SPECIAL_GAMES.fourSeasons,
 } as const;
 export type GameId = keyof typeof GAME_DEFINITIONS;
 export function getGameDefinition(id: GameId): GameDefinition {

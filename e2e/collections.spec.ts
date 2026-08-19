@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 
 test('shows every currently implemented game', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-tile')).toHaveCount(64);
+  await expect(page.locator('.game-tile')).toHaveCount(83);
   for (const name of [
     'Klondike',
     'FreeCell',
@@ -78,6 +78,25 @@ test('shows every currently implemented game', async ({ page }) => {
     'Applegate',
     'Miss Milligan',
     'Interchange',
+    'Busy Aces',
+    'Deuces',
+    'Aces and Kings',
+    'Tournament',
+    'Colorado',
+    'Crescent',
+    'Crazy Quilt',
+    'Windmill',
+    'Sultan',
+    'Algerian Patience',
+    'Indian',
+    'Gypsy',
+    'Carthage',
+    'Carpet',
+    'Bristol',
+    'Sir Tommy',
+    'Auld Lang Syne',
+    'Osmosis',
+    'Four Seasons',
   ]) {
     await expect(page.getByRole('heading', { name, exact: true })).toHaveCount(1);
   }
@@ -144,6 +163,25 @@ test('starts each added game from its menu tile', async ({ page }) => {
     'Applegate',
     'Miss Milligan',
     'Interchange',
+    'Busy Aces',
+    'Deuces',
+    'Aces and Kings',
+    'Tournament',
+    'Colorado',
+    'Crescent',
+    'Crazy Quilt',
+    'Windmill',
+    'Sultan',
+    'Algerian Patience',
+    'Indian',
+    'Gypsy',
+    'Carthage',
+    'Carpet',
+    'Bristol',
+    'Sir Tommy',
+    'Auld Lang Syne',
+    'Osmosis',
+    'Four Seasons',
   ]) {
     await page.goto('/');
     await page.getByRole('button', { name, exact: true }).click();
