@@ -1,0 +1,605 @@
+import { ApplyResult, Card, GameDefinition, GameState, Move } from './types';
+import { cloneState, draw, makeState, pile, top, transfer } from './core';
+import { shuffledDeck } from './random';
+
+const DEFAULT_SEED = 'solitaire-default';
+type RemovalMode = 'sum13' | 'sum10' | 'sum14' | 'same-rank' | 'adjacent' | 'royal';
+
+interface RemovalConfig {
+  readonly id: string;
+  readonly name: string;
+  readonly layout: string;
+  readonly tableauCount: number;
+  readonly cardsPerTableau: number;
+  readonly mode: RemovalMode;
+  readonly stock?: boolean;
+  readonly singleRanks?: boolean;
+}
+
+const sameMove = (a: Move, b: Move): boolean => {
+  if (a.type !== b.type || a.from !== b.from || a.to !== b.to) return false;
+  if (a.type === 'draw' && b.type === 'draw') return (a.count ?? 1) === (b.count ?? 1);
+  if ('cardIds' in a && 'cardIds' in b)
+    return JSON.stringify(a.cardIds) === JSON.stringify(b.cardIds);
+  return true;
+};
+
+const checked = (
+  state: GameState,
+  move: Move,
+  legal: Move[],
+  apply: () => ApplyResult,
+): ApplyResult =>
+  legal.some((candidate) => sameMove(candidate, move)) ? apply() : { state, error: 'Illegal move' };
+
+function activeCards(state: GameState): Array<{ pileId: string; card: Card }> {
+  const result: Array<{ pileId: string; card: Card }> = [];
+  for (const item of Object.values(state.piles)) {
+    if (item.kind !== 'tableau' && item.kind !== 'waste') continue;
+    const card = top(item);
+    if (card?.faceUp) result.push({ pileId: item.id, card });
+  }
+  return result;
+}
+
+function matches(mode: RemovalMode, a: Card, b: Card): boolean {
+  if (mode === 'same-rank') return a.rank === b.rank;
+  if (mode === 'adjacent')
+    return (
+      Math.abs(a.rank - b.rank) === 1 ||
+      (a.rank === 1 && b.rank === 13) ||
+      (a.rank === 13 && b.rank === 1)
+    );
+  if (mode === 'sum13') return a.rank + b.rank === 13;
+  if (mode === 'sum10') return a.rank + b.rank === 10;
+  if (mode === 'royal')
+    return (
+      a.suit === b.suit && ((a.rank === 12 && b.rank === 13) || (a.rank === 13 && b.rank === 12))
+    );
+  return a.rank + b.rank === 14;
+}
+
+function pairMoves(state: GameState, config: RemovalConfig): Move[] {
+  const cards = activeCards(state);
+  const moves: Move[] = [];
+  for (let i = 0; i < cards.length; i += 1) {
+    for (let j = i + 1; j < cards.length; j += 1) {
+      if (matches(config.mode, cards[i].card, cards[j].card))
+        moves.push({
+          type: 'remove',
+          from: cards[i].pileId,
+          to: 'removed',
+          cardIds: [cards[i].card.id, cards[j].card.id],
+        });
+    }
+    if (config.singleRanks && cards[i].card.rank === 13)
+      moves.push({
+        type: 'remove',
+        from: cards[i].pileId,
+        to: 'removed',
+        cardIds: [cards[i].card.id],
+      });
+  }
+  return moves;
+}
+
+function removeByIds(state: GameState, ids: string[]): ApplyResult {
+  const next = cloneState(state);
+  const removed = next.piles.removed;
+  if (!removed) return { state, error: 'Removed pile is missing' };
+  for (const id of ids) {
+    const source = Object.values(next.piles).find(
+      (candidate) => candidate.kind === 'tableau' || candidate.kind === 'waste',
+    );
+    const owner = Object.values(next.piles).find(
+      (candidate) =>
+        (candidate.kind === 'tableau' || candidate.kind === 'waste') &&
+        candidate.cards.some((card) => card.id === id),
+    );
+    if (!owner || !source) return { state, error: 'Card is not removable' };
+    const index = owner.cards.findIndex((card) => card.id === id);
+    if (index !== owner.cards.length - 1)
+      return { state, error: 'Only exposed cards can be removed' };
+    removed.cards.push(...owner.cards.splice(index, 1));
+  }
+  next.moveCount += 1;
+  return { state: next };
+}
+
+function createRemovalState(config: RemovalConfig, seed: string): GameState {
+  const deck = shuffledDeck(seed);
+  const piles = [
+    pile('removed', 'removed'),
+    ...Array.from({ length: config.tableauCount }, (_, index) => pile(`t${index}`, 'tableau')),
+    ...(config.stock || config.tableauCount * config.cardsPerTableau < 52
+      ? [pile('stock', 'stock'), pile('waste', 'waste')]
+      : []),
+  ];
+  let cursor = 0;
+  for (let column = 0; column < config.tableauCount; column += 1) {
+    const target = piles.find((candidate) => candidate.id === `t${column}`)!;
+    for (let row = 0; row < config.cardsPerTableau && cursor < deck.length; row += 1) {
+      const card = deck[cursor++];
+      card.faceUp = true;
+      target.cards.push(card);
+    }
+  }
+  if (config.stock || cursor < deck.length) {
+    const stock = piles.find((candidate) => candidate.id === 'stock')!;
+    deck.slice(cursor).forEach((card) => {
+      card.faceUp = false;
+      stock.cards.push(card);
+    });
+  }
+  return makeState(config.id, seed, piles, {
+    options: { layout: config.layout },
+    layout: { type: config.layout, tableauCount: config.tableauCount },
+    score: 0,
+  });
+}
+
+function makePairGame(config: RemovalConfig): GameDefinition {
+  const definition: GameDefinition = {
+    id: config.id,
+    name: config.name,
+    decks: 1,
+    create(seed = DEFAULT_SEED): GameState {
+      return createRemovalState(config, seed);
+    },
+    legalMoves(state): Move[] {
+      const moves = pairMoves(state, config);
+      if (config.stock && state.piles.stock.cards.length)
+        moves.push({ type: 'draw', from: 'stock', to: 'waste', count: 1 });
+      return moves;
+    },
+    applyMove(state, move): ApplyResult {
+      return checked(state, move, definition.legalMoves(state), () => {
+        if (move.type === 'draw') return draw(state, 'stock', 'waste');
+        if (move.type !== 'remove') return { state, error: 'Only removal is legal' };
+        const result = removeByIds(state, move.cardIds);
+        if (result.error) return result;
+        const next = result.state;
+        next.meta.score = Number(next.meta.score ?? 0) + move.cardIds.length;
+        if (definition.isWon(next)) next.status = 'won';
+        return { state: next };
+      });
+    },
+    isWon(state): boolean {
+      return Object.values(state.piles)
+        .filter((item) => item.kind === 'tableau' || item.kind === 'waste' || item.kind === 'stock')
+        .every((item) => item.cards.length === 0);
+    },
+    hint(state): Move | undefined {
+      return (
+        definition.legalMoves(state).find((move) => move.type === 'remove') ??
+        definition.legalMoves(state)[0]
+      );
+    },
+  };
+  return definition;
+}
+
+const giza = makePairGame({
+  id: 'giza',
+  name: 'Giza',
+  layout: 'pyramid',
+  tableauCount: 7,
+  cardsPerTableau: 7,
+  mode: 'sum13',
+  singleRanks: true,
+});
+const cheops = makePairGame({
+  id: 'cheops',
+  name: 'Cheops',
+  layout: 'pyramid',
+  tableauCount: 7,
+  cardsPerTableau: 7,
+  mode: 'sum13',
+  singleRanks: true,
+});
+const blockTen = makePairGame({
+  id: 'block-ten',
+  name: 'Block Ten',
+  layout: 'block-ten',
+  tableauCount: 8,
+  cardsPerTableau: 6,
+  mode: 'sum10',
+});
+const fourteenOut = makePairGame({
+  id: 'fourteen-out',
+  name: 'Fourteen Out',
+  layout: 'fourteen-out',
+  tableauCount: 8,
+  cardsPerTableau: 6,
+  mode: 'sum14',
+});
+const nestor = makePairGame({
+  id: 'nestor',
+  name: 'Nestor',
+  layout: 'nestor',
+  tableauCount: 8,
+  cardsPerTableau: 6,
+  mode: 'same-rank',
+});
+
+const triPeaks = makePairGame({
+  id: 'tri-peaks',
+  name: 'Tri-Peaks',
+  layout: 'tri-peaks',
+  tableauCount: 10,
+  cardsPerTableau: 5,
+  mode: 'adjacent',
+  stock: true,
+});
+const blackHole = makePairGame({
+  id: 'black-hole',
+  name: 'Black Hole',
+  layout: 'black-hole',
+  tableauCount: 13,
+  cardsPerTableau: 4,
+  mode: 'adjacent',
+});
+
+const acesUp: GameDefinition = {
+  id: 'aces-up',
+  name: 'Aces Up',
+  decks: 1,
+  create(seed = DEFAULT_SEED): GameState {
+    return createRemovalState(
+      {
+        id: 'aces-up',
+        name: 'Aces Up',
+        layout: 'aces-up',
+        tableauCount: 4,
+        cardsPerTableau: 4,
+        mode: 'same-rank',
+      },
+      seed,
+    );
+  },
+  legalMoves(state): Move[] {
+    const cards = activeCards(state);
+    const moves: Move[] = cards.flatMap(({ pileId, card }) =>
+      cards.some(
+        (other) =>
+          other.pileId !== pileId && other.card.suit === card.suit && other.card.rank > card.rank,
+      )
+        ? [{ type: 'remove', from: pileId, to: 'removed', cardIds: [card.id] }]
+        : [],
+    );
+    if (state.piles.stock.cards.length)
+      moves.push({ type: 'draw', from: 'stock', to: 'waste', count: 1 });
+    return moves;
+  },
+  applyMove(state, move): ApplyResult {
+    return checked(state, move, acesUp.legalMoves(state), () => {
+      if (move.type === 'draw') return draw(state, 'stock', 'waste');
+      if (move.type !== 'remove') return { state, error: 'Only exposed cards can be discarded' };
+      const result = removeByIds(state, move.cardIds);
+      if (result.error) return result;
+      const next = result.state;
+      next.meta.score = Number(next.meta.score ?? 0) + 1;
+      if (acesUp.isWon(next)) next.status = 'won';
+      return { state: next };
+    });
+  },
+  isWon: (state) =>
+    !state.piles.stock.cards.length &&
+    !state.piles.waste.cards.length &&
+    Object.values(state.piles)
+      .filter((item) => item.kind === 'tableau')
+      .every((item) => item.cards.length <= 1),
+  hint: (state) => acesUp.legalMoves(state)[0],
+};
+
+const accordion: GameDefinition = {
+  id: 'accordion',
+  name: 'Accordion',
+  decks: 1,
+  create(seed = DEFAULT_SEED): GameState {
+    return createRemovalState(
+      {
+        id: 'accordion',
+        name: 'Accordion',
+        layout: 'accordion',
+        tableauCount: 52,
+        cardsPerTableau: 1,
+        mode: 'same-rank',
+      },
+      seed,
+    );
+  },
+  legalMoves(state): Move[] {
+    const piles = Object.values(state.piles).filter(
+      (item) => item.kind === 'tableau' && item.cards.length,
+    );
+    const moves: Move[] = [];
+    for (let index = 1; index < piles.length; index += 1) {
+      const source = top(piles[index]);
+      if (!source) continue;
+      for (const offset of [1, 3]) {
+        const target = piles[index - offset];
+        const targetCard = target && top(target);
+        if (targetCard && (targetCard.rank === source.rank || targetCard.suit === source.suit))
+          moves.push({
+            type: 'transfer',
+            from: piles[index].id,
+            to: target.id,
+            cardIds: [source.id],
+          });
+      }
+    }
+    return moves;
+  },
+  applyMove(state, move): ApplyResult {
+    return checked(state, move, accordion.legalMoves(state), () => {
+      if (move.type !== 'transfer') return { state, error: 'Only accordion moves are legal' };
+      const result = transfer(state, move.from, move.to, move.cardIds);
+      if (result.error) return result;
+      const next = result.state;
+      next.meta.score =
+        52 -
+        Object.values(next.piles).filter((item) => item.kind === 'tableau' && item.cards.length)
+          .length;
+      if (accordion.isWon(next)) next.status = 'won';
+      return { state: next };
+    });
+  },
+  isWon: (state) =>
+    Object.values(state.piles).filter((item) => item.kind === 'tableau' && item.cards.length)
+      .length === 1,
+  hint: (state) => accordion.legalMoves(state)[0],
+};
+
+function makeAdjacentGame(id: string, name: string, layout: string): GameDefinition {
+  return makePairGame({
+    id,
+    name,
+    layout,
+    tableauCount: 7,
+    cardsPerTableau: 7,
+    mode: 'adjacent',
+    stock: true,
+  });
+}
+
+const monteCarlo = makePairGame({
+  id: 'monte-carlo',
+  name: 'Monte Carlo',
+  layout: 'grid-5x5',
+  tableauCount: 25,
+  cardsPerTableau: 2,
+  mode: 'same-rank',
+});
+const royalMarriage = makePairGame({
+  id: 'royal-marriage',
+  name: 'Royal Marriage',
+  layout: 'royal-marriage',
+  tableauCount: 8,
+  cardsPerTableau: 6,
+  mode: 'royal',
+});
+const gayGordons = makeAdjacentGame('gay-gordons', 'Gay Gordons', 'gay-gordons');
+const beehive = makePairGame({
+  id: 'beehive',
+  name: 'Beehive',
+  layout: 'beehive',
+  tableauCount: 7,
+  cardsPerTableau: 7,
+  mode: 'same-rank',
+});
+
+interface GridDefinition extends GameDefinition {
+  create(seed?: string): GameState;
+}
+
+function createGridState(id: string, layout: string, size: number, seed: string): GameState {
+  const deck = shuffledDeck(seed);
+  const cells = Array.from({ length: size }, (_, index) => pile(`g${index}`, 'tableau'));
+  const stock = pile('stock', 'stock', deck);
+  stock.cards.forEach((card) => {
+    card.faceUp = false;
+  });
+  return makeState(id, seed, [pile('removed', 'removed'), ...cells, stock], {
+    options: { layout },
+    layout: { type: layout, size },
+    score: 0,
+  });
+}
+
+function scoreGrid(state: GameState): number {
+  const size = Object.keys(state.piles).filter((id) => id.startsWith('g')).length;
+  const side = Math.sqrt(size);
+  const values = Array.from(
+    { length: size },
+    (_, index) => top(state.piles[`g${index}`])?.rank ?? 0,
+  );
+  let score = 0;
+  for (let row = 0; row < side; row += 1) {
+    const ranks = values.slice(row * side, row * side + side);
+    if (new Set(ranks).size === 5) score += 5;
+    if (ranks.every((rank) => rank > 0)) score += 1;
+  }
+  return score;
+}
+
+function makeGridScoringGame(
+  id: string,
+  name: string,
+  layout: string,
+  size: number,
+  cribbage = false,
+): GridDefinition {
+  const definition: GridDefinition = {
+    id,
+    name,
+    decks: 1,
+    create(seed = DEFAULT_SEED): GameState {
+      return createGridState(id, layout, size, seed);
+    },
+    legalMoves(state): Move[] {
+      if (!state.piles.stock.cards.length) return [];
+      return Object.values(state.piles)
+        .filter((item) => item.kind === 'tableau' && item.cards.length === 0)
+        .map((item) => ({ type: 'draw', from: 'stock', to: item.id, count: 1 }));
+    },
+    applyMove(state, move): ApplyResult {
+      return checked(state, move, definition.legalMoves(state), () => {
+        if (move.type !== 'draw') return { state, error: 'Draw into an empty square' };
+        const next = cloneState(state);
+        const card = next.piles.stock.cards.pop();
+        if (!card) return { state, error: 'No cards remain' };
+        card.faceUp = true;
+        next.piles[move.to].cards.push(card);
+        next.moveCount += 1;
+        next.meta.score = cribbage ? scoreGrid(next) * 2 : scoreGrid(next);
+        if (definition.isWon(next)) next.status = 'won';
+        return { state: next };
+      });
+    },
+    isWon: (state) =>
+      Object.values(state.piles)
+        .filter((item) => item.kind === 'tableau')
+        .every((item) => item.cards.length === 1),
+    hint: (state) => definition.legalMoves(state)[0],
+  };
+  return definition;
+}
+
+const pokerSquares = makeGridScoringGame('poker-squares', 'Poker Squares', 'grid-5x5', 25);
+const cribbageSquares = makeGridScoringGame(
+  'cribbage-squares',
+  'Cribbage Squares',
+  'grid-4x4',
+  16,
+  true,
+);
+
+const cribbageSolitaire: GameDefinition = {
+  id: 'cribbage-solitaire',
+  name: 'Cribbage Solitaire',
+  decks: 1,
+  create(seed = DEFAULT_SEED): GameState {
+    return createRemovalState(
+      {
+        id: 'cribbage-solitaire',
+        name: 'Cribbage Solitaire',
+        layout: 'cribbage-hands',
+        tableauCount: 4,
+        cardsPerTableau: 13,
+        mode: 'same-rank',
+      },
+      seed,
+    );
+  },
+  legalMoves(state): Move[] {
+    return activeCards(state).map(({ pileId, card }) => ({
+      type: 'remove',
+      from: pileId,
+      to: 'removed',
+      cardIds: [card.id],
+    }));
+  },
+  applyMove(state, move): ApplyResult {
+    return checked(state, move, cribbageSolitaire.legalMoves(state), () => {
+      if (move.type !== 'remove') return { state, error: 'Play an exposed card' };
+      const result = removeByIds(state, move.cardIds);
+      if (result.error) return result;
+      const next = result.state;
+      next.meta.score = Number(next.meta.score ?? 0) + (move.cardIds.length === 1 ? 1 : 0);
+      if (cribbageSolitaire.isWon(next)) next.status = 'won';
+      return { state: next };
+    });
+  },
+  isWon: (state) =>
+    Object.values(state.piles)
+      .filter((item) => item.kind === 'tableau')
+      .every((item) => !item.cards.length),
+  hint: (state) => cribbageSolitaire.legalMoves(state)[0],
+};
+
+const bowlingSolitaire: GameDefinition = {
+  id: 'bowling-solitaire',
+  name: 'Bowling Solitaire',
+  decks: 1,
+  create(seed = DEFAULT_SEED): GameState {
+    return createRemovalState(
+      {
+        id: 'bowling-solitaire',
+        name: 'Bowling Solitaire',
+        layout: 'bowling',
+        tableauCount: 10,
+        cardsPerTableau: 1,
+        mode: 'same-rank',
+      },
+      seed,
+    );
+  },
+  legalMoves(state): Move[] {
+    return activeCards(state).map(({ pileId, card }) => ({
+      type: 'remove',
+      from: pileId,
+      to: 'removed',
+      cardIds: [card.id],
+    }));
+  },
+  applyMove(state, move): ApplyResult {
+    return checked(state, move, bowlingSolitaire.legalMoves(state), () => {
+      if (move.type !== 'remove') return { state, error: 'Knock down an exposed pin' };
+      const result = removeByIds(state, move.cardIds);
+      if (result.error) return result;
+      const next = result.state;
+      next.meta.pinsKnocked = Number(next.meta.pinsKnocked ?? 0) + move.cardIds.length;
+      next.meta.score = Number(next.meta.score ?? 0) + (10 - next.piles.removed.cards.length);
+      if (bowlingSolitaire.isWon(next)) next.status = 'won';
+      return { state: next };
+    });
+  },
+  isWon: (state) =>
+    Object.values(state.piles)
+      .filter((item) => item.kind === 'tableau')
+      .every((item) => !item.cards.length),
+  hint: (state) => bowlingSolitaire.legalMoves(state)[0],
+};
+
+export {
+  giza,
+  cheops,
+  triPeaks,
+  blackHole,
+  accordion,
+  acesUp,
+  monteCarlo,
+  blockTen,
+  fourteenOut,
+  royalMarriage,
+  gayGordons,
+  beehive,
+  nestor,
+  pokerSquares,
+  cribbageSquares,
+  cribbageSolitaire,
+  bowlingSolitaire,
+};
+
+export const REMOVAL_SCORING_GAMES = {
+  giza,
+  cheops,
+  triPeaks,
+  blackHole,
+  accordion,
+  acesUp,
+  monteCarlo,
+  blockTen,
+  fourteenOut,
+  royalMarriage,
+  gayGordons,
+  beehive,
+  nestor,
+  pokerSquares,
+  cribbageSquares,
+  cribbageSolitaire,
+  bowlingSolitaire,
+} as const;
+
+export type RemovalScoringGameId = keyof typeof REMOVAL_SCORING_GAMES;
