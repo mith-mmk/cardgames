@@ -8,9 +8,6 @@ if (config.bundle?.active !== true || config.bundle?.targets !== 'all') {
   throw new Error('Tauri desktop bundling must remain enabled for all targets.');
 }
 
-// Keep mobile support visible in CI without generating platform projects here.
-// `tauri android init` and `tauri ios init` create large, host-specific trees and
-// must be run by a release engineer on the corresponding SDK host.
 const cli = join(
   dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -32,5 +29,7 @@ for (const platform of platforms) {
 
 if (process.platform !== 'darwin') {
   console.log('iOS workflow check skipped: Tauri iOS tooling is only available on macOS.');
+} else {
+  execFileSync(process.execPath, ['scripts/verify-tauri-ios.mjs'], { stdio: 'inherit' });
 }
 console.log(`Tauri desktop bundling and ${platforms.join('/')} CLI workflows are available.`);

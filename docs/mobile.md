@@ -9,13 +9,12 @@ direction while rejecting portrait. Do not build this target in this release.
 
 ## iOS
 
-iOS target generation requires macOS with Xcode. On that host, run
-`npm run tauri -- ios init`, then set these keys in the generated app
-`Info.plist` for both the iPhone and iPad orientation arrays:
+The generated iOS project is versioned in `src-tauri/gen/apple`. Both iPhone and
+iPad orientation arrays contain only:
 
 - `UIInterfaceOrientationLandscapeLeft`
 - `UIInterfaceOrientationLandscapeRight`
 
-Do not include either portrait orientation. The shared responsive UI and
-Playwright landscape checks are platform-neutral and are implemented before
-the generated iOS project is available.
+Do not add portrait orientations. On a macOS host with Xcode, CocoaPods, an
+Apple Developer team, and a connected trusted device, run `npm run tauri:ios:dev`.
+Use `npm run tauri:ios:verify` to validate the generated plist before review.

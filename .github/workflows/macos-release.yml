@@ -1,0 +1,55 @@
+name: macOS Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel to package
+        required: true
+        type: choice
+        options: [dmg, app-store]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: macos-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+      - run: npm ci
+      - name: Build signed and notarized DMG
+        if: inputs.channel == 'dmg'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npm run tauri:mac:dmg
+      - name: Build signed App Store package
+        if: inputs.channel == 'app-store'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          MACOS_INSTALLER_SIGNING_IDENTITY: ${{ secrets.MACOS_INSTALLER_SIGNING_IDENTITY }}
+          MACOS_APP_STORE_PROVISION_PROFILE: ${{ runner.temp }}/embedded.provisionprofile
+          MACOS_APP_STORE_PROVISION_PROFILE_B64: ${{ secrets.MACOS_APP_STORE_PROVISION_PROFILE_B64 }}
+        run: |
+          printf '%s' "$MACOS_APP_STORE_PROVISION_PROFILE_B64" | base64 -D > "$MACOS_APP_STORE_PROVISION_PROFILE"
+          npm run tauri:mac:app-store
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: solitaire-collections-macos-${{ inputs.channel }}
+          path: src-tauri/target/**/bundle/**

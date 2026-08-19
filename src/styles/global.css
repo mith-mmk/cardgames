@@ -1,8 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 :root {
   color: #f7f6f2;
   background: #101415;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-family: ui-rounded, 'Hiragino Kaku Gothic ProN', 'Yu Gothic', system-ui, sans-serif;
   font-synthesis: none;
   --surface: #171d1d;
   --surface-2: #202929;
@@ -452,7 +451,7 @@ footer {
   display: flex;
   gap: 20px;
   color: #a4c5af;
-  font-family: 'DM Mono', monospace;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
   font-size: 10px;
 }
 .table-stats b {

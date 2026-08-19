@@ -9,9 +9,10 @@ by the runner), and the macOS application/dmg workflow.
 Android is initialized in `src-tauri/gen/android` and locks the activity to
 sensor landscape. The native tree is versioned with its orientation setting;
 Android packaging is intentionally deferred until the mobile UX is validated.
-The iOS target still requires macOS, Xcode, and CocoaPods. Its shared landscape
-UI is implemented now, while `tauri ios init` and the generated `Info.plist`
-orientation entries must be completed on a macOS release host.
+The iOS target is initialized in `src-tauri/gen/apple` and is versioned with
+landscape-only iPhone and iPad orientation entries. Physical-device development
+still requires macOS, Xcode, CocoaPods, an Apple Developer team, and a connected
+trusted device.
 
 The app remains offline-first and stores data locally. Platform-specific storage,
 permissions, signing, and store metadata are not part of the current release.

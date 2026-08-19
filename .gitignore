@@ -10,6 +10,8 @@ src-tauri/target/
 src-tauri/gen/*
 !src-tauri/gen/android/
 !src-tauri/gen/android/**
+!src-tauri/gen/apple/
+!src-tauri/gen/apple/**
 src-tauri/.tauri/
 src-tauri/icons/generated/
 *.tsbuildinfo

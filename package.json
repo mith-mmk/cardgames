@@ -17,6 +17,12 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "tauri:mobile:verify": "node scripts/verify-tauri-mobile.mjs",
+    "tauri:ios:init": "tauri ios init",
+    "tauri:ios:dev": "tauri ios dev",
+    "tauri:ios:verify": "node scripts/verify-tauri-ios.mjs",
+    "tauri:mac:dmg": "tauri build --bundles app,dmg --target universal-apple-darwin",
+    "tauri:mac:app-store": "node scripts/build-macos-app-store.mjs",
+    "tauri:mac:verify-release": "node scripts/verify-macos-release.mjs",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"

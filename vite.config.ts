@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 const isTauriBuild = Boolean(process.env.TAURI_ENV_PLATFORM);
+const tauriDevHost = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
   plugins: [
@@ -40,9 +41,21 @@ export default defineConfig({
       : []),
   ],
   server: {
-    host: '127.0.0.1',
+    // Tauri sets this address while running against a physical iOS device.
+    // Keep loopback as the safe default for ordinary web and desktop development.
+    host: tauriDevHost ?? '127.0.0.1',
     port: 5173,
     strictPort: true,
+    hmr: tauriDevHost
+      ? {
+          protocol: 'ws',
+          host: tauriDevHost,
+          port: 5173,
+        }
+      : undefined,
+    watch: {
+      ignored: ['**/src-tauri/**'],
+    },
   },
   build: {
     target: 'es2022',
