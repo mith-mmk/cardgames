@@ -28,6 +28,11 @@ select {
 button {
   cursor: pointer;
 }
+.playing-card,
+.playing-card * {
+  user-select: none;
+  -webkit-user-select: none;
+}
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
@@ -594,7 +599,12 @@ footer {
   gap: 9px;
   padding-top: 43px;
 }
+.game-control-group {
+  display: grid;
+  gap: 9px;
+}
 .game-controls button {
+  min-height: 44px;
   border: 1px solid var(--line);
   color: #cad8d0;
   background: #1a2422;
@@ -637,6 +647,7 @@ footer {
 }
 .win-banner {
   position: fixed;
+  z-index: 36;
   bottom: 25px;
   left: 50%;
   transform: translateX(-50%);
@@ -662,6 +673,229 @@ footer {
   padding: 9px 12px;
   border-radius: 8px;
   font-size: 10px;
+}
+.clear-effect {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+.clear-effect__glow {
+  position: absolute;
+  inset: -15%;
+  background:
+    radial-gradient(circle at 50% 42%, #f9edb855 0 3%, transparent 17%),
+    radial-gradient(circle at 50% 42%, #bfe98a2e, transparent 47%);
+  animation: clear-effect-glow 1.9s ease-out both;
+}
+.clear-effect__burst {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+}
+.clear-effect__burst i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 85px;
+  border-radius: 999px;
+  background: linear-gradient(#fffbd4, transparent);
+  transform-origin: 50% 0;
+  transform: rotate(var(--angle)) translateY(-9px) scaleY(0);
+  animation: clear-effect-ray 1.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.clear-effect__burst i:nth-child(2n) {
+  height: 58px;
+  opacity: 0.65;
+}
+.clear-effect__cards {
+  position: absolute;
+  top: 39%;
+  left: 50%;
+  width: 150px;
+  height: 190px;
+  transform: translate(-50%, -50%);
+}
+.clear-effect__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 74px;
+  height: 106px;
+  border: 3px solid #fff9dc;
+  border-radius: 9px;
+  background: linear-gradient(135deg, transparent 45%, #fff9dc66 46% 54%, transparent 55%), #5b8967;
+  box-shadow:
+    0 12px 30px #07120c99,
+    0 0 16px #fff4b877;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.35) rotate(0deg);
+}
+.clear-effect__card--one {
+  animation: clear-effect-card-one 1.25s 80ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.clear-effect__card--two {
+  background-color: #a35c67;
+  animation: clear-effect-card-two 1.25s 130ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.clear-effect__card--three {
+  background-color: #5975a1;
+  animation: clear-effect-card-three 1.25s 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.clear-effect__confetti {
+  position: absolute;
+  inset: 0;
+}
+.clear-effect__confetti i {
+  position: absolute;
+  top: 39%;
+  left: 50%;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--color);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--color) 70%, transparent);
+  opacity: 0;
+  animation: clear-effect-confetti 1.75s var(--delay) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.clear-effect__confetti i:nth-child(3n) {
+  width: 5px;
+  height: 18px;
+}
+.clear-effect__confetti i:nth-child(3n + 1) {
+  border-radius: 50%;
+}
+.clear-effect__skip {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #fff8d866;
+  border-radius: 50%;
+  color: #fffbe9;
+  background: #14221dcc;
+  font-size: 22px;
+  line-height: 1;
+  pointer-events: auto;
+  box-shadow: 0 4px 14px #0005;
+}
+.clear-effect__skip:hover {
+  background: #314d3d;
+}
+@keyframes clear-effect-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+@keyframes clear-effect-ray {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(-9px) scaleY(0);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(-9px) scaleY(1);
+  }
+}
+@keyframes clear-effect-card-one {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35) rotate(-2deg);
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% - 125px), calc(-50% + 70px)) scale(0.9) rotate(-28deg);
+  }
+}
+@keyframes clear-effect-card-two {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35) rotate(0deg);
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 105px)) scale(0.88) rotate(12deg);
+  }
+}
+@keyframes clear-effect-card-three {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35) rotate(2deg);
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + 125px), calc(-50% + 70px)) scale(0.9) rotate(28deg);
+  }
+}
+@keyframes clear-effect-confetti {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -4vh, 0) rotate(0deg) scale(0.5);
+  }
+  14% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--x), var(--y), 0) rotate(var(--rotation)) scale(1);
+  }
+}
+.motion-reduced .clear-effect__confetti i {
+  animation-duration: 0.85s;
+}
+.motion-reduced .clear-effect__cards,
+.motion-reduced .clear-effect__burst {
+  opacity: 0.7;
+}
+.motion-reduced .clear-effect__card {
+  animation-duration: 0.8s;
+}
+.motion-none .clear-effect__glow,
+.motion-none .clear-effect__burst i,
+.motion-none .clear-effect__card,
+.motion-none .clear-effect__confetti i {
+  animation: none;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .clear-effect__glow,
+  .clear-effect__burst i,
+  .clear-effect__card,
+  .clear-effect__confetti i {
+    animation: none;
+    opacity: 0;
+  }
+  .clear-effect__glow {
+    opacity: 0.8;
+  }
 }
 .modal-scrim {
   position: fixed;
@@ -780,6 +1014,17 @@ footer {
     grid-template-columns: repeat(3, 1fr);
     padding-top: 15px;
   }
+  .game-control-group {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 5px;
+  }
+  .game-control-group-primary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .game-control-group-session {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .game-controls button {
     text-align: center;
   }
@@ -791,6 +1036,10 @@ footer {
   .control-rule,
   .tip {
     display: none;
+  }
+  .action-status {
+    grid-column: 1 / -1;
+    text-align: center;
   }
 }
 @media (max-width: 560px) {
@@ -1224,6 +1473,12 @@ footer {
   padding-top: 14px;
   gap: 9px;
 }
+.game-layout-spider .game-control-group,
+.game-wide-layout .game-control-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
 .game-layout-spider .game-controls button {
   min-width: 128px;
   flex: 0 0 auto;
@@ -1231,6 +1486,10 @@ footer {
 .game-layout-spider .game-controls .control-rule,
 .game-layout-spider .game-controls .tip {
   display: none;
+}
+.game-layout-spider .action-status,
+.game-wide-layout .action-status {
+  flex-basis: 100%;
 }
 .game-wide-layout {
   display: block;

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { CardView } from './CardView';
+import { ClearEffect } from './ClearEffect';
 import { DragGhost } from './DragGhost';
-import { text } from './i18n';
+import { interpolate, text } from './i18n';
 import { storage } from './persistence';
 import type { Card, GameDefinition, GameSession, Language, Pile } from './types';
 import { clock, pileLayout } from './ui';
@@ -30,6 +31,7 @@ export function GameScreen({
   const t = text(language);
   const [, redraw] = useState(0);
   const [actionStatus, setActionStatus] = useState('');
+  const [celebrationDismissed, setCelebrationDismissed] = useState(false);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [dragGhost, setDragGhost] = useState<{
     pileId: string;
@@ -90,11 +92,7 @@ export function GameScreen({
     legalMoves().filter(
       (move) => move.type === 'transfer' && move.from === pileId && move.cardIds?.[0] === cardId,
     );
-  const pointerDown = (
-    pileId: string,
-    cardId: string,
-    event: ReactPointerEvent<HTMLButtonElement>,
-  ) => {
+  const pointerDown = (pileId: string, cardId: string, event: ReactPointerEvent<HTMLElement>) => {
     if (!event.isPrimary || event.button !== 0 || pointerDrag.current) return;
     const sourcePile = piles.find((pile) => pile.id === pileId);
     const cardIndex = sourcePile?.cards.findIndex((item) => item.id === cardId) ?? -1;
@@ -111,7 +109,7 @@ export function GameScreen({
     setDragGhost(null);
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
-  const pointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const pointerMove = (event: ReactPointerEvent<HTMLElement>) => {
     const active = pointerDrag.current;
     if (!active || event.pointerId !== active.pointerId) return false;
     if (
@@ -140,7 +138,7 @@ export function GameScreen({
     setDropTarget(targetId && moves.some((move) => move.to === targetId) ? targetId : null);
     return true;
   };
-  const pointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const pointerUp = (event: ReactPointerEvent<HTMLElement>) => {
     const active = pointerDrag.current;
     if (!active || event.pointerId !== active.pointerId) return false;
     const wasDragging = active.dragging;
@@ -160,7 +158,7 @@ export function GameScreen({
         : undefined;
       if (move) {
         act(() => session.dispatch(move));
-        notify(language === 'ja' ? '移動しました' : 'Moved');
+        notify(t.moved);
       }
     }
     pointerDrag.current = null;
@@ -170,7 +168,7 @@ export function GameScreen({
       event.currentTarget.releasePointerCapture(event.pointerId);
     return wasDragging;
   };
-  const pointerCancel = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const pointerCancel = (event: ReactPointerEvent<HTMLElement>) => {
     const active = pointerDrag.current;
     if (!active || event.pointerId !== active.pointerId) return;
     pointerDrag.current = null;
@@ -202,15 +200,7 @@ export function GameScreen({
       }
     ).autoMove;
     const moved = autoMove?.(pileId, cardId) ?? false;
-    notify(
-      moved
-        ? language === 'ja'
-          ? '自動で移動しました'
-          : 'Moved automatically'
-        : language === 'ja'
-          ? '移動できる場所がありません'
-          : 'No legal move',
-    );
+    notify(moved ? t.movedAutomatically : t.noLegalMove);
     if (moved) redraw((value) => value + 1);
   };
   const dispatchForSelection = (pile: Pile, cardId?: string) => {
@@ -288,7 +278,10 @@ export function GameScreen({
       <div
         className={`game-layout game-layout-${definition.id} ${isWideLayout ? 'game-wide-layout' : ''}`}
       >
-        <section className="table-area" aria-label={`${definition.name.en} table`}>
+        <section
+          className="table-area"
+          aria-label={interpolate(t.tableAria, { game: definition.name[language] })}
+        >
           <div className="table-stats">
             <span>
               {t.moves} <b>{snapshot.moves}</b>
@@ -326,7 +319,7 @@ export function GameScreen({
                     ? -1
                     : 0
                 }
-                aria-label={`${pile.kind} ${pile.id}`}
+                aria-label={interpolate(t.pileAria, { kind: t.pileKinds[pile.kind], id: pile.id })}
                 onKeyDown={(event) => onPileKey(event, pile)}
                 onClick={() => dispatchForSelection(pile)}
               >
@@ -348,6 +341,7 @@ export function GameScreen({
                   >
                     <CardView
                       card={card}
+                      language={language}
                       selected={snapshot.selected?.cardId === card.id}
                       dragSource={draggedCardIds.has(card.id)}
                       theme={theme}
@@ -376,52 +370,77 @@ export function GameScreen({
           </div>
         </section>
         <aside className="game-controls">
-          <button className="primary-control" onClick={() => act(() => session.hint())}>
-            ✧ <span>{t.hint}</span>
-          </button>
-          <button
-            onClick={() => {
-              const completed = session.autoComplete();
-              notify(
-                completed
-                  ? language === 'ja'
-                    ? '自動完成しました'
-                    : 'Auto-completed'
-                  : language === 'ja'
-                    ? '自動完成できるカードがありません'
-                    : 'Nothing to auto-complete',
-              );
-              redraw((value) => value + 1);
-            }}
-          >
-            ↥ <span>{t.auto}</span>
-          </button>
+          <div className="game-control-group game-control-group-primary">
+            <button
+              className="game-control primary-control"
+              onClick={() => act(() => session.hint())}
+            >
+              ✧ <span>{t.hint}</span>
+            </button>
+            <button
+              className="game-control"
+              onClick={() => {
+                const completed = session.autoComplete();
+                notify(completed ? t.autoCompleted : t.nothingToAutoComplete);
+                redraw((value) => value + 1);
+              }}
+            >
+              ↥ <span>{t.auto}</span>
+            </button>
+          </div>
           <div className="control-rule" />
-          <button disabled={!snapshot.canUndo} onClick={() => act(() => session.undo())}>
-            ↶ <span>{t.undo}</span>
-            <kbd>⌘Z</kbd>
-          </button>
-          <button onClick={() => act(() => session.retry())}>
-            ⟳ <span>{t.retry}</span>
-          </button>
-          <button onClick={onNewGame}>
-            ＋ <span>{t.newGame}</span>
-          </button>
+          <div className="game-control-group game-control-group-session">
+            <button
+              className="game-control"
+              disabled={!snapshot.canUndo}
+              onClick={() => act(() => session.undo())}
+            >
+              ↶ <span>{t.undo}</span>
+              <kbd>⌘Z</kbd>
+            </button>
+            <button
+              className="game-control"
+              onClick={() => {
+                setCelebrationDismissed(false);
+                act(() => session.retry());
+              }}
+            >
+              ⟳ <span>{t.retry}</span>
+            </button>
+            <button
+              className="game-control"
+              onClick={() => {
+                setCelebrationDismissed(false);
+                onNewGame();
+              }}
+            >
+              ＋ <span>{t.newGame}</span>
+            </button>
+          </div>
           <div className="action-status" aria-live="polite" role="status">
             {actionStatus}
           </div>
-          <div className="tip">
-            {language === 'ja'
-              ? 'カードをタップして選択、移動先をタップ。空の山もキーボードで選べます。'
-              : 'Tap a card, then a destination. Empty piles are keyboard accessible.'}
-          </div>
+          <div className="tip">{t.helpTip}</div>
         </aside>
       </div>
+      <ClearEffect
+        active={snapshot.won && !celebrationDismissed}
+        motion={preferences.motion}
+        onSkip={() => setCelebrationDismissed(true)}
+        skipLabel={t.skipCelebration}
+      />
       {snapshot.won && (
         <div className="win-banner" role="status">
           <span>✦</span>
           <strong>{t.won}</strong>
-          <button onClick={onNewGame}>{t.newGame} →</button>
+          <button
+            onClick={() => {
+              setCelebrationDismissed(false);
+              onNewGame();
+            }}
+          >
+            {t.newGame} →
+          </button>
         </div>
       )}
     </main>

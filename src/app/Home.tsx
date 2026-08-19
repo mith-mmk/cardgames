@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
-import { text } from './i18n';
+import { interpolate, text } from './i18n';
 import type { GameDefinition, Language } from './types';
 
 export function Home({
@@ -51,15 +51,9 @@ export function Home({
       </header>
       <section className="hero">
         <div>
-          <p className="eyebrow">THE DAILY TABLE</p>
-          <h2>
-            {language === 'ja' ? '今日の一局を、ゆっくりと。' : 'Take your time. Play a hand.'}
-          </h2>
-          <p>
-            {language === 'ja'
-              ? `${games.length}種類のゲームから選んで、あなただけのカードテーブルを始めましょう。`
-              : `Choose from ${games.length} games and make the table your own.`}
-          </p>
+          <p className="eyebrow">{t.dailyEyebrow}</p>
+          <h2>{t.dailyTitle}</h2>
+          <p>{interpolate(t.dailyDescription, { count: games.length })}</p>
         </div>
         <div className="hero-cards">
           <div className="hero-card h1">♠</div>
@@ -79,7 +73,7 @@ export function Home({
       )}
       <section className="library-head">
         <div>
-          <p className="eyebrow">YOUR LIBRARY</p>
+          <p className="eyebrow">{t.libraryEyebrow}</p>
           <h2>{t.allGames}</h2>
         </div>
         <div className="library-tools">
@@ -90,12 +84,15 @@ export function Home({
             aria-label={t.search}
           />
           <select value={filter} onChange={(event) => setFilter(event.target.value)}>
-            <option value="all">All families</option>
-            {Array.from(new Set(games.map((game) => game.family.en))).map((family) => (
-              <option key={family} value={family}>
-                {family}
-              </option>
-            ))}
+            <option value="all">{t.allFamilies}</option>
+            {Array.from(new Set(games.map((game) => game.family.en))).map((family) => {
+              const familyDefinition = games.find((game) => game.family.en === family)?.family;
+              return (
+                <option key={family} value={family}>
+                  {familyDefinition?.[language] ?? family}
+                </option>
+              );
+            })}
           </select>
         </div>
       </section>
@@ -152,7 +149,7 @@ export function Home({
       {filtered.length === 0 && <p className="empty-state">{t.noResults}</p>}
       <footer>
         <span>Solitaire Collections · v0.1.10</span>
-        <span>Offline by design</span>
+        <span>{t.offlineByDesign}</span>
       </footer>
     </main>
   );

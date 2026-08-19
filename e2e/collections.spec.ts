@@ -93,6 +93,18 @@ test('draws from stock even when a card is selected', async ({ page }) => {
   await expect(page.locator('.playing-card.is-selected')).toHaveCount(0);
 });
 
+test('prevents text selection on cards while retaining card controls', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
+  const card = page.locator('.playing-card').first();
+  await expect(card).toBeVisible();
+  await expect(card).toHaveCSS('user-select', 'none');
+  expect(await card.locator('img').evaluate((image) => image.draggable)).toBe(false);
+  const hint = page.getByRole('button', { name: /ヒント|Hint/ });
+  await expect(hint).toBeEnabled();
+  await expect(hint).toHaveCSS('min-height', '44px');
+});
+
 test('changes the theme and card back in settings', async ({ page }) => {
   await page.goto('/');
   await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();
@@ -115,6 +127,7 @@ test('moves the exact pointer-dragged card without leaving a stale selection', a
   await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
   const source = page.locator('.pile-tableau .card-slot:last-child .playing-card').first();
   const emptyCell = page.locator('.pile-cell').first();
+  await emptyCell.scrollIntoViewIfNeeded();
   const sourceBox = await source.boundingBox();
   const targetBox = await emptyCell.boundingBox();
   expect(sourceBox).not.toBeNull();
@@ -135,6 +148,7 @@ test('moves a FreeCell card with pointer drag', async ({ page }) => {
   await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
   const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
   const target = page.locator('.pile-cell').first();
+  await target.scrollIntoViewIfNeeded();
   const sourceBox = await source.boundingBox();
   const targetBox = await target.boundingBox();
   expect(sourceBox).not.toBeNull();
@@ -230,13 +244,11 @@ test('double-clicks an exposed ace to its foundation exactly once', async ({ pag
   await page.goto('/');
   await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
   let ace = page
-    .locator('.pile-tableau .card-slot:last-child .playing-card[aria-label^="A of "]')
+    .locator('.pile-tableau .card-slot:last-child .playing-card[data-rank="A"]')
     .first();
   for (let attempt = 0; attempt < 80 && (await ace.count()) === 0; attempt += 1) {
     await page.getByRole('button', { name: /新しいゲーム|New game/ }).click();
-    ace = page
-      .locator('.pile-tableau .card-slot:last-child .playing-card[aria-label^="A of "]')
-      .first();
+    ace = page.locator('.pile-tableau .card-slot:last-child .playing-card[data-rank="A"]').first();
   }
   await expect(ace).toBeVisible();
   const foundationsBefore = await page.locator('.pile-foundation .playing-card').count();
@@ -260,14 +272,14 @@ test('keeps pyramid interaction on exposed cards and removes an exposed king in 
 
   let king = page
     .locator(
-      '.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card[aria-label^="K of "]',
+      '.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card[data-rank="K"]',
     )
     .first();
   for (let attempt = 0; attempt < 80 && (await king.count()) === 0; attempt += 1) {
     await page.getByRole('button', { name: /新しいゲーム|New game/ }).click();
     king = page
       .locator(
-        '.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card[aria-label^="K of "]',
+        '.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card[data-rank="K"]',
       )
       .first();
   }
@@ -281,8 +293,7 @@ test('keeps pyramid interaction on exposed cards and removes an exposed king in 
 test('pairs an exposed pyramid card with the drawn waste card', async ({ page }) => {
   await page.goto('/');
   await page.locator('.game-tile').filter({ hasText: 'Pyramid' }).click();
-  const rank = (label: string) => {
-    const value = label.split(' ')[0];
+  const rank = (value: string) => {
     return ({ A: 1, J: 11, Q: 12, K: 13 } as Record<string, number>)[value] ?? Number(value);
   };
   const newGame = page.getByRole('button', { name: /新しいゲーム|New game/ });
@@ -293,16 +304,16 @@ test('pairs an exposed pyramid card with the drawn waste card', async ({ page })
     await page.locator('.pile-stock').click();
     const waste = page.locator('.pile-waste .playing-card').last();
     if ((await waste.count()) === 0) continue;
-    const wasteLabel = await waste.getAttribute('aria-label');
-    if (!wasteLabel || rank(wasteLabel) === 13) continue;
+    const wasteRank = await waste.getAttribute('data-rank');
+    if (!wasteRank || rank(wasteRank) === 13) continue;
     const exposed = page.locator(
       '.game-pyramid .pile-tableau:not(.is-covered-pyramid-pile) .playing-card',
     );
-    const targetRank = 13 - rank(wasteLabel);
+    const targetRank = 13 - rank(wasteRank);
     let target = -1;
     for (let index = 0; index < (await exposed.count()); index += 1) {
-      const label = await exposed.nth(index).getAttribute('aria-label');
-      if (label && rank(label) === targetRank) {
+      const exposedRank = await exposed.nth(index).getAttribute('data-rank');
+      if (exposedRank && rank(exposedRank) === targetRank) {
         target = index;
         break;
       }

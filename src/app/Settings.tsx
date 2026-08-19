@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
-import { text } from './i18n';
+import { interpolate, text } from './i18n';
 import { storage } from './persistence';
 import type { Language, MotionMode } from './types';
 import type { ThemeAsset } from './ui';
@@ -101,7 +101,10 @@ export function Settings({
                   className={Number(preferences.cardBack) === index ? 'active' : ''}
                   onClick={() => onChange({ ...preferences, cardBack: String(index) })}
                 >
-                  <img src={url} alt={`${t.cardBack} ${index + 1}`} />
+                  <img
+                    src={url}
+                    alt={interpolate(t.cardBackAlt, { name: t.cardBack, number: index + 1 })}
+                  />
                 </button>
               ),
             )}

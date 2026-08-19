@@ -1,11 +1,13 @@
 import { useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import type { Card } from './types';
+import { interpolate, text } from './i18n';
+import type { Card, Language } from './types';
 import { rankName, suitSymbol } from './ui';
 import type { ThemeAsset } from './ui';
 
 export function CardView({
   card,
+  language,
   selected,
   dragSource,
   onClick,
@@ -19,6 +21,7 @@ export function CardView({
   backIndex,
 }: {
   card: Card;
+  language: Language;
   selected: boolean;
   dragSource?: boolean;
   onClick: () => void;
@@ -31,6 +34,7 @@ export function CardView({
   theme: ThemeAsset;
   backIndex: number;
 }) {
+  const t = text(language);
   const red = card.suit === 'hearts' || card.suit === 'diamonds';
   const pointerDragging = useRef(false);
   const suppressClick = useRef(false);
@@ -48,7 +52,12 @@ export function CardView({
   return (
     <button
       className={`playing-card ${card.faceUp ? 'face-up' : 'face-down'} ${selected ? 'is-selected' : ''} ${dragSource ? 'is-drag-source' : ''}`}
-      aria-label={card.faceUp ? `${rankName(card.rank)} of ${card.suit}` : 'Face-down card'}
+      data-rank={card.faceUp ? rankName(card.rank) : undefined}
+      aria-label={
+        card.faceUp
+          ? interpolate(t.faceUpCard, { rank: rankName(card.rank), suit: t.suits[card.suit] })
+          : t.faceDownCard
+      }
       onPointerDown={(event) => {
         if (pointerId.current !== null && event.pointerId !== pointerId.current) return;
         pointerDragging.current = false;
@@ -57,6 +66,7 @@ export function CardView({
         suppressClick.current = false;
         if (card.faceUp && event.isPrimary && event.button === 0) {
           pointerId.current = event.pointerId;
+          event.currentTarget.setPointerCapture?.(event.pointerId);
           onPointerDown(event);
         }
       }}
@@ -142,7 +152,7 @@ export function CardView({
                 {rankName(card.rank)}
                 <small>{suitSymbol(card.suit)}</small>
               </span>
-              <img className="court-art" src={theme.courtArtwork} alt="" />
+              <img className="court-art" src={theme.courtArtwork} alt="" draggable={false} />
               <span className={`court-badge court-badge-bottom ${red ? 'red' : ''}`}>
                 {rankName(card.rank)}
                 <small>{suitSymbol(card.suit)}</small>
@@ -153,7 +163,12 @@ export function CardView({
           )}
         </>
       ) : (
-        <img className="card-back" src={theme.backs[backIndex] ?? theme.backs[0]} alt="" />
+        <img
+          className="card-back"
+          src={theme.backs[backIndex] ?? theme.backs[0]}
+          alt=""
+          draggable={false}
+        />
       )}
     </button>
   );
