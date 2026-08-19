@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { interpolate, text } from './i18n';
 import type { Card, Language } from './types';
@@ -41,6 +41,25 @@ export function CardView({
   const pointerId = useRef<number | null>(null);
   const normalPointerUp = useRef(false);
   const doubleHandled = useRef(false);
+  useEffect(() => {
+    const resetInterruptedPointer = () => {
+      pointerDragging.current = false;
+      suppressClick.current = false;
+      pointerId.current = null;
+      normalPointerUp.current = false;
+    };
+    window.addEventListener('blur', resetInterruptedPointer);
+    window.addEventListener('pagehide', resetInterruptedPointer);
+    const resetWhenHidden = () => {
+      if (document.visibilityState !== 'visible') resetInterruptedPointer();
+    };
+    document.addEventListener('visibilitychange', resetWhenHidden);
+    return () => {
+      window.removeEventListener('blur', resetInterruptedPointer);
+      window.removeEventListener('pagehide', resetInterruptedPointer);
+      document.removeEventListener('visibilitychange', resetWhenHidden);
+    };
+  }, []);
   const handleAutoMove = () => {
     if (pointerDragging.current || doubleHandled.current) return;
     doubleHandled.current = true;
@@ -59,6 +78,11 @@ export function CardView({
           : t.faceDownCard
       }
       onPointerDown={(event) => {
+        if (
+          pointerId.current !== null &&
+          !event.currentTarget.hasPointerCapture?.(pointerId.current)
+        )
+          pointerId.current = null;
         if (pointerId.current !== null && event.pointerId !== pointerId.current) return;
         pointerDragging.current = false;
         pointerId.current = null;

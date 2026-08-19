@@ -154,7 +154,9 @@ test('opens localized how-to-play help for the active game', async ({ page }) =>
   await page.getByRole('button', { name: 'How to play' }).click();
   const englishDialog = page.getByRole('dialog');
   await expect(englishDialog).toContainText('How to play Klondike');
-  await expect(englishDialog).toContainText('Build all four suit foundations from Ace through King.');
+  await expect(englishDialog).toContainText(
+    'Build all four suit foundations from Ace through King.',
+  );
 });
 
 test('moves the exact pointer-dragged card without leaving a stale selection', async ({ page }) => {
@@ -222,6 +224,43 @@ test('shows a pointer-following ghost for the legal moving card only', async ({ 
     .toBeGreaterThan(firstGhostBox!.x + 20);
   await page.mouse.up();
   await expect(page.locator('.drag-ghost')).toHaveCount(0);
+});
+
+test('recovers from an interrupted drag and accepts the next card move', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.game-tile').filter({ hasText: 'FreeCell' }).click();
+  const source = page.locator('.pile-tableau .card-slot:last-child .playing-card.face-up').first();
+  const target = page.locator('.pile-cell').first();
+  await target.scrollIntoViewIfNeeded();
+  const sourceBox = await source.boundingBox();
+  expect(sourceBox).not.toBeNull();
+
+  const startX = sourceBox!.x + sourceBox!.width / 2;
+  const startY = sourceBox!.y + sourceBox!.height / 2;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX + 24, startY + 24, { steps: 2 });
+  await expect(page.locator('.drag-ghost')).toBeVisible();
+
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await page.mouse.up();
+  await expect(page.locator('.drag-ghost')).toHaveCount(0);
+  await expect(source).toHaveCSS('opacity', '1');
+
+  const retrySourceBox = await source.boundingBox();
+  const targetBox = await target.boundingBox();
+  expect(retrySourceBox).not.toBeNull();
+  expect(targetBox).not.toBeNull();
+  await page.mouse.move(
+    retrySourceBox!.x + retrySourceBox!.width / 2,
+    retrySourceBox!.y + retrySourceBox!.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(targetBox!.x + targetBox!.width / 2, targetBox!.y + targetBox!.height / 2, {
+    steps: 8,
+  });
+  await page.mouse.up();
+  await expect(target.locator('.playing-card')).toHaveCount(1);
 });
 
 test('ignores a non-primary pointer drag', async ({ page }) => {

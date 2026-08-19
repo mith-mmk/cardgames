@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { CardView } from './CardView';
 import { ClearEffect } from './ClearEffect';
@@ -48,7 +48,16 @@ export function GameScreen({
     startY: number;
     pointerId: number;
     dragging: boolean;
+    captureTarget: HTMLElement;
   } | null>(null);
+  const cancelDrag = useCallback(() => {
+    const active = pointerDrag.current;
+    pointerDrag.current = null;
+    if (active?.captureTarget.hasPointerCapture?.(active.pointerId))
+      active.captureTarget.releasePointerCapture(active.pointerId);
+    setDragGhost(null);
+    setDropTarget(null);
+  }, []);
   const snapshot = session.getSnapshot();
   const piles = snapshot.piles;
   const isWideLayout =
@@ -79,6 +88,21 @@ export function GameScreen({
     }, 1000);
     return () => window.clearInterval(timer);
   }, [session]);
+  useEffect(() => {
+    const cancelForInterruption = () => cancelDrag();
+    const cancelWhenHidden = () => {
+      if (document.visibilityState !== 'visible') cancelDrag();
+    };
+    window.addEventListener('blur', cancelForInterruption);
+    window.addEventListener('pagehide', cancelForInterruption);
+    document.addEventListener('visibilitychange', cancelWhenHidden);
+    return () => {
+      window.removeEventListener('blur', cancelForInterruption);
+      window.removeEventListener('pagehide', cancelForInterruption);
+      document.removeEventListener('visibilitychange', cancelWhenHidden);
+      cancelDrag();
+    };
+  }, [cancelDrag]);
   const act = (fn: () => void) => {
     fn();
     redraw((value) => value + 1);
@@ -107,9 +131,9 @@ export function GameScreen({
       startY: event.clientY,
       pointerId: event.pointerId,
       dragging: false,
+      captureTarget: event.currentTarget,
     };
     setDragGhost(null);
-    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
   const pointerMove = (event: ReactPointerEvent<HTMLElement>) => {
     const active = pointerDrag.current;
@@ -163,21 +187,13 @@ export function GameScreen({
         notify(t.moved);
       }
     }
-    pointerDrag.current = null;
-    setDragGhost(null);
-    setDropTarget(null);
-    if (event.currentTarget.hasPointerCapture?.(event.pointerId))
-      event.currentTarget.releasePointerCapture(event.pointerId);
+    cancelDrag();
     return wasDragging;
   };
   const pointerCancel = (event: ReactPointerEvent<HTMLElement>) => {
     const active = pointerDrag.current;
     if (!active || event.pointerId !== active.pointerId) return;
-    pointerDrag.current = null;
-    setDragGhost(null);
-    setDropTarget(null);
-    if (event.currentTarget.hasPointerCapture?.(event.pointerId))
-      event.currentTarget.releasePointerCapture(event.pointerId);
+    cancelDrag();
   };
   const legalTargetIds = new Set(
     legalMoves()
