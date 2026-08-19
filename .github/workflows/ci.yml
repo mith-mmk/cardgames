@@ -39,7 +39,6 @@ jobs:
   tauri-other-targets:
     name: Tauri ${{ matrix.os }} verification
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
     needs: web
     strategy:
       fail-fast: false
@@ -54,3 +53,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: npm install
       - run: npm run tauri:build -- --debug
+
+  tauri-mobile-tooling:
+    name: Tauri Android/iOS workflow verification
+    runs-on: macos-latest
+    needs: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm install
+      - run: npm run tauri:mobile:verify

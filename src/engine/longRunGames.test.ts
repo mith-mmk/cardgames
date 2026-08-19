@@ -1,9 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { cloneState, GameSession } from './core';
-import { fortyThieves, spiderette, yukon } from './longRunGames';
+import {
+  congress,
+  diplomat,
+  fortyAndEight,
+  fortyThieves,
+  josephine,
+  spiderette,
+  yukon,
+} from './longRunGames';
 import { Card, GameDefinition, Move } from './types';
 
-const definitions = [spiderette, yukon, fortyThieves] as const;
+const definitions = [
+  spiderette,
+  yukon,
+  fortyThieves,
+  fortyAndEight,
+  josephine,
+  congress,
+  diplomat,
+] as const;
 
 function cardsOf(state: ReturnType<GameDefinition['create']>): Card[] {
   return Object.values(state.piles).flatMap((candidate) => candidate.cards);
@@ -31,6 +47,10 @@ describe('long-run solitaire games', () => {
       [spiderette.id, 52],
       [yukon.id, 52],
       [fortyThieves.id, 104],
+      [fortyAndEight.id, 104],
+      [josephine.id, 104],
+      [congress.id, 104],
+      [diplomat.id, 104],
     ]);
     for (const definition of definitions) {
       const first = definition.create('long-run-seed');
@@ -87,6 +107,41 @@ describe('long-run solitaire games', () => {
     expect(result.error).toBeUndefined();
     expect(result.state.piles.stock.cards).toHaveLength(63);
     expect(result.state.piles.waste.cards).toHaveLength(1);
+  });
+
+  it('deals the Forty and Eight family layouts and applies their move rules', () => {
+    const fortyEight = fortyAndEight.create('forty-and-eight-layout');
+    expect(Array.from({ length: 8 }, (_, i) => fortyEight.piles[`t${i}`].cards.length)).toEqual(
+      Array(8).fill(5),
+    );
+    expect(fortyEight.piles.stock.cards).toHaveLength(64);
+    const draw = fortyAndEight.legalMoves(fortyEight).find((move) => move.type === 'draw');
+    expect(draw).toEqual({ type: 'draw', from: 'stock', to: 'waste', count: 1 });
+    let state = fortyAndEight.applyMove(fortyEight, draw!).state;
+    while (state.piles.stock.cards.length) {
+      const next = fortyAndEight.legalMoves(state).find((move) => move.type === 'draw')!;
+      state = fortyAndEight.applyMove(state, next).state;
+    }
+    const recycle = fortyAndEight.legalMoves(state).find((move) => move.type === 'recycle');
+    expect(recycle).toEqual({ type: 'recycle', from: 'waste', to: 'stock' });
+    state = fortyAndEight.applyMove(state, recycle!).state;
+    expect(state.piles.stock.cards).toHaveLength(64);
+    expect(fortyAndEight.legalMoves(state).some((move) => move.type === 'recycle')).toBe(false);
+
+    const josephineState = josephine.create('josephine-layout');
+    expect(
+      Array.from({ length: 10 }, (_, i) => josephineState.piles[`t${i}`].cards.length),
+    ).toEqual(Array(10).fill(4));
+    const congressState = congress.create('congress-layout');
+    expect(Array.from({ length: 8 }, (_, i) => congressState.piles[`t${i}`].cards.length)).toEqual(
+      Array(8).fill(1),
+    );
+    expect(congressState.piles.stock.cards).toHaveLength(96);
+    const diplomatState = diplomat.create('diplomat-layout');
+    expect(Array.from({ length: 8 }, (_, i) => diplomatState.piles[`t${i}`].cards.length)).toEqual(
+      Array(8).fill(4),
+    );
+    expect(diplomatState.piles.stock.cards).toHaveLength(72);
   });
 
   it('rejects illegal moves without mutation and supports undo/retry for every game', () => {

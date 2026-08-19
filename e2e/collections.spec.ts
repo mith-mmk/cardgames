@@ -4,9 +4,9 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());
 });
 
-test('shows every game in the first two expansion batches', async ({ page }) => {
+test('shows every currently implemented game', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-tile')).toHaveCount(17);
+  await expect(page.locator('.game-tile')).toHaveCount(21);
   for (const name of [
     'Klondike',
     'FreeCell',
@@ -19,6 +19,10 @@ test('shows every game in the first two expansion batches', async ({ page }) => 
     'Spiderette',
     'Yukon',
     'Forty Thieves',
+    'Forty and Eight',
+    'Josephine',
+    'Congress',
+    'Diplomat',
     'Canfield',
     'Agnes Bernauer',
     'King Albert',
@@ -38,6 +42,10 @@ test('starts each added game from its menu tile', async ({ page }) => {
     'Spiderette',
     'Yukon',
     'Forty Thieves',
+    'Forty and Eight',
+    'Josephine',
+    'Congress',
+    'Diplomat',
     'Canfield',
     'Agnes Bernauer',
     'King Albert',

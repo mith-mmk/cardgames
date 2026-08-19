@@ -2,12 +2,28 @@ import { ApplyResult, Card, GameDefinition, GameState, Move, cardColor } from '.
 import { cloneState, draw, faceUpRun, makeState, pile, top, transfer } from './core';
 import { shuffledDeck } from './random';
 import { bakersGame, eightOff, seahavenTowers } from './openCellGames';
-import { fortyThieves, spiderette, yukon } from './longRunGames';
+import {
+  congress,
+  diplomat,
+  fortyAndEight,
+  fortyThieves,
+  josephine,
+  spiderette,
+  yukon,
+} from './longRunGames';
 import { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
 import { blackWidow, scorpion, wasp } from './spiderVariantGames';
 
 export { bakersGame, eightOff, seahavenTowers } from './openCellGames';
-export { fortyThieves, spiderette, yukon } from './longRunGames';
+export {
+  congress,
+  diplomat,
+  fortyAndEight,
+  fortyThieves,
+  josephine,
+  spiderette,
+  yukon,
+} from './longRunGames';
 export { agnesBernauer, canfield, kingAlbert } from './reserveKlondikeGames';
 export { blackWidow, scorpion, wasp } from './spiderVariantGames';
 
@@ -506,6 +522,10 @@ export const GAME_DEFINITIONS = {
   spiderette,
   yukon,
   'forty-thieves': fortyThieves,
+  'forty-and-eight': fortyAndEight,
+  josephine,
+  congress,
+  diplomat,
   canfield,
   'agnes-bernauer': agnesBernauer,
   'king-albert': kingAlbert,

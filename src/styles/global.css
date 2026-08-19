@@ -63,8 +63,11 @@ select:focus-visible {
   margin: auto;
   position: relative;
 }
+.home {
+  width: min(1480px, calc(100% - 80px));
+}
 .topbar {
-  height: 112px;
+  height: 92px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -100,6 +103,8 @@ select:focus-visible {
 .lang-button,
 .icon-button,
 .back-button {
+  min-width: 44px;
+  min-height: 44px;
   color: #d9e4df;
   border: 1px solid var(--line);
   background: transparent;
@@ -116,12 +121,13 @@ select:focus-visible {
   font-size: 17px;
 }
 .hero {
-  min-height: 280px;
+  position: relative;
+  min-height: 232px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 42px 42px 35px;
-  margin-top: 30px;
+  padding: 30px 38px 27px;
+  margin-top: 22px;
   border: 1px solid rgba(195, 232, 106, 0.13);
   border-radius: 23px;
   background: linear-gradient(110deg, #1e2924, #16201e 60%, #202e26);
@@ -139,20 +145,20 @@ select:focus-visible {
   font-size: clamp(30px, 4vw, 48px);
   letter-spacing: -0.065em;
   line-height: 1.05;
-  margin: 0 0 17px;
+  margin: 0 0 12px;
   max-width: 440px;
 }
 .hero p:not(.eyebrow) {
   color: #aabdb3;
   font-size: 12px;
   max-width: 410px;
-  line-height: 1.7;
+  line-height: 1.55;
 }
 .hero-cards {
-  width: 260px;
-  height: 180px;
+  width: 280px;
+  height: 170px;
   position: relative;
-  margin-right: 70px;
+  margin-right: 34px;
   transform: rotate(-8deg);
 }
 .hero-card {
@@ -227,7 +233,7 @@ select:focus-visible {
   display: flex;
   justify-content: space-between;
   align-items: end;
-  padding: 58px 0 23px;
+  padding: 38px 0 18px;
 }
 .library-head h2 {
   margin: 0;
@@ -257,7 +263,7 @@ select:focus-visible {
   gap: 14px;
 }
 .game-tile {
-  min-height: 182px;
+  min-height: 162px;
   display: flex;
   border: 1px solid var(--line);
   border-radius: 15px;
@@ -272,8 +278,8 @@ select:focus-visible {
   border-color: var(--accent);
 }
 .tile-art {
-  width: 36%;
-  min-width: 130px;
+  width: 31%;
+  min-width: 118px;
   position: relative;
   overflow: hidden;
   background: radial-gradient(circle at 55% 32%, var(--accent), transparent 60%), #202827;
@@ -309,7 +315,7 @@ select:focus-visible {
 }
 .tile-copy {
   flex: 1;
-  padding: 18px 21px 15px;
+  padding: 15px 18px 13px;
   display: flex;
   flex-direction: column;
 }
@@ -330,8 +336,8 @@ select:focus-visible {
   color: #ed9292;
 }
 .tile-copy h3 {
-  margin: 14px 0 7px;
-  font-size: 21px;
+  margin: 10px 0 6px;
+  font-size: 19px;
   letter-spacing: -0.05em;
 }
 .tile-copy p {
@@ -377,7 +383,7 @@ footer {
   justify-content: space-between;
   color: #52625a;
   font-size: 10px;
-  padding: 55px 0 25px;
+  padding: 38px 0 22px;
 }
 .game-screen {
   min-height: 100vh;
@@ -977,6 +983,40 @@ footer {
   width: 100%;
   height: 100%;
 }
+
+/* Use the wide desktop canvas to shorten the library without making cards
+   smaller. Tablets retain two readable columns. */
+@media (min-width: 1200px) {
+  .game-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .tile-art {
+    width: 29%;
+    min-width: 112px;
+  }
+
+  .hero > div:first-child {
+    max-width: 57%;
+  }
+}
+
+@media (min-width: 801px) and (max-width: 1199px) {
+  .home {
+    width: min(1080px, calc(100% - 48px));
+  }
+
+  .game-layout {
+    grid-template-columns: minmax(0, 1fr) 172px;
+    gap: 20px;
+  }
+
+  .table-area {
+    padding: 16px;
+  }
+}
+
 @media (max-width: 800px) {
   .home,
   .game-topbar,
@@ -985,13 +1025,14 @@ footer {
   }
   .hero {
     padding: 30px 24px;
-    min-height: 250px;
+    min-height: 220px;
   }
   .hero-cards {
     transform: scale(0.72) rotate(-8deg);
     margin-right: -40px;
   }
   .library-head {
+    padding-top: 30px;
     align-items: start;
     flex-direction: column;
     gap: 18px;
@@ -1001,6 +1042,9 @@ footer {
   }
   .library-tools input {
     flex: 1;
+  }
+  .game-grid {
+    grid-template-columns: 1fr;
   }
   .game-layout {
     display: block;
@@ -1061,8 +1105,8 @@ footer {
   }
   .hero {
     margin-top: 15px;
-    min-height: 260px;
-    padding: 25px 20px;
+    min-height: 225px;
+    padding: 22px 18px;
     align-items: start;
   }
   .hero h2 {
@@ -1092,7 +1136,8 @@ footer {
     margin-top: 9px;
   }
   .tile-copy p {
-    font-size: 10px;
+    font-size: 12px;
+    line-height: 1.5;
   }
   .tile-foot {
     gap: 8px;

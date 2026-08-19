@@ -273,10 +273,159 @@ export const fortyThieves: GameDefinition = {
   isWon: (state) => fortyThievesFoundations.every((id) => state.piles[id].cards.length === 13),
 };
 
+interface FortyVariantOptions {
+  columns: number;
+  cardsPerColumn: number;
+  movableRuns: boolean;
+  sameSuitTableau: boolean;
+  redeals: number;
+}
+
+/**
+ * Shared engine for the smaller Forty Thieves family variants.  The variants
+ * deliberately keep their own definitions/ids while sharing the mechanics so
+ * a rules correction cannot make the games drift apart accidentally.
+ */
+function createFortyVariant(
+  id: string,
+  name: string,
+  options: FortyVariantOptions,
+): GameDefinition {
+  const foundationIds = Array.from({ length: 8 }, (_, i) => `f${i}`);
+  const tableauIds = Array.from({ length: options.columns }, (_, i) => `t${i}`);
+  const legalMoves = (state: GameState): Move[] => {
+    const moves: Move[] = [];
+    const tableaus = tableauIds.map((tableauId) => state.piles[tableauId]);
+    for (const source of [...tableaus, state.piles.waste]) {
+      const card = top(source);
+      if (!card || !card.faceUp) continue;
+      const starts =
+        options.movableRuns && source.id.startsWith('t')
+          ? source.cards
+              .map((_, index) => index)
+              .filter((index) => faceUpRun(source.cards, index, true))
+          : [source.cards.length - 1];
+      for (const start of starts) {
+        const selected = source.cards.slice(start);
+        if (!selected.length || selected.some((candidate) => !candidate.faceUp)) continue;
+        const first = selected[0];
+        for (const destination of tableaus) {
+          if (destination.id === source.id) continue;
+          if (descendingTableauMove(first, top(destination), false, options.sameSuitTableau))
+            moves.push({
+              type: 'transfer',
+              from: source.id,
+              to: destination.id,
+              cardIds: selected.map((candidate) => candidate.id),
+            });
+        }
+        if (selected.length === 1)
+          moves.push(...foundationMove(state, source.id, first, foundationIds));
+      }
+    }
+    if (state.piles.stock.cards.length)
+      moves.push({ type: 'draw', from: 'stock', to: 'waste', count: 1 });
+    else if (state.piles.waste.cards.length && Number(state.meta.redeals ?? 0) < options.redeals)
+      moves.push({ type: 'recycle', from: 'waste', to: 'stock' });
+    return moves;
+  };
+
+  const definition: GameDefinition = {
+    id,
+    name,
+    decks: 2,
+    create(seed = DEFAULT_SEED): GameState {
+      const deck = shuffledDeck(seed, 2);
+      const piles = [
+        pile('stock', 'stock'),
+        pile('waste', 'waste'),
+        ...foundationIds.map((foundationId) => pile(foundationId, 'foundation')),
+        ...tableauIds.map((tableauId) => pile(tableauId, 'tableau')),
+      ];
+      let cardIndex = 0;
+      for (let column = 0; column < options.columns; column += 1) {
+        const tableau = piles.find((candidate) => candidate.id === `t${column}`)!;
+        for (let row = 0; row < options.cardsPerColumn; row += 1) {
+          const card = deck[cardIndex++];
+          card.faceUp = true;
+          tableau.cards.push(card);
+        }
+      }
+      deck.slice(cardIndex).forEach((card) => piles[0].cards.push(card));
+      return makeState(id, seed, piles, { redeals: 0 });
+    },
+    legalMoves,
+    applyMove(state, move) {
+      return checked(state, move, legalMoves(state), () => {
+        if (move.type === 'draw') return draw(state, 'stock', 'waste');
+        if (move.type === 'recycle') {
+          const next = cloneState(state);
+          const cards = next.piles.waste.cards.splice(0).reverse();
+          cards.forEach((card) => {
+            card.faceUp = false;
+            next.piles.stock.cards.push(card);
+          });
+          next.meta.redeals = Number(next.meta.redeals ?? 0) + 1;
+          next.moveCount += 1;
+          return { state: next };
+        }
+        const result = transfer(state, move.from, move.to, moveCardIds(move));
+        return result.error
+          ? result
+          : { state: mark(result.state, definition.isWon(result.state)) };
+      });
+    },
+    hint: (state) => legalMoves(state)[0],
+    isWon: (state) =>
+      foundationIds.every((foundationId) => state.piles[foundationId].cards.length === 13),
+  };
+  return definition;
+}
+
+/** Forty and Eight: eight five-card piles and one permitted redeal. */
+export const fortyAndEight = createFortyVariant('forty-and-eight', 'Forty and Eight', {
+  columns: 8,
+  cardsPerColumn: 5,
+  movableRuns: false,
+  sameSuitTableau: true,
+  redeals: 1,
+});
+
+/** Josephine: Forty Thieves with movable same-suit sequences. */
+export const josephine = createFortyVariant('josephine', 'Josephine', {
+  columns: 10,
+  cardsPerColumn: 4,
+  movableRuns: true,
+  sameSuitTableau: true,
+  redeals: 0,
+});
+
+/** Congress: eight one-card piles and unrestricted descending tableau play. */
+export const congress = createFortyVariant('congress', 'Congress', {
+  columns: 8,
+  cardsPerColumn: 1,
+  movableRuns: false,
+  sameSuitTableau: false,
+  redeals: 0,
+});
+
+/** Diplomat: eight four-card rows with unrestricted descending tableau play. */
+export const diplomat = createFortyVariant('diplomat', 'Diplomat', {
+  columns: 8,
+  cardsPerColumn: 4,
+  movableRuns: false,
+  sameSuitTableau: false,
+  redeals: 0,
+});
+
 export const LONG_RUN_GAME_DEFINITIONS = {
   spiderette,
   yukon,
   fortyThieves,
+  fortyAndEight,
+  josephine,
+  congress,
+  diplomat,
 } as const;
 
 export type LongRunGameId = keyof typeof LONG_RUN_GAME_DEFINITIONS;
