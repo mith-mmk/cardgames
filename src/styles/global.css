@@ -1547,9 +1547,15 @@ footer {
 }
 
 .game-layout-clock .board {
-  width: 760px;
-  min-width: 760px;
-  min-height: 560px;
+  width: min(760px, 100%);
+  min-width: 0;
+  min-height: 0;
+  height: clamp(430px, 62vw, 560px);
+  margin-inline: auto;
+}
+.game-layout-clock .table-area {
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Spider needs ten columns. Put its controls below the table on desktop so
@@ -1624,6 +1630,9 @@ footer {
   }
 }
 @media (max-width: 560px) {
+  .game-layout-clock .board {
+    height: clamp(350px, 105vw, 430px);
+  }
   .game-spider .board {
     width: 1120px;
     min-width: 1120px;

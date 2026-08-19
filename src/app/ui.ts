@@ -93,15 +93,30 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
   const clockPiles = tableaux.filter((item) => /^clock\d+$/.test(item.id));
   if (clockPiles.length === 13 && /^clock\d+$/.test(pile.id)) {
     const index = Number(pile.id.slice(5)) - 1;
-    if (index === 12) return { left: 'calc(50% - var(--card-w) / 2)', top: '220px', right: 'auto' };
+    if (index === 12)
+      return {
+        left: 'calc(50% - var(--card-w) / 2)',
+        top: 'calc(50% - var(--card-h) / 2)',
+        right: 'auto',
+      };
     const positions = [
-      [0, -190], [95, -165], [165, -95], [190, 0], [165, 95], [95, 165],
-      [0, 190], [-95, 165], [-165, 95], [-190, 0], [-165, -95], [-95, -165],
+      [0, -34],
+      [12.5, -29.5],
+      [21.7, -17],
+      [25, 0],
+      [21.7, 17],
+      [12.5, 29.5],
+      [0, 34],
+      [-12.5, 29.5],
+      [-21.7, 17],
+      [-25, 0],
+      [-21.7, -17],
+      [-12.5, -29.5],
     ];
     const [x, y] = positions[index];
     return {
-      left: `calc(50% - var(--card-w) / 2 + ${x}px)`,
-      top: `${220 + y}px`,
+      left: `calc(50% + ${x}% - var(--card-w) / 2)`,
+      top: `calc(50% + ${y}% - var(--card-h) / 2)`,
       right: 'auto',
     };
   }

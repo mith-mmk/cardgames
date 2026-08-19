@@ -80,6 +80,39 @@ test('starts a game from the whole tile and keyboard activation', async ({ page 
   await expect(page.locator('.game-title h1')).toHaveText('Klondike');
 });
 
+test('keeps the Clock layout centred without an internal scrollbar', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Clock', exact: true }).click();
+  const table = page.locator('.game-layout-clock .table-area');
+  const board = page.locator('.game-layout-clock .board');
+  const [one, four, seven, centre] = await Promise.all(
+    ['clock1', 'clock4', 'clock7', 'clock13'].map((pileId) =>
+      page.locator(`[data-pile-id="${pileId}"]`).boundingBox(),
+    ),
+  );
+  expect(one).not.toBeNull();
+  expect(four).not.toBeNull();
+  expect(seven).not.toBeNull();
+  expect(centre).not.toBeNull();
+
+  const centreX = centre!.x + centre!.width / 2;
+  const centreY = centre!.y + centre!.height / 2;
+  expect(Math.abs(one!.x + one!.width / 2 - centreX)).toBeLessThan(2);
+  expect(one!.y + one!.height / 2).toBeLessThan(centreY);
+  expect(four!.x + four!.width / 2).toBeGreaterThan(centreX);
+  expect(seven!.y + seven!.height / 2).toBeGreaterThan(centreY);
+
+  const dimensions = await table.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    clientWidth: element.clientWidth,
+    scrollHeight: element.scrollHeight,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+  expect(dimensions.scrollHeight).toBeLessThanOrEqual(dimensions.clientHeight);
+  await expect(board).toBeVisible();
+});
+
 test('starts Klondike and draws from the stock', async ({ page }) => {
   await page.goto('/');
   await page.locator('.game-tile').filter({ hasText: 'Klondike' }).click();

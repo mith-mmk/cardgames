@@ -61,8 +61,10 @@ export function GameScreen({
   const snapshot = session.getSnapshot();
   const piles = snapshot.piles;
   const isWideLayout =
-    piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
-    piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4;
+    definition.id !== 'clock' &&
+    (piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
+      piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4);
+  const isClock = definition.id === 'clock';
   const isPyramid = definition.id === 'pyramid';
   const isPyramidPile = (pile: Pile) => /^p\d+$/.test(pile.id);
   const isPyramidExposed = (pile: Pile) => {
@@ -355,7 +357,8 @@ export function GameScreen({
                     style={{
                       top:
                         pile.kind === 'tableau' &&
-                        piles.filter((item) => item.kind === 'tableau').length < 20
+                        piles.filter((item) => item.kind === 'tableau').length < 20 &&
+                        !isClock
                           ? `${index * 30}px`
                           : 0,
                       zIndex: index,
