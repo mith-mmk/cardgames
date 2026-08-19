@@ -1,6 +1,6 @@
 {
   "name": "solitaire-collections",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": true,
   "description": "An offline, cross-platform collection of solitaire card games.",
   "type": "module",
