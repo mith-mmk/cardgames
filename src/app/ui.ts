@@ -171,6 +171,20 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     };
   }
 
+  const accordionPiles = tableaux.filter((item) => /^t\d+$/.test(item.id));
+  if (accordionPiles.length === 52) {
+    if (!pile.cards.length) return { display: 'none' };
+    const activePiles = accordionPiles.filter((item) => item.cards.length);
+    const index = activePiles.indexOf(pile);
+    const columns = compact ? 8 : 13;
+    const accordionGap = compact ? Math.max(48, Math.round(window.innerWidth / 9)) : 96;
+    return {
+      left: `${(index % columns) * accordionGap}px`,
+      top: `${14 + Math.floor(index / columns) * (compact ? 82 : 138)}px`,
+      right: 'auto',
+    };
+  }
+
   const gizaPyramid = tableaux.filter((item) => /^giza\d+$/.test(item.id));
   if (gizaPyramid.length === 28) {
     if (/^gizaReserve\d+$/.test(pile.id)) {

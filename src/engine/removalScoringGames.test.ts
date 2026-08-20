@@ -281,6 +281,30 @@ describe('removal and scoring wave', () => {
     ).toBeTruthy();
   });
 
+  it('Accordion moves the entire matching source pile and closes its gap', () => {
+    const state = accordion.create('accordion-whole-pile');
+    for (let index = 0; index < 52; index += 1) state.piles[`t${index}`].cards = [];
+    state.piles.t0.cards = [{ id: 'accordion-target', rank: 7, suit: 'clubs', faceUp: true }];
+    state.piles.t1.cards = [
+      { id: 'accordion-bottom', rank: 2, suit: 'hearts', faceUp: true },
+      { id: 'accordion-top', rank: 7, suit: 'spades', faceUp: true },
+    ];
+    const move = accordion.legalMoves(state).find((candidate) => candidate.from === 't1');
+    expect(move).toMatchObject({
+      type: 'transfer',
+      from: 't1',
+      to: 't0',
+      cardIds: ['accordion-bottom', 'accordion-top'],
+    });
+    const next = accordion.applyMove(state, move!).state;
+    expect(next.piles.t1.cards).toHaveLength(0);
+    expect(next.piles.t0.cards.map((card) => card.id)).toEqual([
+      'accordion-target',
+      'accordion-bottom',
+      'accordion-top',
+    ]);
+  });
+
   it('Poker Squares deals to waste and lets the player choose any empty grid square', () => {
     const state = pokerSquares.create('poker-score');
     const draw = pokerSquares.legalMoves(state)[0];

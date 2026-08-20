@@ -653,7 +653,7 @@ const accordion: GameDefinition = {
             type: 'transfer',
             from: piles[index].id,
             to: target.id,
-            cardIds: [source.id],
+            cardIds: piles[index].cards.map((card) => card.id),
           });
       }
     }

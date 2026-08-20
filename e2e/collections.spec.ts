@@ -344,6 +344,43 @@ test('renders Cheops with an exposed pyramid and face-up stock that can be dealt
   await expect(page.locator('[data-pile-id="waste"] .playing-card.face-up')).toHaveCount(1);
 });
 
+test('compresses Accordion after moving a matching pile one or three places left', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Date.now = () => 1;
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Accordion', exact: true }).click();
+  await expect(page.locator('.game-accordion [data-pile-id^="t"] .playing-card')).toHaveCount(52);
+  const move = await page.locator('.game-accordion').evaluate((board) => {
+    const piles = [...board.querySelectorAll<HTMLElement>('[data-pile-id^="t"]')];
+    const ranks = piles.map(
+      (pile) => pile.querySelector<HTMLElement>('.playing-card')?.dataset.rank ?? '',
+    );
+    for (let index = 1; index < piles.length; index += 1) {
+      for (const offset of [1, 3]) {
+        if (index >= offset && ranks[index] === ranks[index - offset])
+          return {
+            source: piles[index].dataset.pileId!,
+            target: piles[index - offset].dataset.pileId!,
+          };
+      }
+    }
+    return null;
+  });
+  expect(move).not.toBeNull();
+  const source = page.locator(`[data-pile-id="${move!.source}"]`);
+  const sourceBox = await source.boundingBox();
+  const sourceIndex = Number(move!.source.slice(1));
+  const following = page.locator(`[data-pile-id="t${sourceIndex + 1}"]`);
+  await source.locator('.playing-card').click();
+  await page.locator(`[data-pile-id="${move!.target}"]`).click();
+  await expect(source.locator('.playing-card')).toHaveCount(0);
+  await expect(page.locator(`[data-pile-id="${move!.target}"] .playing-card`)).toHaveCount(2);
+  expect((await following.boundingBox())?.x).toBe(sourceBox?.x);
+});
+
 test('deals Aces Up as a four-column round and keeps empty columns as move targets', async ({
   page,
 }) => {

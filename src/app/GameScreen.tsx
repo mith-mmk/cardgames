@@ -165,10 +165,17 @@ export function GameScreen({
       to?: string;
       cardIds?: string[];
     }>;
+  const isAccordion = definition.id === 'accordion';
+  const transferMoveMatchesCard = (
+    move: ReturnType<typeof legalMoves>[number],
+    pileId: string,
+    cardId: string,
+  ) =>
+    move.type === 'transfer' &&
+    move.from === pileId &&
+    (move.cardIds?.[0] === cardId || (isAccordion && move.cardIds?.at(-1) === cardId));
   const transferMovesForCard = (pileId: string, cardId: string) =>
-    legalMoves().filter(
-      (move) => move.type === 'transfer' && move.from === pileId && move.cardIds?.[0] === cardId,
-    );
+    legalMoves().filter((move) => transferMoveMatchesCard(move, pileId, cardId));
   const pointerDown = (pileId: string, cardId: string, event: ReactPointerEvent<HTMLElement>) => {
     if (!event.isPrimary || event.button !== 0 || pointerDrag.current) return;
     const sourcePile = piles.find((pile) => pile.id === pileId);
@@ -227,10 +234,8 @@ export function GameScreen({
       const move = destination
         ? legalMoves().find(
             (item) =>
-              item.type === 'transfer' &&
-              item.from === active.pileId &&
-              item.to === destination &&
-              item.cardIds?.[0] === active.cardId,
+              transferMoveMatchesCard(item, active.pileId, active.cardId) &&
+              item.to === destination,
           )
         : undefined;
       if (move) {
@@ -251,9 +256,7 @@ export function GameScreen({
       .filter(
         (move) =>
           snapshot.selected &&
-          move.type === 'transfer' &&
-          move.from === snapshot.selected.pileId &&
-          move.cardIds?.[0] === snapshot.selected.cardId &&
+          transferMoveMatchesCard(move, snapshot.selected.pileId, snapshot.selected.cardId) &&
           move.to,
       )
       .map((move) => move.to as string),
@@ -337,10 +340,7 @@ export function GameScreen({
     if (selected && selected.pileId !== pile.id) {
       const transfer = moves.find(
         (move) =>
-          move.type === 'transfer' &&
-          move.from === selected.pileId &&
-          move.to === pile.id &&
-          move.cardIds?.[0] === selected.cardId,
+          transferMoveMatchesCard(move, selected.pileId, selected.cardId) && move.to === pile.id,
       );
       if (transfer) return act(() => session.dispatch(transfer));
     }
