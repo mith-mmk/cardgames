@@ -119,18 +119,23 @@ test('shows every currently implemented game', async ({ page }) => {
   }
 });
 
-test('shows each normalized game family exactly once in the library filter', async ({ page }) => {
+test('keeps every catalog family selectable in the library filter', async ({ page }) => {
   await page.goto('/');
   const options = page.locator('.library-tools select option');
-  await expect(options).toHaveCount(6);
+  await expect(options).toHaveCount(10);
   await expect(options).toHaveText([
     'All families',
     'Klondike family',
     'Open-cell family',
-    'Spider / Yukon family',
+    'Spider family',
+    'Special foundations',
+    'Removal games',
+    'Long-run family',
+    'Special layouts',
     'Special foundations and layouts',
     'Removal and scoring games',
   ]);
+  await expect(page.locator('.game-tile')).toHaveCount(100);
 });
 
 test('starts each added game from its menu tile', async ({ page }) => {
@@ -577,6 +582,20 @@ test('selects a Bowling ball and a valid adjacent pin group before knocking', as
   await expect(page.locator('[data-pile-id="bowlBall1"] .playing-card')).toHaveCount(3);
   await expect(page.locator('[data-pile-id="bowlBall2"] .playing-card')).toHaveCount(2);
 
+  const topLeftPin = page.locator('[data-pile-id="bowlPin0"] .playing-card');
+  await expect(topLeftPin).toBeVisible();
+  const rackDoesNotOverlap = await page.locator('.game-bowling-solitaire').evaluate(() => {
+    const pin = document.querySelector<HTMLElement>('[data-pile-id="bowlPin0"] .playing-card');
+    const ball = document.querySelector<HTMLElement>(
+      '[data-pile-id="bowlBall0"] .card-slot:last-child .playing-card',
+    );
+    if (!pin || !ball) return false;
+    const pinRect = pin.getBoundingClientRect();
+    const ballRect = ball.getBoundingClientRect();
+    return pinRect.top >= ballRect.bottom || pinRect.bottom <= ballRect.top;
+  });
+  expect(rackDoesNotOverlap).toBe(true);
+
   const choice = await page.locator('.game-bowling-solitaire').evaluate((board) => {
     const adjacency: Record<number, number[]> = {
       0: [1, 4, 5],
@@ -641,6 +660,17 @@ test('selects a Bowling ball and a valid adjacent pin group before knocking', as
   await page
     .locator(`[data-pile-id="${choice!.ball}"] .card-slot:last-child .playing-card`)
     .click();
+  const activeBall = page.locator('[data-pile-id="bowlingActive"] .playing-card.face-up');
+  await expect(activeBall).toBeVisible();
+  const activeBallIsOnTop = await activeBall.evaluate((card) => {
+    const rect = card.getBoundingClientRect();
+    return (
+      document
+        .elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+        ?.closest('.playing-card') === card
+    );
+  });
+  expect(activeBallIsOnTop).toBe(true);
   for (const pin of choice!.pins)
     await page.locator(`[data-pile-id="${pin}"] .playing-card`).click();
   const knock = page.getByRole('button', { name: /Knock/ });

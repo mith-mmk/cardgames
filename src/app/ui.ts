@@ -121,17 +121,22 @@ export function pileLayout(pile: Pile, piles: Pile[], layoutType = ''): CSSPrope
   const bowlingPins = tableaux.filter((item) => /^bowlPin\d+$/.test(item.id));
   if (bowlingPins.length === 10) {
     if (pile.id === 'bowlingUnused' || pile.id === 'bowlingUsed') return { display: 'none' };
+    // A ball stack can be five cards tall. Keep the active ball in its own
+    // fourth slot, then start the pin rack below every stack. Previously the
+    // active pile occupied Ball 2's exact position and the left stack covered
+    // the first pin, which made a selected ball appear to vanish.
+    const ballGap = compact ? Math.max(62, Math.round(window.innerWidth / 5)) : 142;
+    const activeSlot = 1.5;
     if (pile.id === 'bowlingActive')
       return {
-        left: 'calc(50% - var(--card-w) / 2)',
+        left: `calc(50% - var(--card-w) / 2 + ${activeSlot * ballGap}px)`,
         top: '0px',
         right: 'auto',
       };
     if (/^bowlBall\d+$/.test(pile.id)) {
       const index = Number(pile.id.slice(8));
-      const ballGap = compact ? Math.max(62, Math.round(window.innerWidth / 5)) : 142;
       return {
-        left: `calc(50% - var(--card-w) / 2 + ${(index - 1) * ballGap}px)`,
+        left: `calc(50% - var(--card-w) / 2 + ${(index - activeSlot) * ballGap}px)`,
         top: '0px',
         right: 'auto',
       };
@@ -143,9 +148,12 @@ export function pileLayout(pile: Pile, piles: Pile[], layoutType = ''): CSSPrope
       const width = [4, 3, 2, 1][row];
       const column = index - start;
       const pinGap = compact ? Math.max(48, Math.round(window.innerWidth / 8)) : 100;
+      const compactCardHeight = Math.max(64, Math.min(92, Math.round(window.innerWidth * 0.089)));
+      const pinTop = compact ? compactCardHeight + 40 : 194;
+      const pinRowGap = compact ? Math.max(42, Math.round(compactCardHeight * 0.62)) : 78;
       return {
         left: `calc(50% - var(--card-w) / 2 + ${(column - (width - 1) / 2) * pinGap}px)`,
-        top: `${(compact ? 96 : 158) + row * (compact ? 55 : 92)}px`,
+        top: `${pinTop + row * pinRowGap}px`,
         right: 'auto',
       };
     }

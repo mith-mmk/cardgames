@@ -1,38 +1,29 @@
 import type { GameDefinition, Language } from './types';
 
-export type GameFamilyId = 'klondike' | 'open-cell' | 'long-run' | 'special' | 'removal';
+/** Preserve each catalog family as a selectable choice. Some groups are close
+ * relatives, but merging them made the library look as if games had vanished. */
+export type GameFamilyId = string;
 
-const familyByLabel: Record<string, GameFamilyId> = {
-  'Klondike family': 'klondike',
-  'Open-cell family': 'open-cell',
-  'Spider family': 'long-run',
-  'Long-run family': 'long-run',
-  'Special foundations': 'special',
-  'Special layouts': 'special',
-  'Special foundations and layouts': 'special',
-  'Removal games': 'removal',
-  'Removal and scoring games': 'removal',
-};
-
-const familyNames: Record<GameFamilyId, Record<Language, string>> = {
-  klondike: { ja: 'クロンダイク系', en: 'Klondike family' },
-  'open-cell': { ja: '全面公開・空きセル系', en: 'Open-cell family' },
-  'long-run': { ja: 'スパイダー・ユーコン系', en: 'Spider / Yukon family' },
-  special: { ja: '特殊完成札・配置系', en: 'Special foundations and layouts' },
-  removal: { ja: 'カード除去・得点系', en: 'Removal and scoring games' },
+const distinctFamilyNames: Record<string, Record<Language, string>> = {
+  'Long-run family': { ja: 'スパイダー・ユーコン系', en: 'Long-run family' },
+  'Special layouts': { ja: '特殊配置', en: 'Special layouts' },
+  'Special foundations and layouts': {
+    ja: '特殊完成札・配置系',
+    en: 'Special foundations and layouts',
+  },
+  'Removal and scoring games': { ja: 'カード除去・得点系', en: 'Removal and scoring games' },
 };
 
 export function gameFamilyId(game: GameDefinition): GameFamilyId {
-  return familyByLabel[game.family.en] ?? 'special';
-}
-
-export function gameFamilyName(family: GameFamilyId, language: Language): string {
-  return familyNames[family][language];
+  return game.family.en;
 }
 
 export function gameFamilies(games: GameDefinition[], language: Language) {
-  return Array.from(new Set(games.map(gameFamilyId))).map((id) => ({
-    id,
-    name: gameFamilyName(id, language),
-  }));
+  const families = new Map<string, string>();
+  for (const game of games) {
+    const id = gameFamilyId(game);
+    if (!families.has(id))
+      families.set(id, distinctFamilyNames[id]?.[language] ?? game.family[language]);
+  }
+  return [...families].map(([id, name]) => ({ id, name }));
 }

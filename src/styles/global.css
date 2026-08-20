@@ -1891,6 +1891,10 @@ footer {
     min-height: 420px;
   }
 
+  .game-bowling-solitaire .board {
+    min-height: 0;
+  }
+
   .game-accordion .board {
     min-height: 560px;
   }
