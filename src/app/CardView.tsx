@@ -19,6 +19,7 @@ export function CardView({
   onPointerCancel,
   theme,
   backIndex,
+  tabIndex,
 }: {
   card: Card;
   language: Language;
@@ -33,6 +34,7 @@ export function CardView({
   onPointerCancel?: (event: ReactPointerEvent<HTMLButtonElement>) => void;
   theme: ThemeAsset;
   backIndex: number;
+  tabIndex?: number;
 }) {
   const t = text(language);
   const red = card.suit === 'hearts' || card.suit === 'diamonds';
@@ -77,6 +79,7 @@ export function CardView({
           ? interpolate(t.faceUpCard, { rank: rankName(card.rank), suit: t.suits[card.suit] })
           : t.faceDownCard
       }
+      tabIndex={tabIndex}
       onPointerDown={(event) => {
         if (
           pointerId.current !== null &&

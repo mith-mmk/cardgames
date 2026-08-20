@@ -470,6 +470,9 @@ footer {
 .grid-board {
   min-height: 820px;
 }
+.special-layout-board {
+  min-height: 690px;
+}
 .tri-peaks-board {
   min-height: 540px;
 }
@@ -481,6 +484,34 @@ footer {
 }
 .game-phase {
   color: #dceccf;
+}
+.score-details {
+  margin-top: 10px;
+  color: #c8decf;
+  font-size: 11px;
+}
+.score-details summary {
+  width: max-content;
+  cursor: pointer;
+  color: #e6f1da;
+}
+.score-details ul {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.score-details li {
+  display: grid;
+  grid-template-columns: minmax(56px, auto) 1fr auto;
+  gap: 10px;
+}
+.score-details-empty {
+  display: block;
+}
+.score-details b {
+  color: #edf5de;
 }
 .pile {
   position: absolute;
@@ -1076,6 +1107,37 @@ footer {
 
   .table-area {
     padding: 16px;
+  }
+}
+
+@media (min-width: 801px) and (max-height: 800px) {
+  .game-poker-squares,
+  .game-cribbage-squares {
+    --card-w: 68px;
+    --card-h: 96px;
+  }
+
+  .game-poker-squares .game-topbar,
+  .game-cribbage-squares .game-topbar {
+    height: 70px;
+  }
+
+  .game-poker-squares .game-layout,
+  .game-cribbage-squares .game-layout {
+    padding-top: 16px;
+  }
+
+  .game-poker-squares .table-area,
+  .game-cribbage-squares .table-area {
+    min-height: 590px;
+    padding: 12px;
+  }
+
+  .game-poker-squares .grid-board,
+  .game-cribbage-squares .grid-board {
+    min-height: 548px;
+    height: 548px;
+    margin-top: 12px;
   }
 }
 

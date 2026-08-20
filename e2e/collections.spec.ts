@@ -119,6 +119,20 @@ test('shows every currently implemented game', async ({ page }) => {
   }
 });
 
+test('shows each normalized game family exactly once in the library filter', async ({ page }) => {
+  await page.goto('/');
+  const options = page.locator('.library-tools select option');
+  await expect(options).toHaveCount(6);
+  await expect(options).toHaveText([
+    'All families',
+    'Klondike family',
+    'Open-cell family',
+    'Spider / Yukon family',
+    'Special foundations and layouts',
+    'Removal and scoring games',
+  ]);
+});
+
 test('starts each added game from its menu tile', async ({ page }) => {
   for (const name of [
     "Baker's Game",
@@ -276,6 +290,7 @@ test('keeps Poker Squares placement under player control and shows score state',
   await expect(board).toBeVisible();
   await expect(page.locator('.table-stats')).toContainText('Score 0');
   await expect(page.locator('.table-stats')).toContainText('Draw the next card');
+  await expect(page.locator('.score-details')).toContainText('Score details');
 
   await page.locator('.pile-stock').click();
   await expect(page.locator('.pile-waste .playing-card.face-up')).toHaveCount(1);
@@ -286,6 +301,53 @@ test('keeps Poker Squares placement under player control and shows score state',
   await expect(selectedCell.locator('.playing-card.face-up')).toHaveCount(1);
   await expect(page.locator('.pile-waste .playing-card')).toHaveCount(0);
   await expect(page.locator('.table-stats')).toContainText('Draw the next card');
+});
+
+test('localizes score-sheet lines in Japanese', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '日本語', exact: true }).click();
+  await page.getByRole('button', { name: 'ポーカー・スクエア', exact: true }).click();
+  for (let index = 0; index < 5; index += 1) {
+    await page.locator('.pile-stock').click();
+    await page.locator(`[data-pile-id="g${index}"]`).click();
+  }
+  await page.locator('.score-details summary').click();
+  await expect(page.locator('.score-details')).toContainText('行 1');
+  await expect(page.locator('.score-details')).not.toContainText('High card');
+});
+
+test('keeps all Poker Squares cells visible on a short desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Poker Squares', exact: true }).click();
+  const table = page.locator('.game-poker-squares .table-area');
+  const lastCell = page.locator('[data-pile-id="g24"]');
+  const [tableBox, lastBox] = await Promise.all([table.boundingBox(), lastCell.boundingBox()]);
+  expect(tableBox).not.toBeNull();
+  expect(lastBox).not.toBeNull();
+  expect(lastBox!.y + lastBox!.height).toBeLessThanOrEqual(tableBox!.y + tableBox!.height);
+  expect(await table.evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(
+    true,
+  );
+});
+
+test('uses dedicated fans, crescent, quilt, and windmill board positions', async ({ page }) => {
+  for (const [name, pileIds] of [
+    ['Flower Garden', ['t0', 't3']],
+    ['Crescent', ['t0', 't8']],
+    ['Crazy Quilt', ['t0', 't5']],
+    ['Windmill', ['t0', 't5']],
+  ] as const) {
+    await page.goto('/');
+    await page.getByRole('button', { name, exact: true }).click();
+    await expect(page.locator('.special-layout-board')).toBeVisible();
+    const [first, second] = await Promise.all(
+      pileIds.map((id) => page.locator(`[data-pile-id="${id}"]`).boundingBox()),
+    );
+    expect(first).not.toBeNull();
+    expect(second).not.toBeNull();
+    expect(Math.abs(first!.y - second!.y)).toBeGreaterThan(12);
+  }
 });
 
 test('renders Tri-Peaks with its initial waste card, three peaks, and stock', async ({ page }) => {
@@ -901,6 +963,19 @@ test('supports keyboard draw on the stock pile', async ({ page }) => {
   const stock = page.locator('.pile-stock');
   await stock.focus();
   await stock.press('Enter');
+  await expect(page.locator('.table-stats')).toContainText('1');
+});
+
+test('does not nest card buttons in an interactive pile', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
+  const nestedInteractivePiles = await page.locator('.pile[role="button"] button').count();
+  expect(nestedInteractivePiles).toBe(0);
+  await expect(page.locator('.card-slot:not(:last-child) .playing-card[tabindex="0"]')).toHaveCount(
+    0,
+  );
+  await page.locator('.pile-stock .playing-card').last().focus();
+  await page.keyboard.press('Enter');
   await expect(page.locator('.table-stats')).toContainText('1');
 });
 

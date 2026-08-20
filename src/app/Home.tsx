@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import { interpolate, text } from './i18n';
+import { gameFamilies, gameFamilyId } from './gameFamilies';
 import type { GameDefinition, Language } from './types';
 
 export function Home({
@@ -27,7 +28,7 @@ export function Home({
       `${game.name.ja} ${game.name.en} ${game.family.ja}`
         .toLowerCase()
         .includes(query.toLowerCase()) &&
-      (filter === 'all' || game.family.en === filter),
+      (filter === 'all' || gameFamilyId(game) === filter),
   );
   return (
     <main className="home">
@@ -85,11 +86,10 @@ export function Home({
           />
           <select value={filter} onChange={(event) => setFilter(event.target.value)}>
             <option value="all">{t.allFamilies}</option>
-            {Array.from(new Set(games.map((game) => game.family.en))).map((family) => {
-              const familyDefinition = games.find((game) => game.family.en === family)?.family;
+            {gameFamilies(games, language).map((family) => {
               return (
-                <option key={family} value={family}>
-                  {familyDefinition?.[language] ?? family}
+                <option key={family.id} value={family.id}>
+                  {family.name}
                 </option>
               );
             })}
@@ -148,7 +148,7 @@ export function Home({
       </div>
       {filtered.length === 0 && <p className="empty-state">{t.noResults}</p>}
       <footer>
-        <span>Solitaire Collections · v0.6.8</span>
+        <span>Solitaire Collections · v0.6.9</span>
         <span>{t.offlineByDesign}</span>
       </footer>
     </main>

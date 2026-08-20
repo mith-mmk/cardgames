@@ -74,7 +74,7 @@ export const isCompactLandscape = () =>
   window.innerHeight <= 900 &&
   window.matchMedia?.('(pointer: coarse)').matches;
 
-export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
+export function pileLayout(pile: Pile, piles: Pile[], layoutType = ''): CSSProperties {
   const gap = isCompactLandscape()
     ? Math.max(40, Math.min(78, Math.round(window.innerWidth / 13)))
     : typeof window !== 'undefined' && window.innerWidth <= 560
@@ -240,6 +240,61 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     }
   }
 
+  if (['fans', 'crescent', 'grid', 'windmill'].includes(layoutType)) {
+    if (pile.kind !== 'tableau') return topPosition(topIndex(pile));
+    const index = tableaux.indexOf(pile);
+    const fanGap = compact ? Math.max(40, Math.round(window.innerWidth / 10)) : 104;
+    if (layoutType === 'fans') {
+      const columns = tableaux.length <= 8 ? tableaux.length : 8;
+      const row = Math.floor(index / columns);
+      const column = index % columns;
+      const center = (columns - 1) / 2;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(column - center) * fanGap}px)`,
+        top: `${(compact ? 94 : 185) + row * (compact ? 94 : 150) + Math.abs(column - center) * (compact ? 6 : 13)}px`,
+        right: 'auto',
+      };
+    }
+    if (layoutType === 'crescent') {
+      const angle = Math.PI * 0.16 + (Math.PI * 0.68 * index) / Math.max(1, tableaux.length - 1);
+      const radiusX = compact ? 38 : 40;
+      const radiusY = compact ? 25 : 29;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${Math.cos(angle) * radiusX}%)`,
+        top: `calc(${compact ? '53%' : '56%'} - var(--card-h) / 2 + ${Math.sin(angle) * radiusY}%)`,
+        right: 'auto',
+      };
+    }
+    if (layoutType === 'grid') {
+      const row = index < 5 ? 0 : index < 9 ? 1 : 2;
+      const rowStart = row === 0 ? 0 : row === 1 ? 5 : 9;
+      const columns = row === 0 ? 5 : 4;
+      const gridGap = compact ? Math.max(46, Math.round(window.innerWidth / 7)) : 118;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(index - rowStart - (columns - 1) / 2) * gridGap}px)`,
+        top: `${(compact ? 82 : 156) + row * (compact ? 86 : 138)}px`,
+        right: 'auto',
+      };
+    }
+    const windmillPositions = [
+      [-1, -2],
+      [0, -2],
+      [1, -2],
+      [2, -1],
+      [2, 0],
+      [1, 2],
+      [0, 2],
+      [-1, 2],
+    ];
+    const [x, y] = windmillPositions[index] ?? [0, 0];
+    const armGap = compact ? Math.max(54, Math.round(window.innerWidth / 7)) : 128;
+    return {
+      left: `calc(50% - var(--card-w) / 2 + ${x * armGap}px)`,
+      top: `calc(${compact ? '49%' : '53%'} - var(--card-h) / 2 + ${y * (compact ? 54 : 104)}px)`,
+      right: 'auto',
+    };
+  }
+
   if (['stock', 'waste', 'cell', 'reserve'].includes(pile.kind)) {
     return topPosition(topIndex(pile));
   }
@@ -399,10 +454,15 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     const index = Number(pile.id.slice(1));
     const row = Math.floor(index / gridSide);
     const column = index % gridSide;
-    const gridGap = compact ? Math.max(48, Math.round(window.innerWidth / (gridSide + 2))) : 108;
+    const shortDesktop = typeof window !== 'undefined' && !compact && window.innerHeight <= 800;
+    const gridGap = compact
+      ? Math.max(48, Math.round(window.innerWidth / (gridSide + 2)))
+      : shortDesktop
+        ? 84
+        : 108;
     return {
       left: `calc(50% - var(--card-w) / 2 + ${(column - (gridSide - 1) / 2) * gridGap}px)`,
-      top: `${(compact ? 64 : 142) + row * (compact ? 58 : 132)}px`,
+      top: `${(compact ? 64 : shortDesktop ? 60 : 142) + row * (compact ? 58 : shortDesktop ? 97 : 132)}px`,
       right: 'auto',
     };
   }
