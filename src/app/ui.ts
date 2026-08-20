@@ -171,6 +171,25 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     };
   }
 
+  const gizaPyramid = tableaux.filter((item) => /^giza\d+$/.test(item.id));
+  if (gizaPyramid.length === 28) {
+    if (/^gizaReserve\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice(11));
+      const reserveGap = compact ? Math.max(48, Math.round(window.innerWidth / 9)) : 108;
+      return { left: `${index * reserveGap}px`, top: '0px', right: 'auto' };
+    }
+    if (/^giza\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice(4));
+      const row = Math.floor((Math.sqrt(8 * index + 1) - 1) / 2);
+      const position = index - (row * (row + 1)) / 2;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(position - row / 2) * (compact ? 42 : 54)}px)`,
+        top: `${(compact ? 104 : 210) + row * (compact ? 30 : 43)}px`,
+        right: 'auto',
+      };
+    }
+  }
+
   const triPeaks = tableaux.filter((item) => /^tri\d+$/.test(item.id));
   if (triPeaks.length === 28 && /^tri\d+$/.test(pile.id)) {
     const index = Number(pile.id.slice(3));

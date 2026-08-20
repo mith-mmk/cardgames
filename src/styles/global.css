@@ -1544,7 +1544,9 @@ footer {
   box-shadow: none !important;
 }
 .game-pyramid .pile.is-empty-pyramid-pile,
-.game-pyramid .pile.is-covered-pyramid-pile {
+.game-pyramid .pile.is-covered-pyramid-pile,
+.game-giza .pile.is-empty-pyramid-pile,
+.game-giza .pile.is-covered-pyramid-pile {
   pointer-events: none;
   border-color: transparent;
 }
@@ -1562,10 +1564,14 @@ footer {
 
 /* Pyramid has its own wide, centered canvas; the prior row formula shifted
    each successive row to the right and clipped the lower half. */
-.game-pyramid .board {
+.game-pyramid .board,
+.game-giza .board {
   width: 800px;
   min-width: 800px;
   min-height: 560px;
+}
+.game-giza .board {
+  min-height: 650px;
 }
 
 .game-layout-clock .board {
@@ -1729,6 +1735,7 @@ footer {
   .board,
   .game-layout-clock .board,
   .game-pyramid .board,
+  .game-giza .board,
   .game-spider .board,
   .game-wide-layout .board {
     width: 100%;
@@ -1756,8 +1763,13 @@ footer {
     --card-h: clamp(64px, 8.9vw, 92px);
   }
 
-  .game-pyramid .board {
+  .game-pyramid .board,
+  .game-giza .board {
     height: max(260px, calc(100% - 24px));
+  }
+
+  .game-giza .board {
+    min-height: 420px;
   }
 
   .game-controls,

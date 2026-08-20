@@ -309,6 +309,25 @@ test('renders Black Hole around its central ace foundation without a stock', asy
   await expect(page.locator('.pile-stock')).toHaveCount(0);
 });
 
+test('renders Giza as an open pyramid with eight three-card reserve piles', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Giza', exact: true }).click();
+  await expect(
+    page.locator('.game-giza [data-pile-id^="giza"]:not([data-pile-id^="gizaReserve"])'),
+  ).toHaveCount(28);
+  await expect(page.locator('.game-giza .is-covered-pyramid-pile')).toHaveCount(21);
+  await expect(
+    page.locator('.game-giza .pile-tableau:not(.is-covered-pyramid-pile) .playing-card'),
+  ).toHaveCount(7);
+  await expect(page.locator('[data-pile-id^="gizaReserve"]')).toHaveCount(8);
+  await expect(page.locator('[data-pile-id="gizaReserve0"] .playing-card.face-up')).toHaveCount(3);
+  const reserveCards = page.locator('[data-pile-id="gizaReserve0"] .playing-card.face-up');
+  const firstReserveCard = await reserveCards.nth(0).boundingBox();
+  const secondReserveCard = await reserveCards.nth(1).boundingBox();
+  expect(firstReserveCard?.y).not.toBe(secondReserveCard?.y);
+  await expect(page.locator('.pile-stock')).toHaveCount(0);
+});
+
 test('deals Aces Up as a four-column round and keeps empty columns as move targets', async ({
   page,
 }) => {
@@ -337,7 +356,7 @@ test('keeps representative games usable in compact mobile landscape', async ({
     { width: 1024, height: 768 },
   ]) {
     await page.setViewportSize(viewport);
-    for (const game of ['Klondike', 'Spider', 'Pyramid', 'Clock', 'Aces Up']) {
+    for (const game of ['Klondike', 'Spider', 'Pyramid', 'Clock', 'Aces Up', 'Giza']) {
       await page.goto('/');
       await page.getByRole('button', { name: game, exact: true }).click();
       const viewportBounds = await page.evaluate(() => ({

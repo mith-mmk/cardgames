@@ -55,6 +55,41 @@ describe('removal and scoring wave', () => {
     expect(giza.applyMove(state, move).state.piles.removed.cards.length).toBe(move.cardIds.length);
   });
 
+  it('Giza deals an open 28-card pyramid plus eight three-card reserve piles', () => {
+    const state = giza.create('giza-layout');
+    expect(Array.from({ length: 28 }, (_, index) => state.piles[`giza${index}`].cards)).toSatisfy(
+      (piles: Card[][]) => piles.every((cards) => cards.length === 1 && cards[0].faceUp),
+    );
+    expect(
+      Array.from({ length: 8 }, (_, index) => state.piles[`gizaReserve${index}`].cards),
+    ).toSatisfy((piles: Card[][]) =>
+      piles.every((cards) => cards.length === 3 && cards.every((card) => card.faceUp)),
+    );
+    expect(state.piles.stock).toBeUndefined();
+  });
+
+  it('Giza can discard the exposed top card of a reserve pile', () => {
+    let caseFound: { state: GameState; move: Move } | undefined;
+    for (let index = 0; index < 100 && !caseFound; index += 1) {
+      const state = giza.create(`giza-reserve-${index}`);
+      const reserveTopIds = new Set(
+        Array.from(
+          { length: 8 },
+          (_, reserve) => state.piles[`gizaReserve${reserve}`].cards.at(-1)?.id,
+        ),
+      );
+      const move = giza
+        .legalMoves(state)
+        .find(
+          (candidate) =>
+            candidate.type === 'remove' && candidate.cardIds.some((id) => reserveTopIds.has(id)),
+        );
+      if (move) caseFound = { state, move };
+    }
+    expect(caseFound).toBeDefined();
+    expect(giza.applyMove(caseFound!.state, caseFound!.move).error).toBeUndefined();
+  });
+
   it('Tri-Peaks deals three covered peaks, a ten-card base, stock, and waste', () => {
     const state = triPeaks.create('tri-peaks-layout');
     expect(state.piles.waste.cards).toHaveLength(1);

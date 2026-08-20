@@ -60,11 +60,18 @@ function matches(mode: RemovalMode, a: Card, b: Card): boolean {
 }
 
 function pairMoves(state: GameState, config: RemovalConfig): Move[] {
-  const cards = activeCards(state);
+  return pairMovesFromCards(activeCards(state), config.mode, config.singleRanks);
+}
+
+function pairMovesFromCards(
+  cards: Array<{ pileId: string; card: Card }>,
+  mode: RemovalMode,
+  singleRanks = false,
+): Move[] {
   const moves: Move[] = [];
   for (let i = 0; i < cards.length; i += 1) {
     for (let j = i + 1; j < cards.length; j += 1) {
-      if (matches(config.mode, cards[i].card, cards[j].card))
+      if (matches(mode, cards[i].card, cards[j].card))
         moves.push({
           type: 'remove',
           from: cards[i].pileId,
@@ -72,7 +79,7 @@ function pairMoves(state: GameState, config: RemovalConfig): Move[] {
           cardIds: [cards[i].card.id, cards[j].card.id],
         });
     }
-    if (config.singleRanks && cards[i].card.rank === 13)
+    if (singleRanks && cards[i].card.rank === 13)
       moves.push({
         type: 'remove',
         from: cards[i].pileId,
@@ -88,15 +95,14 @@ function removeByIds(state: GameState, ids: string[]): ApplyResult {
   const removed = next.piles.removed;
   if (!removed) return { state, error: 'Removed pile is missing' };
   for (const id of ids) {
-    const source = Object.values(next.piles).find(
-      (candidate) => candidate.kind === 'tableau' || candidate.kind === 'waste',
-    );
     const owner = Object.values(next.piles).find(
       (candidate) =>
-        (candidate.kind === 'tableau' || candidate.kind === 'waste') &&
+        (candidate.kind === 'tableau' ||
+          candidate.kind === 'waste' ||
+          candidate.kind === 'reserve') &&
         candidate.cards.some((card) => card.id === id),
     );
-    if (!owner || !source) return { state, error: 'Card is not removable' };
+    if (!owner) return { state, error: 'Card is not removable' };
     const index = owner.cards.findIndex((card) => card.id === id);
     if (index !== owner.cards.length - 1)
       return { state, error: 'Only exposed cards can be removed' };
@@ -179,15 +185,73 @@ function makePairGame(config: RemovalConfig): GameDefinition {
   return definition;
 }
 
-const giza = makePairGame({
+const gizaPyramidIds = Array.from({ length: 28 }, (_, index) => `giza${index}`);
+const gizaReserveIds = Array.from({ length: 8 }, (_, index) => `gizaReserve${index}`);
+
+function gizaExposed(state: GameState, index: number): boolean {
+  const row = Math.floor((Math.sqrt(8 * index + 1) - 1) / 2);
+  if (row === 6) return true;
+  const position = index - (row * (row + 1)) / 2;
+  const childBase = ((row + 1) * (row + 2)) / 2;
+  return (
+    !state.piles[`giza${childBase + position}`]?.cards.length &&
+    !state.piles[`giza${childBase + position + 1}`]?.cards.length
+  );
+}
+
+const giza: GameDefinition = {
   id: 'giza',
   name: 'Giza',
-  layout: 'pyramid',
-  tableauCount: 7,
-  cardsPerTableau: 7,
-  mode: 'sum13',
-  singleRanks: true,
-});
+  decks: 1,
+  create(seed = DEFAULT_SEED): GameState {
+    const deck = shuffledDeck(seed);
+    const pyramid = gizaPyramidIds.map((id, index) => {
+      const card = deck[index];
+      card.faceUp = true;
+      return pile(id, 'tableau', [card]);
+    });
+    const reserve = gizaReserveIds.map((id, index) => {
+      const cards = deck.slice(28 + index * 3, 31 + index * 3);
+      cards.forEach((card) => {
+        card.faceUp = true;
+      });
+      return pile(id, 'reserve', cards);
+    });
+    return makeState('giza', seed, [pile('removed', 'removed'), ...reserve, ...pyramid], {
+      options: { layout: 'giza' },
+      layout: { type: 'giza' },
+      score: 0,
+    });
+  },
+  legalMoves(state): Move[] {
+    if (state.status !== 'playing') return [];
+    const cards = [
+      ...gizaPyramidIds.flatMap((id, index) => {
+        const card = top(state.piles[id]);
+        return card && gizaExposed(state, index) ? [{ pileId: id, card }] : [];
+      }),
+      ...gizaReserveIds.flatMap((id) => {
+        const card = top(state.piles[id]);
+        return card ? [{ pileId: id, card }] : [];
+      }),
+    ];
+    return pairMovesFromCards(cards, 'sum13', true);
+  },
+  applyMove(state, move): ApplyResult {
+    return checked(state, move, giza.legalMoves(state), () => {
+      if (move.type !== 'remove') return { state, error: 'Only exposed pairs may be discarded' };
+      const result = removeByIds(state, move.cardIds);
+      if (result.error) return result;
+      result.state.meta.score = Number(result.state.meta.score ?? 0) + move.cardIds.length;
+      if (giza.isWon(result.state)) result.state.status = 'won';
+      else if (!giza.legalMoves(result.state).length) result.state.status = 'lost';
+      return result;
+    });
+  },
+  isWon: (state) =>
+    [...gizaPyramidIds, ...gizaReserveIds].every((id) => !state.piles[id].cards.length),
+  hint: (state) => giza.legalMoves(state)[0],
+};
 const cheops = makePairGame({
   id: 'cheops',
   name: 'Cheops',

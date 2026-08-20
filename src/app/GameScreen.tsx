@@ -76,26 +76,27 @@ export function GameScreen({
     !piles.some((pile) => /^g\d+$/.test(pile.id)) &&
     !isTriPeaks &&
     !isBlackHole &&
-    !['clock', 'spider', 'pyramid'].includes(definition.id) &&
+    !['clock', 'spider', 'pyramid', 'giza'].includes(definition.id) &&
     (piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
       piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4);
   const isClock = definition.id === 'clock';
-  const isPyramid = definition.id === 'pyramid';
+  const isPyramid = definition.id === 'pyramid' || definition.id === 'giza';
   const isDenseBoard =
     piles.filter((pile) => pile.kind === 'tableau').length >= 12 ||
     piles.filter((pile) => ['stock', 'waste', 'cell', 'reserve', 'foundation'].includes(pile.kind))
       .length >= 12;
-  const isPyramidPile = (pile: Pile) => /^p\d+$/.test(pile.id);
+  const isPyramidPile = (pile: Pile) => /^(p|giza)\d+$/.test(pile.id);
   const isPyramidExposed = (pile: Pile) => {
     if (!isPyramid || !isPyramidPile(pile) || !pile.cards.length) return false;
-    const index = Number(pile.id.slice(1));
+    const prefix = pile.id.startsWith('giza') ? 'giza' : 'p';
+    const index = Number(pile.id.slice(prefix.length));
     const row = Math.floor((Math.sqrt(8 * index + 1) - 1) / 2);
     if (row === 6) return true;
     const position = index - (row * (row + 1)) / 2;
     const childBase = ((row + 1) * (row + 2)) / 2;
     return (
-      !piles.find((item) => item.id === `p${childBase + position}`)?.cards.length &&
-      !piles.find((item) => item.id === `p${childBase + position + 1}`)?.cards.length
+      !piles.find((item) => item.id === `${prefix}${childBase + position}`)?.cards.length &&
+      !piles.find((item) => item.id === `${prefix}${childBase + position + 1}`)?.cards.length
     );
   };
   const isTriPeaksPile = (pile: Pile) => /^tri\d+$/.test(pile.id);
@@ -407,7 +408,9 @@ export function GameScreen({
                   zIndex:
                     isPyramid && isPyramidPile(pile)
                       ? pile.cards.length
-                        ? Math.floor((Math.sqrt(8 * Number(pile.id.slice(1)) + 1) - 1) / 2) + 1
+                        ? Math.floor(
+                            (Math.sqrt(8 * Number(pile.id.replace(/^giza|^p/, '')) + 1) - 1) / 2,
+                          ) + 1
                         : 0
                       : isTriPeaks && isTriPeaksPile(pile)
                         ? Math.floor(Number(pile.id.slice(3)) / 3) + 1
@@ -448,11 +451,13 @@ export function GameScreen({
                     className="card-slot"
                     style={{
                       top:
-                        pile.kind === 'tableau' &&
-                        piles.filter((item) => item.kind === 'tableau').length < 20 &&
-                        !isClock
-                          ? `${index * (compactLandscape ? (card.faceUp ? 30 : 16) : 30)}px`
-                          : 0,
+                        pile.kind === 'reserve' && /^gizaReserve\d+$/.test(pile.id)
+                          ? `${index * (compactLandscape ? 14 : 30)}px`
+                          : pile.kind === 'tableau' &&
+                              piles.filter((item) => item.kind === 'tableau').length < 20 &&
+                              !isClock
+                            ? `${index * (compactLandscape ? (card.faceUp ? 30 : 16) : 30)}px`
+                            : 0,
                       zIndex: index,
                     }}
                     key={card.id}
