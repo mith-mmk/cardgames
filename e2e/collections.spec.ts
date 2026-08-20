@@ -309,6 +309,24 @@ test('renders Black Hole around its central ace foundation without a stock', asy
   await expect(page.locator('.pile-stock')).toHaveCount(0);
 });
 
+test('deals Aces Up as a four-column round and keeps empty columns as move targets', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Date.now = () => 1;
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Aces Up', exact: true }).click();
+  for (const pileId of ['aces0', 'aces1', 'aces2', 'aces3'])
+    await expect(page.locator(`[data-pile-id="${pileId}"] .playing-card.face-up`)).toHaveCount(1);
+  await expect(page.locator('.pile-stock .playing-card.face-down')).toHaveCount(48);
+
+  await page.locator('.pile-stock').click();
+  for (const pileId of ['aces0', 'aces1', 'aces2', 'aces3'])
+    await expect(page.locator(`[data-pile-id="${pileId}"] .playing-card.face-up`)).toHaveCount(2);
+  await expect(page.locator('.pile-stock .playing-card.face-down')).toHaveCount(44);
+});
+
 test('keeps representative games usable in compact mobile landscape', async ({
   page,
 }, testInfo) => {
@@ -319,7 +337,7 @@ test('keeps representative games usable in compact mobile landscape', async ({
     { width: 1024, height: 768 },
   ]) {
     await page.setViewportSize(viewport);
-    for (const game of ['Klondike', 'Spider', 'Pyramid', 'Clock']) {
+    for (const game of ['Klondike', 'Spider', 'Pyramid', 'Clock', 'Aces Up']) {
       await page.goto('/');
       await page.getByRole('button', { name: game, exact: true }).click();
       const viewportBounds = await page.evaluate(() => ({
@@ -334,6 +352,11 @@ test('keeps representative games usable in compact mobile landscape', async ({
       expect(controls!.x + controls!.width).toBeLessThanOrEqual(viewportBounds.width + 1);
       expect(controls!.y + controls!.height).toBeLessThanOrEqual(viewportBounds.height + 2);
       await expect(page.locator('.game-controls button')).toHaveCount(5);
+      if (game === 'Aces Up') {
+        const card = await page.locator('[data-pile-id="aces0"] .playing-card').boundingBox();
+        expect(card).not.toBeNull();
+        expect(card!.y + card!.height).toBeLessThanOrEqual(table!.y + table!.height + 1);
+      }
     }
   }
 });

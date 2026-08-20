@@ -31,7 +31,11 @@ for (const path of infoPlists) {
   }
   if (content.includes('UIInterfaceOrientationPortrait'))
     throw new Error(`${path} must not enable portrait orientation.`);
-  execFileSync('plutil', ['-lint', path], { stdio: 'pipe' });
+  if (process.platform === 'darwin') execFileSync('plutil', ['-lint', path], { stdio: 'pipe' });
 }
 
-console.log(`Verified ${infoPlists.length} iOS Info.plist file(s) for landscape-only play.`);
+const validation =
+  process.platform === 'darwin' ? 'including plutil syntax checks' : 'with XML checks';
+console.log(
+  `Verified ${infoPlists.length} iOS Info.plist file(s) for landscape-only play ${validation}.`,
+);

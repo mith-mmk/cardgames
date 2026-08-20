@@ -523,7 +523,7 @@ function isAutoMoveCandidate(state: UnknownRecord, move: UnknownRecord, cardId?:
     ids.length === 1 &&
     (move.to === 'removed' || pileKind(state, String(move.to)) === 'removed')
   )
-    return cardInState(state, ids[0])?.rank === 13;
+    return cardInState(state, ids[0])?.rank === 13 || state.gameId === 'aces-up';
   return false;
 }
 type RawEngineSession = {
@@ -849,7 +849,7 @@ export function createSession(gameId: string, seed = `${Date.now()}`): GameSessi
       },
       hint: () => {
         const move = raw.hint?.();
-        return move && move.type === 'transfer'
+        return move && (move.type === 'transfer' || move.type === 'remove') && moveCardIds(move)[0]
           ? {
               sourcePileId: String(move.from),
               cardId: String(moveCardIds(move)[0]),

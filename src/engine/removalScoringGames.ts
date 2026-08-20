@@ -381,56 +381,112 @@ const blackHole: GameDefinition = {
   hint: (state) => blackHole.legalMoves(state)[0],
 };
 
+const acesUpTableauIds = Array.from({ length: 4 }, (_, index) => `aces${index}`);
+
+function acesUpRank(card: Card): number {
+  return card.rank === 1 ? 14 : card.rank;
+}
+
+function dealAcesUpRound(state: GameState): ApplyResult {
+  const next = cloneState(state);
+  const stock = next.piles.stock;
+  if (!stock || stock.cards.length < acesUpTableauIds.length)
+    return { state, error: 'A complete Aces Up deal is unavailable' };
+
+  for (const pileId of acesUpTableauIds) {
+    const target = next.piles[pileId];
+    const card = stock.cards.pop();
+    if (!target || !card) return { state, error: 'Aces Up tableau is missing' };
+    card.faceUp = true;
+    target.cards.push(card);
+  }
+  next.moveCount += 1;
+  return { state: next };
+}
+
+function finishAcesUp(state: GameState): GameState {
+  if (acesUp.isWon(state)) state.status = 'won';
+  else if (!state.piles.stock.cards.length && !acesUp.legalMoves(state).length)
+    state.status = 'lost';
+  return state;
+}
+
 const acesUp: GameDefinition = {
   id: 'aces-up',
   name: 'Aces Up',
   decks: 1,
   create(seed = DEFAULT_SEED): GameState {
-    return createRemovalState(
-      {
-        id: 'aces-up',
-        name: 'Aces Up',
-        layout: 'aces-up',
-        tableauCount: 4,
-        cardsPerTableau: 4,
-        mode: 'same-rank',
-      },
+    const deck = shuffledDeck(seed);
+    const tableaus = acesUpTableauIds.map((pileId) => {
+      const card = deck.pop()!;
+      card.faceUp = true;
+      return pile(pileId, 'tableau', [card]);
+    });
+    deck.forEach((card) => {
+      card.faceUp = false;
+    });
+    return makeState(
+      'aces-up',
       seed,
+      [pile('removed', 'removed'), pile('stock', 'stock', deck), ...tableaus],
+      { options: { layout: 'aces-up' }, layout: { type: 'aces-up', tableauCount: 4 }, score: 0 },
     );
   },
   legalMoves(state): Move[] {
-    const cards = activeCards(state);
-    const moves: Move[] = cards.flatMap(({ pileId, card }) =>
-      cards.some(
+    if (state.status !== 'playing') return [];
+    const cards = acesUpTableauIds.flatMap((pileId) => {
+      const card = top(state.piles[pileId]);
+      return card?.faceUp ? [{ pileId, card }] : [];
+    });
+    const moves: Move[] = cards.flatMap(({ pileId, card }) => {
+      const removals = cards.some(
         (other) =>
-          other.pileId !== pileId && other.card.suit === card.suit && other.card.rank > card.rank,
+          other.pileId !== pileId &&
+          other.card.suit === card.suit &&
+          acesUpRank(other.card) > acesUpRank(card),
       )
-        ? [{ type: 'remove', from: pileId, to: 'removed', cardIds: [card.id] }]
-        : [],
-    );
-    if (state.piles.stock.cards.length)
-      moves.push({ type: 'draw', from: 'stock', to: 'waste', count: 1 });
+        ? [{ type: 'remove' as const, from: pileId, to: 'removed', cardIds: [card.id] }]
+        : [];
+      const movesToEmptyPiles = acesUpTableauIds
+        .filter((targetId) => targetId !== pileId && !state.piles[targetId].cards.length)
+        .map((targetId) => ({
+          type: 'transfer' as const,
+          from: pileId,
+          to: targetId,
+          cardIds: [card.id],
+        }));
+      return [...removals, ...movesToEmptyPiles];
+    });
+    if (!moves.length && state.piles.stock.cards.length >= acesUpTableauIds.length)
+      moves.push({ type: 'draw', from: 'stock', to: 'tableau', count: acesUpTableauIds.length });
     return moves;
   },
   applyMove(state, move): ApplyResult {
     return checked(state, move, acesUp.legalMoves(state), () => {
-      if (move.type === 'draw') return draw(state, 'stock', 'waste');
+      if (move.type === 'draw') {
+        const result = dealAcesUpRound(state);
+        return result.error ? result : { state: finishAcesUp(result.state) };
+      }
+      if (move.type === 'transfer') {
+        const result = transfer(state, move.from, move.to, move.cardIds);
+        return result.error ? result : { state: finishAcesUp(result.state) };
+      }
       if (move.type !== 'remove') return { state, error: 'Only exposed cards can be discarded' };
       const result = removeByIds(state, move.cardIds);
       if (result.error) return result;
       const next = result.state;
       next.meta.score = Number(next.meta.score ?? 0) + 1;
-      if (acesUp.isWon(next)) next.status = 'won';
-      return { state: next };
+      return { state: finishAcesUp(next) };
     });
   },
   isWon: (state) =>
     !state.piles.stock.cards.length &&
-    !state.piles.waste.cards.length &&
-    Object.values(state.piles)
-      .filter((item) => item.kind === 'tableau')
-      .every((item) => item.cards.length <= 1),
-  hint: (state) => acesUp.legalMoves(state)[0],
+    acesUpTableauIds.every((pileId) => {
+      const cards = state.piles[pileId].cards;
+      return cards.length === 1 && cards[0].rank === 1;
+    }),
+  hint: (state) =>
+    acesUp.legalMoves(state).find((move) => move.type === 'remove') ?? acesUp.legalMoves(state)[0],
 };
 
 const accordion: GameDefinition = {

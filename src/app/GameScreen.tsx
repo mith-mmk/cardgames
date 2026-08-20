@@ -270,6 +270,12 @@ export function GameScreen({
     notify(moved ? t.movedAutomatically : t.noLegalMove);
     if (moved) redraw((value) => value + 1);
   };
+  const showHint = () => {
+    const hint = session.hint();
+    if (!hint) return notify(t.noLegalMove);
+    act(() => session.select(hint.sourcePileId, hint.cardId));
+    notify(t.hint);
+  };
   const dispatchForSelection = (pile: Pile, cardId?: string) => {
     const selected = snapshot.selected;
     const moves = legalMoves();
@@ -483,10 +489,7 @@ export function GameScreen({
         </section>
         <aside className="game-controls">
           <div className="game-control-group game-control-group-primary">
-            <button
-              className="game-control primary-control"
-              onClick={() => act(() => session.hint())}
-            >
+            <button className="game-control primary-control" onClick={showHint}>
               ✧ <span>{t.hint}</span>
             </button>
             <button

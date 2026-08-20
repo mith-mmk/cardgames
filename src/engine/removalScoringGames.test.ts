@@ -111,12 +111,59 @@ describe('removal and scoring wave', () => {
     ).toBeTruthy();
   });
 
-  it('Aces Up discards a lower exposed card when a higher card shares its suit', () => {
+  it('Aces Up starts with four face-up tableau cards and deals a four-card round', () => {
+    const { state, move: deal } = firstMove(acesUp, 'draw');
+    expect(state.piles.stock.cards).toHaveLength(48);
+    expect(state.piles.waste).toBeUndefined();
+    expect(['aces0', 'aces1', 'aces2', 'aces3'].map((id) => state.piles[id].cards)).toSatisfy(
+      (piles: Card[][]) => piles.every((cards) => cards.length === 1 && cards[0].faceUp),
+    );
+    expect(deal).toMatchObject({ from: 'stock', to: 'tableau', count: 4 });
+    const dealt = acesUp.applyMove(state, deal!).state;
+    expect(dealt.piles.stock.cards).toHaveLength(44);
+    expect(['aces0', 'aces1', 'aces2', 'aces3'].map((id) => dealt.piles[id].cards)).toSatisfy(
+      (piles: Card[][]) => piles.every((cards) => cards.length === 2 && cards.at(-1)?.faceUp),
+    );
+  });
+
+  it('Aces Up discards a lower exposed card and moves a top card to an empty tableau', () => {
     const { state, move } = firstMove(acesUp, 'remove');
     expect(move.type).toBe('remove');
     const result = acesUp.applyMove(state, move);
     expect(result.error).toBeUndefined();
     expect(result.state.meta.score).toBe(1);
+
+    const empty = acesUp.create('aces-up-empty-pile');
+    empty.piles.aces1.cards = [];
+    const transferMove = acesUp
+      .legalMoves(empty)
+      .find((candidate) => candidate.type === 'transfer' && candidate.to === 'aces1');
+    expect(transferMove).toMatchObject({ type: 'transfer', to: 'aces1' });
+    const moved = acesUp.applyMove(empty, transferMove!).state;
+    expect(moved.piles.aces1.cards).toHaveLength(1);
+  });
+
+  it('Aces Up only deals after no tableau action remains and marks an exhausted dead end lost', () => {
+    const state = acesUp.create('aces-up-deal-gate');
+    state.piles.aces0.cards = [{ id: 'clubs-2', rank: 2, suit: 'clubs', faceUp: true }];
+    state.piles.aces1.cards = [{ id: 'hearts-3', rank: 3, suit: 'hearts', faceUp: true }];
+    state.piles.aces2.cards = [{ id: 'diamonds-4', rank: 4, suit: 'diamonds', faceUp: true }];
+    state.piles.aces3.cards = [{ id: 'spades-5', rank: 5, suit: 'spades', faceUp: true }];
+    state.piles.stock.cards = [
+      { id: 'clubs-6', rank: 6, suit: 'clubs', faceUp: false },
+      { id: 'hearts-7', rank: 7, suit: 'hearts', faceUp: false },
+      { id: 'diamonds-8', rank: 8, suit: 'diamonds', faceUp: false },
+      { id: 'spades-9', rank: 9, suit: 'spades', faceUp: false },
+    ];
+    const deal = acesUp.legalMoves(state).find((move) => move.type === 'draw');
+    expect(deal).toMatchObject({ type: 'draw', count: 4 });
+    const exhausted = acesUp.applyMove(state, deal!).state;
+    expect(exhausted.status).toBe('lost');
+    expect(acesUp.legalMoves(exhausted)).toEqual([]);
+
+    const { state: withDiscard, move: removal } = firstMove(acesUp, 'remove');
+    expect(acesUp.legalMoves(withDiscard).some((move) => move.type === 'draw')).toBe(false);
+    expect(removal.type).toBe('remove');
   });
 
   it('Accordion moves a matching card by one or three piles', () => {

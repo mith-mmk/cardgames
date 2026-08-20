@@ -114,6 +114,25 @@ describe('engine adapter interaction contracts', () => {
     expect(pyramidCase).toBeDefined();
     const kingMove = pyramidCase!.move;
     expect(pyramidCase!.session.autoMove(String(kingMove.from), idsOf(kingMove)[0])).toBe(true);
+
+    let acesUpCase:
+      | {
+          session: ReturnType<typeof createSession>;
+          move: Record<string, unknown>;
+        }
+      | undefined;
+    for (let i = 0; i < 100 && !acesUpCase; i += 1) {
+      const session = createSession('aces-up', `adapter-aces-up-${i}`);
+      const move = session
+        .legalMoves()
+        .map(asRecord)
+        .find((candidate) => candidate.type === 'remove' && idsOf(candidate).length === 1);
+      if (move) acesUpCase = { session, move };
+    }
+    expect(acesUpCase).toBeDefined();
+    expect(
+      acesUpCase!.session.autoMove(String(acesUpCase!.move.from), idsOf(acesUpCase!.move)[0]),
+    ).toBe(true);
   });
 
   it('autoComplete is atomic and one undo restores the pre-complete position', () => {

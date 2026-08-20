@@ -1516,17 +1516,17 @@ export const EXPANSION_CATALOG = {
     2,
     1,
     '#d28c69',
-    'A以外のカードをできるだけ除去します。',
+    '4列に1枚ずつ配り、A以外のカードをできるだけ除去します。',
     [
       '各列の一番上を確認する。',
       '同じスートで低い方のカードを除去する。',
-      '空いた列へ別のカードを移し、除去を続ける。',
+      '手がなくなったら、空いた列へ移すか山札から4列へ1枚ずつ配る。',
     ],
-    'Remove as many non-Aces as possible.',
+    'Deal one card to each of four columns and remove as many non-Aces as possible.',
     [
       'Check the top card of each column.',
       'Remove the lower card when suits match.',
-      'Move cards into empty columns and continue removing.',
+      'When no move remains, move a card to an empty column or deal one card to every column.',
     ],
   ),
   'monte-carlo': entry(

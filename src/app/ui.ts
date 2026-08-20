@@ -207,6 +207,17 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     };
   }
 
+  const acesUpPiles = tableaux.filter((item) => /^aces\d+$/.test(item.id));
+  if (acesUpPiles.length === 4 && /^aces\d+$/.test(pile.id)) {
+    const index = Number(pile.id.slice(4));
+    const acesUpGap = compact ? Math.max(48, Math.round(window.innerWidth / 6)) : 108;
+    return {
+      left: `calc(50% - var(--card-w) / 2 + ${(index - 1.5) * acesUpGap}px)`,
+      top: `${compact ? 54 : 180}px`,
+      right: 'auto',
+    };
+  }
+
   const columns = tableaux
     .map((item) => item.id)
     .sort(
