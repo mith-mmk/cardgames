@@ -328,6 +328,22 @@ test('renders Giza as an open pyramid with eight three-card reserve piles', asyn
   await expect(page.locator('.pile-stock')).toHaveCount(0);
 });
 
+test('renders Cheops with an exposed pyramid and face-up stock that can be dealt', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Cheops', exact: true }).click();
+  await expect(page.locator('.game-cheops [data-pile-id^="p"]')).toHaveCount(28);
+  await expect(page.locator('.game-cheops .is-covered-pyramid-pile')).toHaveCount(21);
+  await expect(
+    page.locator('.game-cheops .pile-tableau:not(.is-covered-pyramid-pile) .playing-card'),
+  ).toHaveCount(7);
+  await expect(page.locator('[data-pile-id="stock"] .playing-card.face-up')).toHaveCount(24);
+  await page.locator('[data-pile-id="stock"]').click();
+  await expect(page.locator('[data-pile-id="stock"] .playing-card.face-up')).toHaveCount(23);
+  await expect(page.locator('[data-pile-id="waste"] .playing-card.face-up')).toHaveCount(1);
+});
+
 test('deals Aces Up as a four-column round and keeps empty columns as move targets', async ({
   page,
 }) => {

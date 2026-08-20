@@ -3,7 +3,8 @@ import { cloneState, draw, makeState, pile, top, transfer } from './core';
 import { shuffledDeck } from './random';
 
 const DEFAULT_SEED = 'solitaire-default';
-type RemovalMode = 'sum13' | 'sum10' | 'sum14' | 'same-rank' | 'adjacent' | 'royal';
+type RemovalMode =
+  'sum13' | 'sum10' | 'sum14' | 'same-rank' | 'adjacent' | 'same-or-adjacent' | 'royal';
 
 interface RemovalConfig {
   readonly id: string;
@@ -50,6 +51,7 @@ function matches(mode: RemovalMode, a: Card, b: Card): boolean {
       (a.rank === 1 && b.rank === 13) ||
       (a.rank === 13 && b.rank === 1)
     );
+  if (mode === 'same-or-adjacent') return a.rank === b.rank || Math.abs(a.rank - b.rank) === 1;
   if (mode === 'sum13') return a.rank + b.rank === 13;
   if (mode === 'sum10') return a.rank + b.rank === 10;
   if (mode === 'royal')
@@ -99,7 +101,8 @@ function removeByIds(state: GameState, ids: string[]): ApplyResult {
       (candidate) =>
         (candidate.kind === 'tableau' ||
           candidate.kind === 'waste' ||
-          candidate.kind === 'reserve') &&
+          candidate.kind === 'reserve' ||
+          candidate.kind === 'stock') &&
         candidate.cards.some((card) => card.id === id),
     );
     if (!owner) return { state, error: 'Card is not removable' };
@@ -188,15 +191,19 @@ function makePairGame(config: RemovalConfig): GameDefinition {
 const gizaPyramidIds = Array.from({ length: 28 }, (_, index) => `giza${index}`);
 const gizaReserveIds = Array.from({ length: 8 }, (_, index) => `gizaReserve${index}`);
 
-function gizaExposed(state: GameState, index: number): boolean {
+function pyramidExposed(state: GameState, prefix: string, index: number): boolean {
   const row = Math.floor((Math.sqrt(8 * index + 1) - 1) / 2);
   if (row === 6) return true;
   const position = index - (row * (row + 1)) / 2;
   const childBase = ((row + 1) * (row + 2)) / 2;
   return (
-    !state.piles[`giza${childBase + position}`]?.cards.length &&
-    !state.piles[`giza${childBase + position + 1}`]?.cards.length
+    !state.piles[`${prefix}${childBase + position}`]?.cards.length &&
+    !state.piles[`${prefix}${childBase + position + 1}`]?.cards.length
   );
+}
+
+function gizaExposed(state: GameState, index: number): boolean {
+  return pyramidExposed(state, 'giza', index);
 }
 
 const giza: GameDefinition = {
@@ -252,15 +259,75 @@ const giza: GameDefinition = {
     [...gizaPyramidIds, ...gizaReserveIds].every((id) => !state.piles[id].cards.length),
   hint: (state) => giza.legalMoves(state)[0],
 };
-const cheops = makePairGame({
+const cheops: GameDefinition = {
   id: 'cheops',
   name: 'Cheops',
-  layout: 'pyramid',
-  tableauCount: 7,
-  cardsPerTableau: 7,
-  mode: 'sum13',
-  singleRanks: true,
-});
+  decks: 1,
+  create(seed = DEFAULT_SEED): GameState {
+    const deck = shuffledDeck(seed);
+    const pyramid = Array.from({ length: 28 }, (_, index) => {
+      const card = deck[index];
+      card.faceUp = true;
+      return pile(`p${index}`, 'tableau', [card]);
+    });
+    const stock = deck.slice(28);
+    stock.forEach((card) => {
+      card.faceUp = true;
+    });
+    return makeState(
+      'cheops',
+      seed,
+      [
+        pile('removed', 'removed'),
+        pile('stock', 'stock', stock),
+        pile('waste', 'waste'),
+        ...pyramid,
+      ],
+      {
+        options: { layout: 'cheops' },
+        layout: { type: 'cheops' },
+        score: 0,
+      },
+    );
+  },
+  legalMoves(state): Move[] {
+    if (state.status !== 'playing') return [];
+    const cards = Array.from({ length: 28 }, (_, index) => {
+      const card = top(state.piles[`p${index}`]);
+      return card && pyramidExposed(state, 'p', index) ? [{ pileId: `p${index}`, card }] : [];
+    }).flat();
+    const wasteTop = top(state.piles.waste);
+    if (wasteTop?.faceUp) cards.push({ pileId: 'waste', card: wasteTop });
+    const stockTop = top(state.piles.stock);
+    if (stockTop?.faceUp) cards.push({ pileId: 'stock', card: stockTop });
+    const moves = pairMovesFromCards(cards, 'same-or-adjacent');
+    if (state.piles.stock.cards.length)
+      moves.push({ type: 'draw', from: 'stock', to: 'waste', count: 1 });
+    return moves;
+  },
+  applyMove(state, move): ApplyResult {
+    return checked(state, move, cheops.legalMoves(state), () => {
+      const result =
+        move.type === 'draw'
+          ? draw(state, 'stock', 'waste')
+          : move.type === 'remove'
+            ? removeByIds(state, move.cardIds)
+            : { state, error: 'Only matching pairs may be discarded' };
+      if (result.error) return result;
+      result.state.meta.score =
+        Number(result.state.meta.score ?? 0) + (move.type === 'remove' ? move.cardIds.length : 0);
+      if (cheops.isWon(result.state)) result.state.status = 'won';
+      else if (!cheops.legalMoves(result.state).length) result.state.status = 'lost';
+      return result;
+    });
+  },
+  isWon: (state) =>
+    Object.values(state.piles)
+      .filter((item) => item.kind !== 'removed')
+      .every((item) => !item.cards.length),
+  hint: (state) =>
+    cheops.legalMoves(state).find((move) => move.type === 'remove') ?? cheops.legalMoves(state)[0],
+};
 const blockTen = makePairGame({
   id: 'block-ten',
   name: 'Block Ten',

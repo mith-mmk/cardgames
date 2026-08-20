@@ -1546,7 +1546,9 @@ footer {
 .game-pyramid .pile.is-empty-pyramid-pile,
 .game-pyramid .pile.is-covered-pyramid-pile,
 .game-giza .pile.is-empty-pyramid-pile,
-.game-giza .pile.is-covered-pyramid-pile {
+.game-giza .pile.is-covered-pyramid-pile,
+.game-cheops .pile.is-empty-pyramid-pile,
+.game-cheops .pile.is-covered-pyramid-pile {
   pointer-events: none;
   border-color: transparent;
 }
@@ -1565,7 +1567,8 @@ footer {
 /* Pyramid has its own wide, centered canvas; the prior row formula shifted
    each successive row to the right and clipped the lower half. */
 .game-pyramid .board,
-.game-giza .board {
+.game-giza .board,
+.game-cheops .board {
   width: 800px;
   min-width: 800px;
   min-height: 560px;
@@ -1736,6 +1739,7 @@ footer {
   .game-layout-clock .board,
   .game-pyramid .board,
   .game-giza .board,
+  .game-cheops .board,
   .game-spider .board,
   .game-wide-layout .board {
     width: 100%;
@@ -1764,7 +1768,8 @@ footer {
   }
 
   .game-pyramid .board,
-  .game-giza .board {
+  .game-giza .board,
+  .game-cheops .board {
     height: max(260px, calc(100% - 24px));
   }
 

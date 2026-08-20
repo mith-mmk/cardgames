@@ -6,6 +6,7 @@ import {
   accordion,
   blackHole,
   bowlingSolitaire,
+  cheops,
   cribbageSquares,
   giza,
   pokerSquares,
@@ -88,6 +89,75 @@ describe('removal and scoring wave', () => {
     }
     expect(caseFound).toBeDefined();
     expect(giza.applyMove(caseFound!.state, caseFound!.move).error).toBeUndefined();
+  });
+
+  it('Cheops deals a face-up 28-card pyramid and a face-up 24-card stock', () => {
+    const state = cheops.create('cheops-layout');
+    expect(Array.from({ length: 28 }, (_, index) => state.piles[`p${index}`].cards)).toSatisfy(
+      (piles: Card[][]) => piles.every((cards) => cards.length === 1 && cards[0].faceUp),
+    );
+    expect(state.piles.stock.cards).toHaveLength(24);
+    expect(state.piles.stock.cards.every((card) => card.faceUp)).toBe(true);
+    expect(state.piles.waste.cards).toHaveLength(0);
+  });
+
+  it('Cheops permits exposed equal or consecutive pairs including the stock, but not A/K', () => {
+    const state = cheops.create('cheops-pairs');
+    const coveredId = state.piles.p0.cards[0].id;
+    expect(
+      cheops
+        .legalMoves(state)
+        .some((move) => move.type === 'remove' && move.cardIds.includes(coveredId)),
+    ).toBe(false);
+
+    state.piles.stock.cards = [{ id: 'cheops-stock-4', rank: 4, suit: 'clubs', faceUp: true }];
+    state.piles.waste.cards = [{ id: 'cheops-waste-4', rank: 4, suit: 'hearts', faceUp: true }];
+    const equalPair = cheops
+      .legalMoves(state)
+      .find(
+        (move) =>
+          move.type === 'remove' &&
+          move.cardIds.includes('cheops-stock-4') &&
+          move.cardIds.includes('cheops-waste-4'),
+      );
+    expect(equalPair).toBeDefined();
+    expect(cheops.applyMove(state, equalPair!).error).toBeUndefined();
+
+    state.piles.stock.cards = [{ id: 'cheops-stock-5', rank: 5, suit: 'clubs', faceUp: true }];
+    state.piles.waste.cards = [{ id: 'cheops-waste-4', rank: 4, suit: 'hearts', faceUp: true }];
+    expect(
+      cheops
+        .legalMoves(state)
+        .some(
+          (move) =>
+            move.type === 'remove' &&
+            move.cardIds.includes('cheops-stock-5') &&
+            move.cardIds.includes('cheops-waste-4'),
+        ),
+    ).toBe(true);
+
+    state.piles.stock.cards = [{ id: 'cheops-stock-a', rank: 1, suit: 'clubs', faceUp: true }];
+    state.piles.waste.cards = [{ id: 'cheops-waste-k', rank: 13, suit: 'hearts', faceUp: true }];
+    expect(
+      cheops
+        .legalMoves(state)
+        .some(
+          (move) =>
+            move.type === 'remove' &&
+            move.cardIds.includes('cheops-stock-a') &&
+            move.cardIds.includes('cheops-waste-k'),
+        ),
+    ).toBe(false);
+  });
+
+  it('Cheops draws the next face-up stock card to the waste with no redeal', () => {
+    const state = cheops.create('cheops-stock');
+    const drawMove = cheops.legalMoves(state).find((move) => move.type === 'draw');
+    expect(drawMove).toMatchObject({ from: 'stock', to: 'waste', count: 1 });
+    const next = cheops.applyMove(state, drawMove!).state;
+    expect(next.piles.stock.cards).toHaveLength(23);
+    expect(next.piles.waste.cards).toHaveLength(1);
+    expect(next.piles.waste.cards[0].faceUp).toBe(true);
   });
 
   it('Tri-Peaks deals three covered peaks, a ten-card base, stock, and waste', () => {

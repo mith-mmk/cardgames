@@ -76,11 +76,12 @@ export function GameScreen({
     !piles.some((pile) => /^g\d+$/.test(pile.id)) &&
     !isTriPeaks &&
     !isBlackHole &&
-    !['clock', 'spider', 'pyramid', 'giza'].includes(definition.id) &&
+    !['clock', 'spider', 'pyramid', 'giza', 'cheops'].includes(definition.id) &&
     (piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
       piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4);
   const isClock = definition.id === 'clock';
-  const isPyramid = definition.id === 'pyramid' || definition.id === 'giza';
+  const isPyramid = ['pyramid', 'giza', 'cheops'].includes(definition.id);
+  const isCheops = definition.id === 'cheops';
   const isDenseBoard =
     piles.filter((pile) => pile.kind === 'tableau').length >= 12 ||
     piles.filter((pile) => ['stock', 'waste', 'cell', 'reserve', 'foundation'].includes(pile.kind))
@@ -299,7 +300,7 @@ export function GameScreen({
       );
       if (direct) return act(() => session.dispatch(direct));
     }
-    if (pile.kind === 'stock') {
+    if (pile.kind === 'stock' && !(isCheops && Boolean(selected) && Boolean(cardId))) {
       const stockMove = moves.find(
         (move) =>
           (move.type === 'draw' && move.from === pile.id) ||
