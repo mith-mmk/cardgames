@@ -691,14 +691,110 @@ function makeAdjacentGame(id: string, name: string, layout: string): GameDefinit
   });
 }
 
-const monteCarlo = makePairGame({
+const monteCarloPileIds = Array.from({ length: 25 }, (_, index) => `mc${index}`);
+
+function monteCarloPairs(state: GameState): Move[] {
+  const moves: Move[] = [];
+  for (let index = 0; index < monteCarloPileIds.length; index += 1) {
+    const card = top(state.piles[monteCarloPileIds[index]]);
+    if (!card) continue;
+    const row = Math.floor(index / 5);
+    const column = index % 5;
+    for (const rowOffset of [-1, 0, 1]) {
+      for (const columnOffset of [-1, 0, 1]) {
+        if (rowOffset === 0 && columnOffset === 0) continue;
+        const nextRow = row + rowOffset;
+        const nextColumn = column + columnOffset;
+        if (nextRow < 0 || nextRow >= 5 || nextColumn < 0 || nextColumn >= 5) continue;
+        const targetIndex = nextRow * 5 + nextColumn;
+        if (targetIndex <= index) continue;
+        const target = top(state.piles[monteCarloPileIds[targetIndex]]);
+        if (target && target.rank === card.rank)
+          moves.push({
+            type: 'remove',
+            from: monteCarloPileIds[index],
+            to: 'removed',
+            cardIds: [card.id, target.id],
+          });
+      }
+    }
+  }
+  return moves;
+}
+
+function refillMonteCarlo(state: GameState): GameState {
+  const next = cloneState(state);
+  const remaining = monteCarloPileIds.flatMap((id) => next.piles[id].cards);
+  for (const id of monteCarloPileIds) next.piles[id].cards = [];
+  remaining.forEach((card, index) => {
+    card.faceUp = true;
+    next.piles[monteCarloPileIds[index]].cards.push(card);
+  });
+  let cursor = remaining.length;
+  while (cursor < monteCarloPileIds.length && next.piles.stock.cards.length) {
+    const card = next.piles.stock.cards.pop()!;
+    card.faceUp = true;
+    next.piles[monteCarloPileIds[cursor]].cards.push(card);
+    cursor += 1;
+  }
+  next.moveCount += 1;
+  return next;
+}
+
+const monteCarlo: GameDefinition = {
   id: 'monte-carlo',
   name: 'Monte Carlo',
-  layout: 'grid-5x5',
-  tableauCount: 25,
-  cardsPerTableau: 2,
-  mode: 'same-rank',
-});
+  decks: 1,
+  create(seed = DEFAULT_SEED): GameState {
+    const deck = shuffledDeck(seed);
+    const tableaus = monteCarloPileIds.map((id, index) => {
+      const card = deck[index];
+      card.faceUp = true;
+      return pile(id, 'tableau', [card]);
+    });
+    const stock = deck.slice(25);
+    stock.forEach((card) => {
+      card.faceUp = false;
+    });
+    const state = makeState(
+      'monte-carlo',
+      seed,
+      [pile('removed', 'removed'), pile('stock', 'stock', stock), ...tableaus],
+      { options: { layout: 'monte-carlo' }, layout: { type: 'monte-carlo', size: 5 }, score: 0 },
+    );
+    if (!monteCarloPairs(state).length) state.status = 'lost';
+    return state;
+  },
+  legalMoves(state): Move[] {
+    if (state.status !== 'playing') return [];
+    const pairs = monteCarloPairs(state);
+    if (pairs.length) return pairs;
+    const activeCount = monteCarloPileIds.filter((id) => state.piles[id].cards.length).length;
+    return state.piles.stock.cards.length && activeCount < monteCarloPileIds.length
+      ? [{ type: 'draw', from: 'stock', to: 'tableau', count: 1 }]
+      : [];
+  },
+  applyMove(state, move): ApplyResult {
+    return checked(state, move, monteCarlo.legalMoves(state), () => {
+      const result =
+        move.type === 'remove'
+          ? removeByIds(state, move.cardIds)
+          : move.type === 'draw'
+            ? { state: refillMonteCarlo(state) }
+            : { state, error: 'Remove adjacent matching pairs or refill the grid' };
+      if (result.error) return result;
+      const next = result.state;
+      next.meta.score = next.piles.removed.cards.length;
+      if (monteCarlo.isWon(next)) next.status = 'won';
+      else if (!monteCarlo.legalMoves(next).length) next.status = 'lost';
+      return { state: next };
+    });
+  },
+  isWon: (state) =>
+    !state.piles.stock.cards.length &&
+    monteCarloPileIds.every((id) => !state.piles[id].cards.length),
+  hint: (state) => monteCarlo.legalMoves(state)[0],
+};
 const royalMarriage = makePairGame({
   id: 'royal-marriage',
   name: 'Royal Marriage',

@@ -76,7 +76,7 @@ export function GameScreen({
     !piles.some((pile) => /^g\d+$/.test(pile.id)) &&
     !isTriPeaks &&
     !isBlackHole &&
-    !['clock', 'spider', 'pyramid', 'giza', 'cheops'].includes(definition.id) &&
+    !['clock', 'spider', 'pyramid', 'giza', 'cheops', 'monte-carlo'].includes(definition.id) &&
     (piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
       piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4);
   const isClock = definition.id === 'clock';

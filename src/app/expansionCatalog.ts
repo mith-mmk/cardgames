@@ -1539,17 +1539,17 @@ export const EXPANSION_CATALOG = {
     3,
     1,
     '#b57c83',
-    '同ランクのペアを除去し、盤面を圧縮して空にします。',
+    '5×5の盤面から同ランクの隣接ペアを除去し、山札を使い切ります。',
     [
-      '隣接する同ランクのペアを探す。',
+      '縦・横・斜めに接する同ランクのペアを探す。',
       'ペアを除去して空白を作る。',
-      '盤面を左上へ詰めて再配札する。',
+      '組がなくなったら左上へ詰め、山札から25枚まで補充する。',
     ],
-    'Remove equal-rank pairs and compress the board to empty.',
+    'Clear adjacent equal-rank pairs from a five-by-five grid and exhaust the stock.',
     [
-      'Find adjacent pairs of the same rank.',
+      'Find equal-rank pairs touching horizontally, vertically, or diagonally.',
       'Remove pairs to create gaps.',
-      'Compress cards toward the top-left and redeal.',
+      'When no pair remains, compact top-left and refill to 25 from the stock.',
     ],
   ),
   'block-ten': entry(

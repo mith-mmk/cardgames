@@ -9,6 +9,7 @@ import {
   cheops,
   cribbageSquares,
   giza,
+  monteCarlo,
   pokerSquares,
   scoreCribbageHand,
   scorePokerHand,
@@ -303,6 +304,44 @@ describe('removal and scoring wave', () => {
       'accordion-bottom',
       'accordion-top',
     ]);
+  });
+
+  it('Monte Carlo deals an open five-by-five grid and only removes touching ranks', () => {
+    const state = monteCarlo.create('monte-carlo-layout');
+    expect(Array.from({ length: 25 }, (_, index) => state.piles[`mc${index}`].cards)).toSatisfy(
+      (piles: Card[][]) =>
+        piles.every((cards) => cards.length === 1 && cards.every((card) => card.faceUp)),
+    );
+    expect(state.piles.stock.cards).toHaveLength(27);
+    expect(state.piles.stock.cards.every((card) => !card.faceUp)).toBe(true);
+
+    for (let index = 0; index < 25; index += 1) state.piles[`mc${index}`].cards = [];
+    state.status = 'playing';
+    state.piles.mc0.cards = [{ id: 'mc-a', rank: 7, suit: 'clubs', faceUp: true }];
+    state.piles.mc1.cards = [{ id: 'mc-b', rank: 7, suit: 'hearts', faceUp: true }];
+    state.piles.mc4.cards = [{ id: 'mc-far', rank: 7, suit: 'spades', faceUp: true }];
+    const pair = monteCarlo
+      .legalMoves(state)
+      .find((move) => move.type === 'remove' && move.cardIds.includes('mc-a'));
+    if (pair?.type !== 'remove') throw new Error('Expected an adjacent Monte Carlo pair');
+    expect(pair).toMatchObject({ cardIds: ['mc-a', 'mc-b'] });
+    expect(pair.cardIds).not.toContain('mc-far');
+  });
+
+  it('Monte Carlo compacts empty cells and refills the grid only after no pairs remain', () => {
+    const state = monteCarlo.create('monte-carlo-refill');
+    for (let index = 0; index < 25; index += 1) state.piles[`mc${index}`].cards = [];
+    state.status = 'playing';
+    state.piles.mc0.cards = [{ id: 'mc-first', rank: 2, suit: 'clubs', faceUp: true }];
+    state.piles.mc2.cards = [{ id: 'mc-second', rank: 4, suit: 'hearts', faceUp: true }];
+    state.piles.stock.cards = [{ id: 'mc-stock', rank: 6, suit: 'spades', faceUp: false }];
+    const refill = monteCarlo.legalMoves(state).find((move) => move.type === 'draw');
+    expect(refill).toMatchObject({ from: 'stock', to: 'tableau' });
+    const next = monteCarlo.applyMove(state, refill!).state;
+    expect(next.piles.mc0.cards[0].id).toBe('mc-first');
+    expect(next.piles.mc1.cards[0].id).toBe('mc-second');
+    expect(next.piles.mc2.cards[0]).toMatchObject({ id: 'mc-stock', faceUp: true });
+    expect(next.piles.stock.cards).toHaveLength(0);
   });
 
   it('Poker Squares deals to waste and lets the player choose any empty grid square', () => {

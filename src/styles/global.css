@@ -1594,6 +1594,10 @@ footer {
   min-height: 620px;
 }
 
+.game-monte-carlo .board {
+  min-height: 720px;
+}
+
 /* Spider needs ten columns. Put its controls below the table on desktop so
    the board keeps its natural width instead of squeezing or clipping cards. */
 .game-spider .board {
@@ -1784,6 +1788,10 @@ footer {
 
   .game-accordion .board {
     min-height: 560px;
+  }
+
+  .game-monte-carlo .board {
+    min-height: 440px;
   }
 
   .game-controls,

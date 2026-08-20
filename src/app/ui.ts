@@ -185,6 +185,19 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     };
   }
 
+  const monteCarloPiles = tableaux.filter((item) => /^mc\d+$/.test(item.id));
+  if (monteCarloPiles.length === 25 && /^mc\d+$/.test(pile.id)) {
+    const index = Number(pile.id.slice(2));
+    const row = Math.floor(index / 5);
+    const column = index % 5;
+    const monteCarloGap = compact ? Math.max(48, Math.round(window.innerWidth / 7)) : 112;
+    return {
+      left: `calc(50% - var(--card-w) / 2 + ${(column - 2) * monteCarloGap}px)`,
+      top: `${(compact ? 64 : 150) + row * (compact ? 76 : 132)}px`,
+      right: 'auto',
+    };
+  }
+
   const gizaPyramid = tableaux.filter((item) => /^giza\d+$/.test(item.id));
   if (gizaPyramid.length === 28) {
     if (/^gizaReserve\d+$/.test(pile.id)) {

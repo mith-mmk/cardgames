@@ -381,6 +381,53 @@ test('compresses Accordion after moving a matching pile one or three places left
   expect((await following.boundingBox())?.x).toBe(sourceBox?.x);
 });
 
+test('removes touching equal-rank cards in Monte Carlo’s five-by-five grid', async ({ page }) => {
+  await page.addInitScript(() => {
+    Date.now = () => 1;
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Monte Carlo', exact: true }).click();
+  await expect(
+    page.locator('.game-monte-carlo [data-pile-id^="mc"] .playing-card.face-up'),
+  ).toHaveCount(25);
+  await expect(page.locator('.game-monte-carlo .pile-stock .playing-card.face-down')).toHaveCount(
+    27,
+  );
+  const pair = await page.locator('.game-monte-carlo').evaluate((board) => {
+    const piles = [...board.querySelectorAll<HTMLElement>('[data-pile-id^="mc"]')];
+    const ranks = piles.map(
+      (pile) => pile.querySelector<HTMLElement>('.playing-card')?.dataset.rank ?? '',
+    );
+    for (let index = 0; index < 25; index += 1) {
+      const row = Math.floor(index / 5);
+      const column = index % 5;
+      for (const rowOffset of [-1, 0, 1]) {
+        for (const columnOffset of [-1, 0, 1]) {
+          const nextRow = row + rowOffset;
+          const nextColumn = column + columnOffset;
+          const target = nextRow * 5 + nextColumn;
+          if (
+            (rowOffset !== 0 || columnOffset !== 0) &&
+            nextRow >= 0 &&
+            nextRow < 5 &&
+            nextColumn >= 0 &&
+            nextColumn < 5 &&
+            target > index &&
+            ranks[index] === ranks[target]
+          )
+            return { source: piles[index].dataset.pileId!, target: piles[target].dataset.pileId! };
+        }
+      }
+    }
+    return null;
+  });
+  expect(pair).not.toBeNull();
+  await page.locator(`[data-pile-id="${pair!.source}"] .playing-card`).click();
+  await page.locator(`[data-pile-id="${pair!.target}"] .playing-card`).click();
+  await expect(page.locator(`[data-pile-id="${pair!.source}"] .playing-card`)).toHaveCount(0);
+  await expect(page.locator(`[data-pile-id="${pair!.target}"] .playing-card`)).toHaveCount(0);
+});
+
 test('deals Aces Up as a four-column round and keeps empty columns as move targets', async ({
   page,
 }) => {
