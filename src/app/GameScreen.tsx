@@ -60,7 +60,8 @@ export function GameScreen({
   }, []);
   const snapshot = session.getSnapshot();
   const piles = snapshot.piles;
-  const gridLayout = snapshot.meta.layout as { size?: unknown } | undefined;
+  const gridLayout = snapshot.meta.layout as { type?: unknown; size?: unknown } | undefined;
+  const layoutType = String(gridLayout?.type ?? '');
   const gridSize = Number(gridLayout?.size);
   const isGridScoring =
     Number.isInteger(gridSize) &&
@@ -68,9 +69,13 @@ export function GameScreen({
     piles.filter((pile) => /^g\d+$/.test(pile.id)).length === gridSize;
   const gridScore = Number(snapshot.meta.score ?? 0);
   const gridPhase = snapshot.meta.phase === 'place' ? t.placeDrawnCard : t.drawNextCard;
+  const isTriPeaks = layoutType === 'tri-peaks';
+  const isBlackHole = layoutType === 'black-hole';
   const compactLandscape = isCompactLandscape();
   const isWideLayout =
     !piles.some((pile) => /^g\d+$/.test(pile.id)) &&
+    !isTriPeaks &&
+    !isBlackHole &&
     !['clock', 'spider', 'pyramid'].includes(definition.id) &&
     (piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
       piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4);
@@ -91,6 +96,34 @@ export function GameScreen({
     return (
       !piles.find((item) => item.id === `p${childBase + position}`)?.cards.length &&
       !piles.find((item) => item.id === `p${childBase + position + 1}`)?.cards.length
+    );
+  };
+  const isTriPeaksPile = (pile: Pile) => /^tri\d+$/.test(pile.id);
+  const isTriPeaksExposed = (pile: Pile) => {
+    if (!isTriPeaks || !isTriPeaksPile(pile) || !pile.cards.length) return false;
+    const index = Number(pile.id.slice(3));
+    const children: Record<number, number[]> = {
+      0: [3, 4],
+      1: [5, 6],
+      2: [7, 8],
+      3: [9, 10],
+      4: [10, 11],
+      5: [12, 13],
+      6: [13, 14],
+      7: [15, 16],
+      8: [16, 17],
+      9: [18, 19],
+      10: [19, 20],
+      11: [20, 21],
+      12: [21, 22],
+      13: [22, 23],
+      14: [23, 24],
+      15: [24, 25],
+      16: [25, 26],
+      17: [26, 27],
+    };
+    return (children[index] ?? []).every(
+      (child) => !piles.find((item) => item.id === `tri${child}`)?.cards.length,
     );
   };
   const draggedCardIds = useMemo(
@@ -248,6 +281,17 @@ export function GameScreen({
       );
       if (single) return act(() => session.dispatch(single));
     }
+    if ((isTriPeaks || isBlackHole) && cardId) {
+      const destination = isTriPeaks ? 'waste' : 'hole';
+      const direct = moves.find(
+        (move) =>
+          move.type === 'transfer' &&
+          move.from === pile.id &&
+          move.to === destination &&
+          move.cardIds?.[0] === cardId,
+      );
+      if (direct) return act(() => session.dispatch(direct));
+    }
     if (pile.kind === 'stock') {
       const stockMove = moves.find(
         (move) =>
@@ -346,11 +390,11 @@ export function GameScreen({
             {isGridScoring && <span className="game-phase">{gridPhase}</span>}
           </div>
           <div
-            className={`board ${isDenseBoard ? 'dense-board' : ''} ${isGridScoring ? 'grid-board' : ''}`}
+            className={`board ${isDenseBoard ? 'dense-board' : ''} ${isGridScoring ? 'grid-board' : ''} ${isTriPeaks ? 'tri-peaks-board' : ''} ${isBlackHole ? 'black-hole-board' : ''}`}
           >
             {piles.map((pile) => (
               <div
-                className={`pile dynamic-pile pile-${pile.kind} ${isPyramid && isPyramidPile(pile) && !pile.cards.length ? 'is-empty-pyramid-pile' : ''} ${isPyramid && isPyramidPile(pile) && !isPyramidExposed(pile) ? 'is-covered-pyramid-pile' : ''} ${dropTarget === pile.id ? 'is-drop-target' : ''} ${legalTargetIds.has(pile.id) ? 'is-legal-target' : ''}`}
+                className={`pile dynamic-pile pile-${pile.kind} ${isPyramid && isPyramidPile(pile) && !pile.cards.length ? 'is-empty-pyramid-pile' : ''} ${isPyramid && isPyramidPile(pile) && !isPyramidExposed(pile) ? 'is-covered-pyramid-pile' : ''} ${isTriPeaks && isTriPeaksPile(pile) && !pile.cards.length ? 'is-empty-tri-peaks-pile' : ''} ${isTriPeaks && isTriPeaksPile(pile) && !isTriPeaksExposed(pile) ? 'is-covered-tri-peaks-pile' : ''} ${dropTarget === pile.id ? 'is-drop-target' : ''} ${legalTargetIds.has(pile.id) ? 'is-legal-target' : ''}`}
                 data-pile-id={pile.id}
                 style={{
                   ...pileLayout(pile, piles),
@@ -359,7 +403,9 @@ export function GameScreen({
                       ? pile.cards.length
                         ? Math.floor((Math.sqrt(8 * Number(pile.id.slice(1)) + 1) - 1) / 2) + 1
                         : 0
-                      : undefined,
+                      : isTriPeaks && isTriPeaksPile(pile)
+                        ? Math.floor(Number(pile.id.slice(3)) / 3) + 1
+                        : undefined,
                 }}
                 key={pile.id}
                 role={
@@ -367,14 +413,22 @@ export function GameScreen({
                   isPyramidPile(pile) &&
                   (!pile.cards.length || !isPyramidExposed(pile))
                     ? undefined
-                    : 'button'
+                    : isTriPeaks &&
+                        isTriPeaksPile(pile) &&
+                        (!pile.cards.length || !isTriPeaksExposed(pile))
+                      ? undefined
+                      : 'button'
                 }
                 tabIndex={
                   isPyramid &&
                   isPyramidPile(pile) &&
                   (!pile.cards.length || !isPyramidExposed(pile))
                     ? -1
-                    : 0
+                    : isTriPeaks &&
+                        isTriPeaksPile(pile) &&
+                        (!pile.cards.length || !isTriPeaksExposed(pile))
+                      ? -1
+                      : 0
                 }
                 aria-label={interpolate(t.pileAria, { kind: t.pileKinds[pile.kind], id: pile.id })}
                 onKeyDown={(event) => onPileKey(event, pile)}

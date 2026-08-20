@@ -288,6 +288,27 @@ test('keeps Poker Squares placement under player control and shows score state',
   await expect(page.locator('.table-stats')).toContainText('Draw the next card');
 });
 
+test('renders Tri-Peaks with its initial waste card, three peaks, and stock', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Tri-Peaks', exact: true }).click();
+  await expect(page.locator('.tri-peaks-board')).toBeVisible();
+  await expect(page.locator('[data-pile-id^="tri"]')).toHaveCount(28);
+  await expect(page.locator('.pile-waste .playing-card.face-up')).toHaveCount(1);
+  await expect(page.locator('.pile-stock .playing-card.face-down')).toHaveCount(23);
+
+  await page.locator('.pile-stock').click();
+  await expect(page.locator('.pile-waste .playing-card.face-up')).toHaveCount(2);
+});
+
+test('renders Black Hole around its central ace foundation without a stock', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Black Hole', exact: true }).click();
+  await expect(page.locator('.black-hole-board')).toBeVisible();
+  await expect(page.locator('[data-pile-id^="black"]')).toHaveCount(17);
+  await expect(page.locator('[data-pile-id="hole"]')).toContainText('A');
+  await expect(page.locator('.pile-stock')).toHaveCount(0);
+});
+
 test('keeps representative games usable in compact mobile landscape', async ({
   page,
 }, testInfo) => {

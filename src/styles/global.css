@@ -470,6 +470,12 @@ footer {
 .grid-board {
   min-height: 820px;
 }
+.tri-peaks-board {
+  min-height: 540px;
+}
+.black-hole-board {
+  min-height: 650px;
+}
 .grid-board .pile-tableau {
   border: 1px dashed #75a18866;
 }
@@ -1542,6 +1548,11 @@ footer {
   pointer-events: none;
   border-color: transparent;
 }
+.tri-peaks-board .pile.is-empty-tri-peaks-pile,
+.tri-peaks-board .pile.is-covered-tri-peaks-pile {
+  pointer-events: none;
+  border-color: transparent;
+}
 .playing-card .court-art {
   inset: 14px 2px 9px;
   width: calc(100% - 4px);
@@ -1733,6 +1744,11 @@ footer {
 
   .grid-board {
     min-height: 400px;
+  }
+
+  .tri-peaks-board,
+  .black-hole-board {
+    min-height: 320px;
   }
 
   .game-screen.large-cards {

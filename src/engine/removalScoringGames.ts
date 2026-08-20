@@ -222,23 +222,164 @@ const nestor = makePairGame({
   mode: 'same-rank',
 });
 
-const triPeaks = makePairGame({
+const triPeaksChildren: Record<number, number[]> = {
+  0: [3, 4],
+  1: [5, 6],
+  2: [7, 8],
+  3: [9, 10],
+  4: [10, 11],
+  5: [12, 13],
+  6: [13, 14],
+  7: [15, 16],
+  8: [16, 17],
+  9: [18, 19],
+  10: [19, 20],
+  11: [20, 21],
+  12: [21, 22],
+  13: [22, 23],
+  14: [23, 24],
+  15: [24, 25],
+  16: [25, 26],
+  17: [26, 27],
+};
+
+export function triPeaksExposed(state: GameState, index: number): boolean {
+  const children = triPeaksChildren[index] ?? [];
+  return children.every((child) => !state.piles[`tri${child}`]?.cards.length);
+}
+
+function revealTriPeaks(state: GameState): void {
+  for (let index = 0; index < 28; index += 1) {
+    const card = top(state.piles[`tri${index}`]);
+    if (card && triPeaksExposed(state, index)) card.faceUp = true;
+  }
+}
+
+function adjacentTo(card: Card, target: Card): boolean {
+  return (
+    Math.abs(card.rank - target.rank) === 1 ||
+    (card.rank === 1 && target.rank === 13) ||
+    (card.rank === 13 && target.rank === 1)
+  );
+}
+
+const triPeaks: GameDefinition = {
   id: 'tri-peaks',
   name: 'Tri-Peaks',
-  layout: 'tri-peaks',
-  tableauCount: 10,
-  cardsPerTableau: 5,
-  mode: 'adjacent',
-  stock: true,
-});
-const blackHole = makePairGame({
+  decks: 1,
+  create(seed = DEFAULT_SEED): GameState {
+    const deck = shuffledDeck(seed);
+    const tableaus = Array.from({ length: 28 }, (_, index) => {
+      const card = deck[index];
+      card.faceUp = index >= 18;
+      return pile(`tri${index}`, 'tableau', [card]);
+    });
+    const wasteCard = deck[28];
+    wasteCard.faceUp = true;
+    const stock = deck.slice(29);
+    stock.forEach((card) => {
+      card.faceUp = false;
+    });
+    return makeState(
+      'tri-peaks',
+      seed,
+      [
+        pile('removed', 'removed'),
+        ...tableaus,
+        pile('stock', 'stock', stock),
+        pile('waste', 'waste', [wasteCard]),
+      ],
+      { options: { layout: 'tri-peaks' }, layout: { type: 'tri-peaks' }, score: 0 },
+    );
+  },
+  legalMoves(state): Move[] {
+    const waste = top(state.piles.waste);
+    const moves: Move[] = [];
+    if (waste) {
+      for (let index = 0; index < 28; index += 1) {
+        const source = state.piles[`tri${index}`];
+        const card = top(source);
+        if (card && card.faceUp && triPeaksExposed(state, index) && adjacentTo(card, waste))
+          moves.push({ type: 'transfer', from: source.id, to: 'waste', cardIds: [card.id] });
+      }
+    }
+    if (state.piles.stock.cards.length)
+      moves.push({ type: 'draw', from: 'stock', to: 'waste', count: 1 });
+    return moves;
+  },
+  applyMove(state, move): ApplyResult {
+    return checked(state, move, triPeaks.legalMoves(state), () => {
+      if (move.type === 'draw') return draw(state, 'stock', 'waste', 1);
+      if (move.type !== 'transfer') return { state, error: 'Only adjacent exposed cards may move' };
+      const result = transfer(state, move.from, move.to, move.cardIds);
+      if (result.error) return result;
+      revealTriPeaks(result.state);
+      result.state.meta.score = Number(result.state.meta.score ?? 0) + 1;
+      if (triPeaks.isWon(result.state)) result.state.status = 'won';
+      return result;
+    });
+  },
+  isWon: (state) =>
+    Array.from({ length: 28 }, (_, index) => state.piles[`tri${index}`]).every(
+      (pile) => !pile.cards.length,
+    ),
+  hint: (state) =>
+    triPeaks.legalMoves(state).find((move) => move.type === 'transfer') ??
+    triPeaks.legalMoves(state)[0],
+};
+
+const blackHole: GameDefinition = {
   id: 'black-hole',
   name: 'Black Hole',
-  layout: 'black-hole',
-  tableauCount: 13,
-  cardsPerTableau: 4,
-  mode: 'adjacent',
-});
+  decks: 1,
+  create(seed = DEFAULT_SEED): GameState {
+    const deck = shuffledDeck(seed);
+    const holeIndex = deck.findIndex((card) => card.rank === 1 && card.suit === 'spades');
+    const [hole] = deck.splice(holeIndex, 1);
+    hole.faceUp = true;
+    const tableaus = Array.from({ length: 17 }, (_, index) => {
+      const cards = deck.slice(index * 3, index * 3 + 3);
+      cards.forEach((card) => {
+        card.faceUp = true;
+      });
+      return pile(`black${index}`, 'tableau', cards);
+    });
+    return makeState(
+      'black-hole',
+      seed,
+      [pile('removed', 'removed'), pile('hole', 'foundation', [hole]), ...tableaus],
+      { options: { layout: 'black-hole' }, layout: { type: 'black-hole' }, score: 0 },
+    );
+  },
+  legalMoves(state): Move[] {
+    const hole = top(state.piles.hole);
+    if (!hole) return [];
+    const moves: Move[] = [];
+    for (let index = 0; index < 17; index += 1) {
+      const source = state.piles[`black${index}`];
+      const card = top(source);
+      if (card && adjacentTo(card, hole))
+        moves.push({ type: 'transfer', from: source.id, to: 'hole', cardIds: [card.id] });
+    }
+    return moves;
+  },
+  applyMove(state, move): ApplyResult {
+    return checked(state, move, blackHole.legalMoves(state), () => {
+      if (move.type !== 'transfer')
+        return { state, error: 'Only adjacent cards may enter the Black Hole' };
+      const result = transfer(state, move.from, move.to, move.cardIds);
+      if (result.error) return result;
+      result.state.meta.score = Number(result.state.meta.score ?? 0) + 1;
+      if (blackHole.isWon(result.state)) result.state.status = 'won';
+      return result;
+    });
+  },
+  isWon: (state) =>
+    Array.from({ length: 17 }, (_, index) => state.piles[`black${index}`]).every(
+      (pile) => !pile.cards.length,
+    ),
+  hint: (state) => blackHole.legalMoves(state)[0],
+};
 
 const acesUp: GameDefinition = {
   id: 'aces-up',

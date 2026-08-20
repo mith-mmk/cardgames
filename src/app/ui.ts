@@ -99,6 +99,25 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     right: 'auto',
   });
 
+  const blackHolePiles = tableaux.filter((item) => /^black\d+$/.test(item.id));
+  if (blackHolePiles.length === 17) {
+    if (pile.id === 'hole')
+      return {
+        left: 'calc(50% - var(--card-w) / 2)',
+        top: 'calc(50% - var(--card-h) / 2)',
+        right: 'auto',
+      };
+    if (/^black\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice(5));
+      const angle = (Math.PI * 2 * index) / blackHolePiles.length - Math.PI / 2;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${Math.cos(angle) * 40}%)`,
+        top: `calc(50% - var(--card-h) / 2 + ${Math.sin(angle) * 35}%)`,
+        right: 'auto',
+      };
+    }
+  }
+
   if (['stock', 'waste', 'cell', 'reserve'].includes(pile.kind)) {
     return topPosition(topIndex(pile));
   }
@@ -148,6 +167,28 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     return {
       left: `calc(50% - var(--card-w) / 2 + ${(position - row / 2) * 54}px)`,
       top: `${170 + row * 43}px`,
+      right: 'auto',
+    };
+  }
+
+  const triPeaks = tableaux.filter((item) => /^tri\d+$/.test(item.id));
+  if (triPeaks.length === 28 && /^tri\d+$/.test(pile.id)) {
+    const index = Number(pile.id.slice(3));
+    const row = index < 3 ? 0 : index < 9 ? 1 : index < 18 ? 2 : 3;
+    const columns =
+      row === 0
+        ? [1, 4, 7]
+        : row === 1
+          ? [0.5, 1.5, 3.5, 4.5, 6.5, 7.5]
+          : row === 2
+            ? [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            : Array.from({ length: 10 }, (_, column) => column);
+    const start = row === 0 ? 0 : row === 1 ? 3 : row === 2 ? 9 : 18;
+    const column = columns[index - start];
+    const triGap = compact ? Math.max(38, Math.round(window.innerWidth / 13)) : 62;
+    return {
+      left: `calc(50% - var(--card-w) / 2 + ${(column - 4.5) * triGap}px)`,
+      top: `${(compact ? 54 : 86) + row * (compact ? 40 : 62)}px`,
       right: 'auto',
     };
   }

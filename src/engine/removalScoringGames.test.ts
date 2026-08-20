@@ -4,6 +4,7 @@ import {
   REMOVAL_SCORING_GAMES,
   acesUp,
   accordion,
+  blackHole,
   bowlingSolitaire,
   cribbageSquares,
   giza,
@@ -11,6 +12,7 @@ import {
   scoreCribbageHand,
   scorePokerHand,
   triPeaks,
+  triPeaksExposed,
 } from './removalScoringGames';
 import type { Card, GameDefinition, GameState, Move } from './types';
 
@@ -53,19 +55,57 @@ describe('removal and scoring wave', () => {
     expect(giza.applyMove(state, move).state.piles.removed.cards.length).toBe(move.cardIds.length);
   });
 
-  it('Tri-Peaks offers a draw and an adjacent exposed-card removal', () => {
-    const { state, move } = firstMove(triPeaks, 'draw');
-    const drawn = triPeaks.applyMove(state, move).state;
-    expect(drawn.piles.waste.cards).toHaveLength(1);
-    const removal = triPeaks.legalMoves(drawn).find((candidate) => candidate.type === 'remove');
-    if (removal) {
-      expect(triPeaks.applyMove(drawn, removal).error).toBeUndefined();
-    }
+  it('Tri-Peaks deals three covered peaks, a ten-card base, stock, and waste', () => {
+    const state = triPeaks.create('tri-peaks-layout');
+    expect(state.piles.waste.cards).toHaveLength(1);
+    expect(state.piles.waste.cards[0].faceUp).toBe(true);
+    expect(state.piles.stock.cards).toHaveLength(23);
+    expect(
+      Array.from({ length: 28 }, (_, index) => state.piles[`tri${index}`].cards[0]).filter(
+        (card) => card.faceUp,
+      ),
+    ).toHaveLength(10);
+    expect(triPeaksExposed(state, 0)).toBe(false);
+    expect(triPeaksExposed(state, 18)).toBe(true);
     expect(
       triPeaks.applyMove(state, {
         type: 'transfer',
-        from: 't0',
-        to: 'removed',
+        from: 'tri0',
+        to: 'waste',
+        cardIds: ['missing'],
+      }).error,
+    ).toBeTruthy();
+  });
+
+  it('Tri-Peaks moves only an exposed card adjacent to the waste and reveals new cards', () => {
+    const { state, move } = firstMove(triPeaks, 'transfer');
+    expect(move).toMatchObject({ type: 'transfer', to: 'waste' });
+    const moved = triPeaks.applyMove(state, move).state;
+    expect(moved.piles.waste.cards).toHaveLength(2);
+    expect(moved.piles[move.from].cards).toHaveLength(0);
+  });
+
+  it('Black Hole uses the ace of spades foundation and 17 three-card tableau piles', () => {
+    const state = blackHole.create('black-hole-layout');
+    expect(state.piles.hole.cards).toHaveLength(1);
+    expect(state.piles.hole.cards[0]).toMatchObject({ rank: 1, suit: 'spades', faceUp: true });
+    expect(Array.from({ length: 17 }, (_, index) => state.piles[`black${index}`].cards)).toSatisfy(
+      (piles: Card[][]) =>
+        piles.every((cards) => cards.length === 3 && cards.every((card) => card.faceUp)),
+    );
+  });
+
+  it('Black Hole only transfers a top card adjacent to the central foundation', () => {
+    const { state, move } = firstMove(blackHole, 'transfer');
+    expect(move).toMatchObject({ type: 'transfer', to: 'hole' });
+    const moved = blackHole.applyMove(state, move).state;
+    expect(moved.piles.hole.cards).toHaveLength(2);
+    expect(moved.piles[move.from].cards).toHaveLength(2);
+    expect(
+      blackHole.applyMove(state, {
+        type: 'transfer',
+        from: 'black0',
+        to: 'hole',
         cardIds: ['missing'],
       }).error,
     ).toBeTruthy();
