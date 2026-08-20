@@ -35,6 +35,7 @@ export function GameScreen({
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [bowlingPins, setBowlingPins] = useState<string[]>([]);
   const [dragGhost, setDragGhost] = useState<{
     pileId: string;
     cards: Card[];
@@ -67,8 +68,30 @@ export function GameScreen({
     Number.isInteger(gridSize) &&
     gridSize > 0 &&
     piles.filter((pile) => /^g\d+$/.test(pile.id)).length === gridSize;
+  const isCribbageSolitaire = layoutType === 'cribbage-solitaire';
+  const isBowling = layoutType === 'bowling';
+  const bowlingFrames = Array.isArray(snapshot.meta.bowlingFrames)
+    ? (snapshot.meta.bowlingFrames as unknown[])
+    : [];
+  const isScoringGame = isGridScoring || isCribbageSolitaire || isBowling;
   const gridScore = Number(snapshot.meta.score ?? 0);
-  const gridPhase = snapshot.meta.phase === 'place' ? t.placeDrawnCard : t.drawNextCard;
+  const gridPhase = isBowling
+    ? snapshot.meta.phase === 'bonus'
+      ? t.bowlingBonus
+      : snapshot.meta.phase === 'complete'
+        ? t.bowlingComplete
+        : piles.find((pile) => pile.id === 'bowlingActive')?.cards.length
+          ? t.bowlingChoosePins
+          : t.bowlingChooseBall
+    : isCribbageSolitaire
+      ? snapshot.meta.phase === 'discard'
+        ? t.cribbageChoose
+        : snapshot.meta.phase === 'score'
+          ? t.cribbageNextRound
+          : t.cribbageComplete
+      : snapshot.meta.phase === 'place'
+        ? t.placeDrawnCard
+        : t.drawNextCard;
   const isTriPeaks = layoutType === 'tri-peaks';
   const isBlackHole = layoutType === 'black-hole';
   const compactLandscape = isCompactLandscape();
@@ -165,7 +188,24 @@ export function GameScreen({
       to?: string;
       cardIds?: string[];
     }>;
+  const bowlingKnockMove = () => {
+    const activeCard = piles.find((pile) => pile.id === 'bowlingActive')?.cards.at(-1);
+    if (!activeCard || !bowlingPins.length) return undefined;
+    return legalMoves().find(
+      (move) =>
+        move.type === 'remove' &&
+        move.cardIds?.[0] === activeCard.id &&
+        JSON.stringify([...move.cardIds.slice(1)].sort()) ===
+          JSON.stringify([...bowlingPins].sort()),
+    );
+  };
+  const bowlingNextBallMove = () =>
+    legalMoves().find(
+      (move) =>
+        move.type === 'draw' && move.from === 'bowlingControl' && move.to === 'bowlingNextBall',
+    );
   const isAccordion = definition.id === 'accordion';
+  const isRoyalMarriage = definition.id === 'royal-marriage';
   const transferMoveMatchesCard = (
     move: ReturnType<typeof legalMoves>[number],
     pileId: string,
@@ -177,6 +217,7 @@ export function GameScreen({
   const transferMovesForCard = (pileId: string, cardId: string) =>
     legalMoves().filter((move) => transferMoveMatchesCard(move, pileId, cardId));
   const pointerDown = (pileId: string, cardId: string, event: ReactPointerEvent<HTMLElement>) => {
+    if (isBowling) return;
     if (!event.isPrimary || event.button !== 0 || pointerDrag.current) return;
     const sourcePile = piles.find((pile) => pile.id === pileId);
     const cardIndex = sourcePile?.cards.findIndex((item) => item.id === cardId) ?? -1;
@@ -284,8 +325,46 @@ export function GameScreen({
   const dispatchForSelection = (pile: Pile, cardId?: string) => {
     const selected = snapshot.selected;
     const moves = legalMoves();
+    if (isBowling && cardId) {
+      if (/^bowlBall\d+$/.test(pile.id)) {
+        const selectBall = moves.find(
+          (move) =>
+            move.type === 'transfer' &&
+            move.from === pile.id &&
+            move.to === 'bowlingActive' &&
+            move.cardIds?.[0] === cardId,
+        );
+        if (selectBall) {
+          setBowlingPins([]);
+          return act(() => {
+            session.dispatch(selectBall);
+            session.select('bowlingActive', cardId);
+          });
+        }
+      }
+      if (
+        /^bowlPin\d+$/.test(pile.id) &&
+        piles.find((item) => item.id === 'bowlingActive')?.cards.length
+      ) {
+        setBowlingPins((selectedPins) =>
+          selectedPins.includes(cardId)
+            ? selectedPins.filter((id) => id !== cardId)
+            : selectedPins.length < 3
+              ? [...selectedPins, cardId]
+              : selectedPins,
+        );
+        return;
+      }
+    }
     if (isPyramid && isPyramidPile(pile) && cardId && !isPyramidExposed(pile)) return;
     if (isPyramid && cardId) {
+      const single = moves.find(
+        (move) =>
+          move.type === 'remove' && move.cardIds?.length === 1 && move.cardIds.includes(cardId),
+      );
+      if (single) return act(() => session.dispatch(single));
+    }
+    if (isRoyalMarriage && cardId) {
       const single = moves.find(
         (move) =>
           move.type === 'remove' && move.cardIds?.length === 1 && move.cardIds.includes(cardId),
@@ -390,12 +469,20 @@ export function GameScreen({
             <span>
               {t.time} <b>{clock(snapshot.elapsedSeconds)}</b>
             </span>
-            {isGridScoring && (
+            {isScoringGame && (
               <span>
                 {t.score} <b>{gridScore}</b>
               </span>
             )}
-            {isGridScoring && <span className="game-phase">{gridPhase}</span>}
+            {isScoringGame && <span className="game-phase">{gridPhase}</span>}
+            {isBowling && (
+              <span className="game-phase">
+                {interpolate(t.bowlingFrame, {
+                  frame: Math.min(10, bowlingFrames.length + 1),
+                  ball: Number(snapshot.meta.bowlingBall ?? 1),
+                })}
+              </span>
+            )}
           </div>
           <div
             className={`board ${isDenseBoard ? 'dense-board' : ''} ${isGridScoring ? 'grid-board' : ''} ${isTriPeaks ? 'tri-peaks-board' : ''} ${isBlackHole ? 'black-hole-board' : ''}`}
@@ -454,11 +541,17 @@ export function GameScreen({
                       top:
                         pile.kind === 'reserve' && /^gizaReserve\d+$/.test(pile.id)
                           ? `${index * (compactLandscape ? 14 : 30)}px`
-                          : pile.kind === 'tableau' &&
-                              piles.filter((item) => item.kind === 'tableau').length < 20 &&
-                              !isClock
-                            ? `${index * (compactLandscape ? (card.faceUp ? 30 : 16) : 30)}px`
-                            : 0,
+                          : pile.kind === 'reserve' && pile.id === 'beehiveReserve'
+                            ? `${index * (compactLandscape ? 7 : 12)}px`
+                            : pile.kind === 'reserve' && /^bowlBall\d+$/.test(pile.id)
+                              ? `${index * (compactLandscape ? 8 : 14)}px`
+                              : pile.kind === 'tableau' && /^nestor\d+$/.test(pile.id)
+                                ? `${index * (compactLandscape ? 30 : 32)}px`
+                                : pile.kind === 'tableau' &&
+                                    piles.filter((item) => item.kind === 'tableau').length < 20 &&
+                                    !isClock
+                                  ? `${index * (compactLandscape ? (card.faceUp ? 30 : 16) : 30)}px`
+                                  : 0,
                       zIndex: index,
                     }}
                     key={card.id}
@@ -466,7 +559,13 @@ export function GameScreen({
                     <CardView
                       card={card}
                       language={language}
-                      selected={snapshot.selected?.cardId === card.id}
+                      selected={
+                        snapshot.selected?.cardId === card.id ||
+                        (isBowling &&
+                          (card.id ===
+                            piles.find((item) => item.id === 'bowlingActive')?.cards.at(-1)?.id ||
+                            bowlingPins.includes(card.id)))
+                      }
                       dragSource={draggedCardIds.has(card.id)}
                       theme={theme}
                       backIndex={Number(preferences.cardBack) || 0}
@@ -495,6 +594,34 @@ export function GameScreen({
         </section>
         <aside className="game-controls">
           <div className="game-control-group game-control-group-primary">
+            {isBowling && (
+              <>
+                <button
+                  className="game-control primary-control"
+                  disabled={!bowlingKnockMove()}
+                  onClick={() => {
+                    const move = bowlingKnockMove();
+                    if (!move) return;
+                    setBowlingPins([]);
+                    act(() => session.dispatch(move));
+                  }}
+                >
+                  🎳 <span>{t.knock}</span>
+                </button>
+                <button
+                  className="game-control"
+                  disabled={!bowlingNextBallMove()}
+                  onClick={() => {
+                    const move = bowlingNextBallMove();
+                    if (!move) return;
+                    setBowlingPins([]);
+                    act(() => session.dispatch(move));
+                  }}
+                >
+                  ↷ <span>{t.nextBall}</span>
+                </button>
+              </>
+            )}
             <button className="game-control primary-control" onClick={showHint}>
               ✧ <span>{t.hint}</span>
             </button>

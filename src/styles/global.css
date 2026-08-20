@@ -1598,6 +1598,30 @@ footer {
   min-height: 720px;
 }
 
+.game-block-ten .board {
+  min-height: 620px;
+}
+
+.game-nestor .board {
+  min-height: 510px;
+}
+
+.game-gay-gordons .board {
+  min-height: 520px;
+}
+
+.game-beehive .board {
+  min-height: 560px;
+}
+
+.game-cribbage-solitaire .board {
+  min-height: 540px;
+}
+
+.game-bowling-solitaire .board {
+  min-height: 580px;
+}
+
 /* Spider needs ten columns. Put its controls below the table on desktop so
    the board keeps its natural width instead of squeezing or clipping cards. */
 .game-spider .board {
@@ -1655,6 +1679,25 @@ footer {
 .game-wide-layout .game-controls .control-rule,
 .game-wide-layout .game-controls .tip {
   display: none;
+}
+
+/* Dense named boards need the full table width. Keep their shared actions in
+   a compact toolbar above that scrollable board, rather than below its
+   minimum-height canvas where they are unreachable in a normal desktop view. */
+@media (min-width: 801px) {
+  .game-wide-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .game-wide-layout .game-controls {
+    grid-row: 1;
+  }
+
+  .game-wide-layout .table-area {
+    grid-row: 2;
+  }
 }
 
 @media (max-width: 800px) {

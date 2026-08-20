@@ -118,6 +118,128 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     }
   }
 
+  const bowlingPins = tableaux.filter((item) => /^bowlPin\d+$/.test(item.id));
+  if (bowlingPins.length === 10) {
+    if (pile.id === 'bowlingUnused' || pile.id === 'bowlingUsed') return { display: 'none' };
+    if (pile.id === 'bowlingActive')
+      return {
+        left: 'calc(50% - var(--card-w) / 2)',
+        top: '0px',
+        right: 'auto',
+      };
+    if (/^bowlBall\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice(8));
+      const ballGap = compact ? Math.max(62, Math.round(window.innerWidth / 5)) : 142;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(index - 1) * ballGap}px)`,
+        top: '0px',
+        right: 'auto',
+      };
+    }
+    if (/^bowlPin\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice(7));
+      const row = index < 4 ? 0 : index < 7 ? 1 : index < 9 ? 2 : 3;
+      const start = row === 0 ? 0 : row === 1 ? 4 : row === 2 ? 7 : 9;
+      const width = [4, 3, 2, 1][row];
+      const column = index - start;
+      const pinGap = compact ? Math.max(48, Math.round(window.innerWidth / 8)) : 100;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(column - (width - 1) / 2) * pinGap}px)`,
+        top: `${(compact ? 96 : 158) + row * (compact ? 55 : 92)}px`,
+        right: 'auto',
+      };
+    }
+  }
+
+  const cribbageHands = tableaux.filter((item) => /^cribHand\d+$/.test(item.id));
+  if (cribbageHands.length === 12) {
+    if (pile.id === 'crib')
+      return {
+        left: 'calc(50% - var(--card-w) / 2)',
+        top: '0px',
+        right: 'auto',
+      };
+    if (pile.id === 'cribbageStarter')
+      return {
+        left: 'calc(50% + var(--card-w) * 0.75)',
+        top: '0px',
+        right: 'auto',
+      };
+    if (/^cribHand\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice(8));
+      const row = Math.floor(index / 6);
+      const column = index % 6;
+      const handGap = compact ? Math.max(54, Math.round(window.innerWidth / 8)) : 116;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(column - 2.5) * handGap}px)`,
+        top: `${(compact ? 92 : 160) + row * (compact ? 102 : 156)}px`,
+        right: 'auto',
+      };
+    }
+  }
+
+  const nestorPiles = tableaux.filter((item) => /^nestor\d+$/.test(item.id));
+  if (nestorPiles.length === 8) {
+    if (/^nestorReserve\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice('nestorReserve'.length));
+      const reserveGap = compact ? Math.max(48, Math.round(window.innerWidth / 7)) : 112;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(index - 1.5) * reserveGap}px)`,
+        top: '0px',
+        right: 'auto',
+      };
+    }
+    if (/^nestor\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice(6));
+      const nestorGap = compact ? Math.max(48, Math.round(window.innerWidth / 10)) : 104;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(index - 3.5) * nestorGap}px)`,
+        top: `${compact ? 70 : 170}px`,
+        right: 'auto',
+      };
+    }
+  }
+
+  const gayGordonsPiles = tableaux.filter((item) => /^gay\d+$/.test(item.id));
+  if (gayGordonsPiles.length === 10) {
+    if (pile.id === 'gayReserve')
+      return {
+        left: 'calc(50% - var(--card-w) / 2)',
+        top: '0px',
+        right: 'auto',
+      };
+    if (/^gay\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice(3));
+      const gayGordonsGap = compact ? Math.max(44, Math.round(window.innerWidth / 12)) : 104;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(index - 4.5) * gayGordonsGap}px)`,
+        top: `${compact ? 76 : 170}px`,
+        right: 'auto',
+      };
+    }
+  }
+
+  const beehivePiles = tableaux.filter((item) => /^bee\d+$/.test(item.id));
+  if (beehivePiles.length === 6) {
+    if (pile.id === 'beehiveReserve')
+      return {
+        left: 'calc(100% - var(--card-w))',
+        top: '0px',
+        right: 'auto',
+      };
+    if (/^bee\d+$/.test(pile.id)) {
+      const index = Number(pile.id.slice(3));
+      const row = Math.floor(index / 3);
+      const column = index % 3;
+      const beehiveGap = compact ? Math.max(60, Math.round(window.innerWidth / 5)) : 130;
+      return {
+        left: `calc(50% - var(--card-w) / 2 + ${(column - 1 + (row ? 0.5 : 0)) * beehiveGap}px)`,
+        top: `${(compact ? 112 : 170) + row * (compact ? 96 : 150)}px`,
+        right: 'auto',
+      };
+    }
+  }
+
   if (['stock', 'waste', 'cell', 'reserve'].includes(pile.kind)) {
     return topPosition(topIndex(pile));
   }
@@ -185,6 +307,20 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     };
   }
 
+  const royalMarriagePiles = tableaux.filter((item) => /^rm\d+$/.test(item.id));
+  if (royalMarriagePiles.length === 52 && /^rm\d+$/.test(pile.id)) {
+    if (!pile.cards.length) return { display: 'none' };
+    const activePiles = royalMarriagePiles.filter((item) => item.cards.length);
+    const index = activePiles.indexOf(pile);
+    const columns = compact ? 8 : 13;
+    const royalMarriageGap = compact ? Math.max(44, Math.round(window.innerWidth / 10)) : 96;
+    return {
+      left: `${(index % columns) * royalMarriageGap}px`,
+      top: `${24 + Math.floor(index / columns) * (compact ? 84 : 138)}px`,
+      right: 'auto',
+    };
+  }
+
   const monteCarloPiles = tableaux.filter((item) => /^mc\d+$/.test(item.id));
   if (monteCarloPiles.length === 25 && /^mc\d+$/.test(pile.id)) {
     const index = Number(pile.id.slice(2));
@@ -194,6 +330,24 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     return {
       left: `calc(50% - var(--card-w) / 2 + ${(column - 2) * monteCarloGap}px)`,
       top: `${(compact ? 64 : 150) + row * (compact ? 76 : 132)}px`,
+      right: 'auto',
+    };
+  }
+
+  const fourteenOutPiles = tableaux.filter((item) => /^fo\d+$/.test(item.id));
+  if (fourteenOutPiles.length === 12 && /^fo\d+$/.test(pile.id)) {
+    const index = Number(pile.id.slice(2));
+    const fourteenGap = compact ? Math.max(42, Math.round(window.innerWidth / 14)) : 108;
+    return { left: `${index * fourteenGap}px`, top: `${compact ? 20 : 42}px`, right: 'auto' };
+  }
+
+  const blockTenPiles = tableaux.filter((item) => /^bt\d+$/.test(item.id));
+  if (blockTenPiles.length === 9 && /^bt\d+$/.test(pile.id)) {
+    const index = Number(pile.id.slice(2));
+    const blockTenGap = compact ? Math.max(54, Math.round(window.innerWidth / 5)) : 126;
+    return {
+      left: `calc(50% - var(--card-w) / 2 + ${((index % 3) - 1) * blockTenGap}px)`,
+      top: `${(compact ? 64 : 165) + Math.floor(index / 3) * (compact ? 88 : 142)}px`,
       right: 'auto',
     };
   }

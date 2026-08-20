@@ -5,13 +5,22 @@ import {
   acesUp,
   accordion,
   blackHole,
+  beehive,
+  blockTen,
   bowlingSolitaire,
   cheops,
+  cribbageSolitaire,
   cribbageSquares,
+  fourteenOut,
+  gayGordons,
   giza,
   monteCarlo,
+  nestor,
   pokerSquares,
+  royalMarriage,
   scoreCribbageHand,
+  scoreCribbageShow,
+  scoreBowlingFrames,
   scorePokerHand,
   triPeaks,
   triPeaksExposed,
@@ -344,6 +353,236 @@ describe('removal and scoring wave', () => {
     expect(next.piles.stock.cards).toHaveLength(0);
   });
 
+  it('Fourteen Out deals four five-card and eight four-card face-up columns', () => {
+    const state = fourteenOut.create('fourteen-out-layout');
+    expect(Array.from({ length: 12 }, (_, index) => state.piles[`fo${index}`].cards)).toSatisfy(
+      (piles: Card[][]) =>
+        piles.every(
+          (cards, index) =>
+            cards.length === (index < 4 ? 5 : 4) && cards.every((card) => card.faceUp),
+        ),
+    );
+    expect(state.piles.stock).toBeUndefined();
+  });
+
+  it('Fourteen Out removes only exposed cards from distinct columns that total fourteen', () => {
+    const state = fourteenOut.create('fourteen-out-pair');
+    for (let index = 0; index < 12; index += 1) state.piles[`fo${index}`].cards = [];
+    state.status = 'playing';
+    state.piles.fo0.cards = [{ id: 'fo-king', rank: 13, suit: 'clubs', faceUp: true }];
+    state.piles.fo1.cards = [{ id: 'fo-ace', rank: 1, suit: 'hearts', faceUp: true }];
+    const pair = fourteenOut.legalMoves(state)[0];
+    expect(pair).toMatchObject({ type: 'remove', cardIds: ['fo-king', 'fo-ace'] });
+    expect(fourteenOut.applyMove(state, pair).state.piles.removed.cards).toHaveLength(2);
+  });
+
+  it('Block Ten refills its nine cells and never removes a ten', () => {
+    const state = blockTen.create('block-ten-pair');
+    for (let index = 0; index < 9; index += 1) state.piles[`bt${index}`].cards = [];
+    state.status = 'playing';
+    state.piles.bt0.cards = [{ id: 'bt-nine', rank: 9, suit: 'clubs', faceUp: true }];
+    state.piles.bt1.cards = [{ id: 'bt-ace', rank: 1, suit: 'hearts', faceUp: true }];
+    state.piles.stock.cards = [
+      { id: 'bt-fill-left', rank: 2, suit: 'spades', faceUp: false },
+      { id: 'bt-fill-right', rank: 3, suit: 'diamonds', faceUp: false },
+    ];
+    const pair = blockTen.legalMoves(state)[0];
+    const next = blockTen.applyMove(state, pair).state;
+    expect(next.piles.bt0.cards[0]).toMatchObject({ id: 'bt-fill-right', faceUp: true });
+    expect(next.piles.bt1.cards[0]).toMatchObject({ id: 'bt-fill-left', faceUp: true });
+    state.piles.bt0.cards = [{ id: 'bt-ten-a', rank: 10, suit: 'clubs', faceUp: true }];
+    state.piles.bt1.cards = [{ id: 'bt-ten-b', rank: 10, suit: 'hearts', faceUp: true }];
+    expect(blockTen.legalMoves(state)).toEqual([]);
+  });
+
+  it('Block Ten wins after removing 48 cards and leaving its four tens', () => {
+    const state = blockTen.create('block-ten-win');
+    for (const id of Array.from({ length: 9 }, (_, index) => `bt${index}`)) {
+      state.piles[id].cards = [];
+    }
+    state.piles.stock.cards = [];
+    state.piles.removed.cards = Array.from({ length: 48 }, (_, index) => ({
+      id: `removed-${index}`,
+      rank: ((index % 9) + 1) as Card['rank'],
+      suit: 'clubs',
+      faceUp: true,
+    }));
+    for (let index = 0; index < 4; index += 1) {
+      state.piles[`bt${index}`].cards = [
+        { id: `ten-${index}`, rank: 10, suit: 'clubs', faceUp: true },
+      ];
+    }
+    expect(blockTen.isWon(state)).toBe(true);
+    state.piles.bt4.cards = [{ id: 'not-a-ten', rank: 9, suit: 'hearts', faceUp: true }];
+    expect(blockTen.isWon(state)).toBe(false);
+  });
+
+  it('Nestor deals eight duplicate-free open columns plus four playable reserves', () => {
+    const state = nestor.create('nestor-layout');
+    expect(Array.from({ length: 8 }, (_, index) => state.piles[`nestor${index}`].cards)).toSatisfy(
+      (piles: Card[][]) =>
+        piles.every(
+          (cards) =>
+            cards.length === 6 &&
+            cards.every((card) => card.faceUp) &&
+            new Set(cards.map((card) => card.rank)).size === 6,
+        ),
+    );
+    expect(
+      Array.from({ length: 4 }, (_, index) => state.piles[`nestorReserve${index}`].cards),
+    ).toSatisfy((piles: Card[][]) => piles.every((cards) => cards.length === 1 && cards[0].faceUp));
+
+    for (let index = 0; index < 8; index += 1) state.piles[`nestor${index}`].cards = [];
+    for (let index = 0; index < 4; index += 1) state.piles[`nestorReserve${index}`].cards = [];
+    state.status = 'playing';
+    state.piles.nestor0.cards = [{ id: 'nestor-queen', rank: 12, suit: 'clubs', faceUp: true }];
+    state.piles.nestorReserve0.cards = [
+      { id: 'nestor-reserve-queen', rank: 12, suit: 'hearts', faceUp: true },
+    ];
+    const pair = nestor.legalMoves(state)[0];
+    expect(pair).toMatchObject({
+      type: 'remove',
+      cardIds: ['nestor-queen', 'nestor-reserve-queen'],
+    });
+    expect(nestor.applyMove(state, pair).state.piles.removed.cards).toHaveLength(2);
+  });
+
+  it('Royal Marriage fixes the heart court pair and removes only bracketed interiors', () => {
+    const state = royalMarriage.create('royal-marriage-layout');
+    expect(state.piles.rm0.cards[0]).toMatchObject({ rank: 12, suit: 'hearts', faceUp: true });
+    expect(state.piles.rm51.cards[0]).toMatchObject({ rank: 13, suit: 'hearts', faceUp: true });
+    for (let index = 0; index < 52; index += 1) state.piles[`rm${index}`].cards = [];
+    state.status = 'playing';
+    state.piles.rm0.cards = [{ id: 'rm-left', rank: 5, suit: 'clubs', faceUp: true }];
+    state.piles.rm1.cards = [{ id: 'rm-single', rank: 7, suit: 'hearts', faceUp: true }];
+    state.piles.rm2.cards = [{ id: 'rm-right', rank: 5, suit: 'spades', faceUp: true }];
+    const single = royalMarriage.legalMoves(state)[0];
+    expect(single).toMatchObject({ type: 'remove', cardIds: ['rm-single'] });
+    expect(royalMarriage.applyMove(state, single).state.piles.removed.cards).toHaveLength(1);
+
+    state.piles.rm0.cards = [{ id: 'rm-pair-left', rank: 4, suit: 'diamonds', faceUp: true }];
+    state.piles.rm1.cards = [{ id: 'rm-pair-a', rank: 8, suit: 'clubs', faceUp: true }];
+    state.piles.rm2.cards = [{ id: 'rm-pair-b', rank: 9, suit: 'hearts', faceUp: true }];
+    state.piles.rm3.cards = [{ id: 'rm-pair-right', rank: 11, suit: 'diamonds', faceUp: true }];
+    const pair = royalMarriage
+      .legalMoves(state)
+      .find((move) => move.type === 'remove' && move.cardIds.length === 2);
+    expect(pair).toMatchObject({ cardIds: ['rm-pair-a', 'rm-pair-b'] });
+    expect(royalMarriage.applyMove(state, pair!).state.piles.removed.cards).toHaveLength(2);
+  });
+
+  it('Gay Gordons uses ten five-card columns, a two-card reserve, and its three pair types', () => {
+    const state = gayGordons.create('gay-gordons-layout');
+    expect(Array.from({ length: 10 }, (_, index) => state.piles[`gay${index}`].cards)).toSatisfy(
+      (piles: Card[][]) =>
+        piles.every((cards) => cards.length === 5 && cards.every((card) => card.faceUp)),
+    );
+    expect(state.piles.gayReserve.cards).toHaveLength(2);
+    for (let index = 0; index < 10; index += 1) state.piles[`gay${index}`].cards = [];
+    state.piles.gayReserve.cards = [];
+    state.status = 'playing';
+    state.piles.gay0.cards = [{ id: 'gay-ace', rank: 1, suit: 'clubs', faceUp: true }];
+    state.piles.gay1.cards = [{ id: 'gay-ten', rank: 10, suit: 'hearts', faceUp: true }];
+    state.piles.gay2.cards = [{ id: 'gay-jack-a', rank: 11, suit: 'spades', faceUp: true }];
+    state.piles.gay3.cards = [{ id: 'gay-jack-b', rank: 11, suit: 'diamonds', faceUp: true }];
+    state.piles.gay4.cards = [{ id: 'gay-king', rank: 13, suit: 'clubs', faceUp: true }];
+    state.piles.gayReserve.cards = [{ id: 'gay-queen', rank: 12, suit: 'hearts', faceUp: true }];
+    const moves = gayGordons.legalMoves(state);
+    expect(moves).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ cardIds: ['gay-ace', 'gay-ten'] }),
+        expect.objectContaining({ cardIds: ['gay-jack-a', 'gay-jack-b'] }),
+        expect.objectContaining({ cardIds: ['gay-king', 'gay-queen'] }),
+      ]),
+    );
+    state.piles.gayReserve.cards = [
+      { id: 'gay-same-suit-queen', rank: 12, suit: 'clubs', faceUp: true },
+    ];
+    expect(
+      gayGordons
+        .legalMoves(state)
+        .some((move) => move.type === 'remove' && move.cardIds.includes('gay-same-suit-queen')),
+    ).toBe(false);
+  });
+
+  it('Beehive builds four equal ranks, draws three cards, and recycles the waste', () => {
+    const state = beehive.create('beehive-layout');
+    expect(state.piles.beehiveReserve.cards).toHaveLength(10);
+    expect(state.piles.beehiveReserve.cards.slice(0, -1).every((card) => !card.faceUp)).toBe(true);
+    expect(state.piles.beehiveReserve.cards.at(-1)?.faceUp).toBe(true);
+    expect(Array.from({ length: 6 }, (_, index) => state.piles[`bee${index}`].cards)).toSatisfy(
+      (piles: Card[][]) => piles.every((cards) => cards.length === 1 && cards[0].faceUp),
+    );
+    expect(state.piles.stock.cards).toHaveLength(36);
+
+    for (let index = 0; index < 6; index += 1) state.piles[`bee${index}`].cards = [];
+    state.piles.beehiveReserve.cards = [];
+    state.piles.waste.cards = [];
+    state.status = 'playing';
+    state.piles.bee0.cards = [
+      { id: 'bee-five-a', rank: 5, suit: 'clubs', faceUp: true },
+      { id: 'bee-five-b', rank: 5, suit: 'hearts', faceUp: true },
+      { id: 'bee-five-c', rank: 5, suit: 'spades', faceUp: true },
+    ];
+    state.piles.bee1.cards = [{ id: 'bee-five-d', rank: 5, suit: 'diamonds', faceUp: true }];
+    const build = beehive
+      .legalMoves(state)
+      .find((move) => move.type === 'transfer' && move.from === 'bee1' && move.to === 'bee0');
+    const completed = beehive.applyMove(state, build!).state;
+    expect(completed.piles.bee0.cards).toHaveLength(0);
+    expect(completed.piles.removed.cards).toHaveLength(4);
+
+    const drawState = beehive.create('beehive-draw');
+    const drawMove = beehive.legalMoves(drawState).find((move) => move.type === 'draw');
+    const drawn = beehive.applyMove(drawState, drawMove!).state;
+    expect(drawn.piles.waste.cards).toHaveLength(3);
+    drawn.piles.stock.cards = [];
+    const recycle = beehive.legalMoves(drawn).find((move) => move.type === 'recycle');
+    const recycled = beehive.applyMove(drawn, recycle!).state;
+    expect(recycled.piles.stock.cards).toHaveLength(3);
+    expect(recycled.piles.stock.cards.every((card) => !card.faceUp)).toBe(true);
+  });
+
+  it('Cribbage Solitaire scores two chosen hands and a crib over four thirteen-card sets', () => {
+    const state = cribbageSolitaire.create('cribbage-solitaire-round');
+    expect(state.piles.stock.cards).toHaveLength(39);
+    expect(
+      Array.from({ length: 12 }, (_, index) => state.piles[`cribHand${index}`].cards),
+    ).toSatisfy((piles: Card[][]) => piles.every((cards) => cards.length === 1 && cards[0].faceUp));
+    expect(state.piles.cribbageStarter.cards[0]).toMatchObject({ faceUp: false });
+    let next = state;
+    for (const source of ['cribHand0', 'cribHand1', 'cribHand6', 'cribHand7']) {
+      const move = cribbageSolitaire
+        .legalMoves(next)
+        .find((candidate) => candidate.type === 'transfer' && candidate.from === source);
+      next = cribbageSolitaire.applyMove(next, move!).state;
+    }
+    expect(next.meta.phase).toBe('score');
+    expect(next.piles.crib.cards).toHaveLength(4);
+    expect(next.piles.cribbageStarter.cards[0]).toMatchObject({ faceUp: true });
+    expect(Number(next.meta.score)).toBeGreaterThanOrEqual(0);
+    const nextRound = cribbageSolitaire.legalMoves(next)[0];
+    const secondRound = cribbageSolitaire.applyMove(next, nextRound).state;
+    expect(secondRound.meta.phase).toBe('discard');
+    expect(secondRound.meta.round).toBe(2);
+    expect(secondRound.piles.removed.cards).toHaveLength(13);
+
+    const runAndFlush: Card[] = [1, 2, 3, 4].map((rank) => ({
+      id: `crib-run-${rank}`,
+      rank: rank as Card['rank'],
+      suit: 'hearts',
+      faceUp: true,
+    }));
+    expect(
+      scoreCribbageShow(runAndFlush, {
+        id: 'crib-run-5',
+        rank: 5,
+        suit: 'hearts',
+        faceUp: true,
+      }),
+    ).toEqual({ label: 'Cribbage show', score: 12 });
+  });
+
   it('Poker Squares deals to waste and lets the player choose any empty grid square', () => {
     const state = pokerSquares.create('poker-score');
     const draw = pokerSquares.legalMoves(state)[0];
@@ -421,10 +660,60 @@ describe('removal and scoring wave', () => {
     expect(JSON.stringify(session.state)).toBe(before);
   });
 
-  it('Bowling tracks knocked pins as score state', () => {
-    const { state, move } = firstMove(bowlingSolitaire, 'remove');
-    const next = bowlingSolitaire.applyMove(state, move).state;
-    expect(next.meta.pinsKnocked).toBe(1);
-    expect(next.meta.score).toBe(9);
+  it('Bowling uses a 20-card pin-and-ball rack and records a legal knock', () => {
+    const state = bowlingSolitaire.create('bowling-layout');
+    expect(
+      Array.from({ length: 10 }, (_, index) => state.piles[`bowlPin${index}`].cards),
+    ).toSatisfy((piles: Card[][]) => piles.every((cards) => cards.length === 1 && cards[0].faceUp));
+    expect([0, 1, 2].map((index) => state.piles[`bowlBall${index}`].cards.length)).toEqual([
+      5, 3, 2,
+    ]);
+    expect(state.piles.bowlingUnused.cards).toHaveLength(32);
+
+    for (let index = 0; index < 10; index += 1) state.piles[`bowlPin${index}`].cards = [];
+    state.piles.bowlPin0.cards = [{ id: 'bowl-pin-nine', rank: 9, suit: 'hearts', faceUp: true }];
+    state.piles.bowlPin7.cards = [{ id: 'bowl-pin-one', rank: 1, suit: 'clubs', faceUp: true }];
+    state.piles.bowlPin8.cards = [{ id: 'bowl-pin-three', rank: 3, suit: 'hearts', faceUp: true }];
+    state.piles.bowlBall0.cards = [{ id: 'bowl-ball-four', rank: 4, suit: 'clubs', faceUp: true }];
+    state.piles.bowlBall1.cards = [];
+    state.piles.bowlBall2.cards = [];
+    state.status = 'playing';
+    state.meta.bowlingFirstCardPlayed = false;
+    const chooseBall = bowlingSolitaire
+      .legalMoves(state)
+      .find((move) => move.type === 'transfer' && move.from === 'bowlBall0');
+    const selected = bowlingSolitaire.applyMove(state, chooseBall!).state;
+    const knock = bowlingSolitaire
+      .legalMoves(selected)
+      .find((move) => move.type === 'remove' && move.cardIds.length === 3);
+    expect(knock).toMatchObject({ cardIds: ['bowl-ball-four', 'bowl-pin-one', 'bowl-pin-three'] });
+    const next = bowlingSolitaire.applyMove(selected, knock!).state;
+    expect(next.piles.bowlPin7.cards).toHaveLength(0);
+    expect(next.piles.bowlPin8.cards).toHaveLength(0);
+    expect(next.meta.bowlingCurrentPins).toBe(2);
+    expect(next.meta.bowlingFirstCardPlayed).toBe(true);
+  });
+
+  it('scores Bowling frames with standard strike and spare bonuses', () => {
+    expect(
+      scoreBowlingFrames(
+        Array.from({ length: 10 }, () => [10]),
+        [10, 10],
+      ),
+    ).toBe(300);
+    expect(
+      scoreBowlingFrames([
+        [8, 2],
+        [10],
+        [10],
+        [6, 3],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+      ]),
+    ).toBe(74);
   });
 });

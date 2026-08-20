@@ -148,7 +148,7 @@ export function Home({
       </div>
       {filtered.length === 0 && <p className="empty-state">{t.noResults}</p>}
       <footer>
-        <span>Solitaire Collections · v0.6.7</span>
+        <span>Solitaire Collections · v0.6.8</span>
         <span>{t.offlineByDesign}</span>
       </footer>
     </main>

@@ -428,6 +428,166 @@ test('removes touching equal-rank cards in Monte Carlo’s five-by-five grid', a
   await expect(page.locator(`[data-pile-id="${pair!.target}"] .playing-card`)).toHaveCount(0);
 });
 
+test('deals Nestor as eight open columns with four independently playable reserve cards', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Nestor', exact: true }).click();
+  for (let index = 0; index < 8; index += 1) {
+    const cards = page.locator(`[data-pile-id="nestor${index}"] .playing-card.face-up`);
+    await expect(cards).toHaveCount(6);
+    const ranks = await cards.evaluateAll((items) => {
+      return items.map((item) => item.getAttribute('data-rank'));
+    });
+    expect(new Set(ranks).size).toBe(ranks.length);
+  }
+  await expect(page.locator('[data-pile-id^="nestorReserve"] .playing-card.face-up')).toHaveCount(
+    4,
+  );
+  await expect(page.locator('.game-nestor .pile-stock')).toHaveCount(0);
+});
+
+test('renders Royal Marriage as a continuous, complete court-anchored sequence', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Royal Marriage', exact: true }).click();
+  await expect(page.locator('.game-royal-marriage [data-pile-id^="rm"] .playing-card')).toHaveCount(
+    52,
+  );
+  await expect(page.locator('[data-pile-id="rm0"] .playing-card')).toHaveAttribute(
+    'data-rank',
+    'Q',
+  );
+  await expect(page.locator('[data-pile-id="rm51"] .playing-card')).toHaveAttribute(
+    'data-rank',
+    'K',
+  );
+});
+
+test('deals Gay Gordons as ten open columns and a stacked two-card reserve', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Gay Gordons', exact: true }).click();
+  for (let index = 0; index < 10; index += 1)
+    await expect(page.locator(`[data-pile-id="gay${index}"] .playing-card.face-up`)).toHaveCount(5);
+  await expect(page.locator('[data-pile-id="gayReserve"] .playing-card.face-up')).toHaveCount(2);
+  await expect(page.locator('.game-gay-gordons .pile-stock')).toHaveCount(0);
+});
+
+test('deals Beehive with a ten-card reserve, six hives, and a three-card stock draw', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Beehive', exact: true }).click();
+  await expect(page.locator('[data-pile-id="beehiveReserve"] .playing-card')).toHaveCount(10);
+  for (let index = 0; index < 6; index += 1)
+    await expect(page.locator(`[data-pile-id="bee${index}"] .playing-card.face-up`)).toHaveCount(1);
+  await expect(page.locator('.game-beehive .pile-stock .playing-card.face-down')).toHaveCount(36);
+  await page.locator('.game-beehive .pile-stock').click();
+  await expect(page.locator('.game-beehive .pile-waste .playing-card.face-up')).toHaveCount(3);
+});
+
+test('scores a Cribbage Solitaire set after selecting two cards from each hand for the crib', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Cribbage Solitaire', exact: true }).click();
+  await expect(page.locator('[data-pile-id^="cribHand"] .playing-card.face-up')).toHaveCount(12);
+  await expect(
+    page.locator('[data-pile-id="cribbageStarter"] .playing-card.face-down'),
+  ).toHaveCount(1);
+  for (const source of ['cribHand0', 'cribHand1', 'cribHand6', 'cribHand7']) {
+    await page.locator(`[data-pile-id="${source}"] .playing-card`).click();
+    await page.locator('[data-pile-id="crib"]').click();
+  }
+  await expect(page.locator('[data-pile-id="crib"] .playing-card.face-up')).toHaveCount(4);
+  await expect(page.locator('[data-pile-id="cribbageStarter"] .playing-card.face-up')).toHaveCount(
+    1,
+  );
+  await expect(page.locator('.game-phase')).toContainText('Use the stock');
+});
+
+test('selects a Bowling ball and a valid adjacent pin group before knocking', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Bowling Solitaire', exact: true }).click();
+  await expect(page.locator('[data-pile-id^="bowlPin"] .playing-card.face-up')).toHaveCount(10);
+  await expect(page.locator('[data-pile-id="bowlBall0"] .playing-card')).toHaveCount(5);
+  await expect(page.locator('[data-pile-id="bowlBall1"] .playing-card')).toHaveCount(3);
+  await expect(page.locator('[data-pile-id="bowlBall2"] .playing-card')).toHaveCount(2);
+
+  const choice = await page.locator('.game-bowling-solitaire').evaluate((board) => {
+    const adjacency: Record<number, number[]> = {
+      0: [1, 4, 5],
+      1: [0, 2, 4, 5, 6],
+      2: [1, 3, 5, 6],
+      3: [2, 6],
+      4: [0, 1, 5, 7],
+      5: [0, 1, 2, 4, 6, 7, 8],
+      6: [1, 2, 3, 5, 8],
+      7: [4, 5, 8, 9],
+      8: [5, 6, 7, 9],
+      9: [7, 8],
+    };
+    const pins = Array.from({ length: 10 }, (_, index) => ({
+      id: `bowlPin${index}`,
+      index,
+      rank: Number(
+        board
+          .querySelector<HTMLElement>(`[data-pile-id="bowlPin${index}"] .playing-card`)
+          ?.dataset.rank?.replace('A', '1')
+          .replace('J', '11')
+          .replace('Q', '12')
+          .replace('K', '13'),
+      ),
+    }));
+    const connected = (indices: number[]) => {
+      const seen = new Set<number>([indices[0]]);
+      const queue = [indices[0]];
+      while (queue.length) {
+        const current = queue.shift()!;
+        for (const next of adjacency[current])
+          if (indices.includes(next) && !seen.has(next)) {
+            seen.add(next);
+            queue.push(next);
+          }
+      }
+      return seen.size === indices.length;
+    };
+    for (let ball = 0; ball < 3; ball += 1) {
+      const ballRank = Number(
+        board
+          .querySelector<HTMLElement>(
+            `[data-pile-id="bowlBall${ball}"] .card-slot:last-child .playing-card`,
+          )
+          ?.dataset.rank?.replace('A', '1'),
+      );
+      for (let mask = 1; mask < 1 << 10; mask += 1) {
+        const chosen = pins.filter((_, index) => mask & (1 << index));
+        if (chosen.length > 3 || chosen.some((pin) => pin.index < 4)) continue;
+        if (chosen.length === 1 && chosen[0].index === 5) continue;
+        const total = chosen.reduce((sum, pin) => sum + pin.rank, 0);
+        if (
+          connected(chosen.map((pin) => pin.index)) &&
+          (ballRank === 10 ? total === 10 : total % 10 === ballRank)
+        )
+          return { ball: `bowlBall${ball}`, pins: chosen.map((pin) => pin.id) };
+      }
+    }
+    return null;
+  });
+  expect(choice).not.toBeNull();
+  await page
+    .locator(`[data-pile-id="${choice!.ball}"] .card-slot:last-child .playing-card`)
+    .click();
+  for (const pin of choice!.pins)
+    await page.locator(`[data-pile-id="${pin}"] .playing-card`).click();
+  const knock = page.getByRole('button', { name: /Knock/ });
+  await expect(knock).toBeEnabled();
+  await knock.click();
+  for (const pin of choice!.pins)
+    await expect(page.locator(`[data-pile-id="${pin}"] .playing-card`)).toHaveCount(0);
+});
+
 test('deals Aces Up as a four-column round and keeps empty columns as move targets', async ({
   page,
 }) => {
@@ -446,6 +606,24 @@ test('deals Aces Up as a four-column round and keeps empty columns as move targe
   await expect(page.locator('.pile-stock .playing-card.face-down')).toHaveCount(44);
 });
 
+test('keeps wide-board controls in the initial desktop viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  for (const game of [
+    'Block Ten',
+    'Fourteen Out',
+    'Royal Marriage',
+    'Gay Gordons',
+    'Cribbage Solitaire',
+    'Bowling Solitaire',
+  ]) {
+    await page.goto('/');
+    await page.getByRole('button', { name: game, exact: true }).click();
+    const controls = await page.locator('.game-controls').boundingBox();
+    expect(controls).not.toBeNull();
+    expect(controls!.y + controls!.height).toBeLessThanOrEqual(768);
+  }
+});
+
 test('keeps representative games usable in compact mobile landscape', async ({
   page,
 }, testInfo) => {
@@ -456,7 +634,16 @@ test('keeps representative games usable in compact mobile landscape', async ({
     { width: 1024, height: 768 },
   ]) {
     await page.setViewportSize(viewport);
-    for (const game of ['Klondike', 'Spider', 'Pyramid', 'Clock', 'Aces Up', 'Giza']) {
+    for (const game of [
+      'Klondike',
+      'Spider',
+      'Pyramid',
+      'Clock',
+      'Aces Up',
+      'Giza',
+      'Cribbage Solitaire',
+      'Bowling Solitaire',
+    ]) {
       await page.goto('/');
       await page.getByRole('button', { name: game, exact: true }).click();
       const viewportBounds = await page.evaluate(() => ({
@@ -470,7 +657,9 @@ test('keeps representative games usable in compact mobile landscape', async ({
       expect(table!.x + table!.width).toBeLessThanOrEqual(viewportBounds.width + 1);
       expect(controls!.x + controls!.width).toBeLessThanOrEqual(viewportBounds.width + 1);
       expect(controls!.y + controls!.height).toBeLessThanOrEqual(viewportBounds.height + 2);
-      await expect(page.locator('.game-controls button')).toHaveCount(5);
+      await expect(page.locator('.game-controls button')).toHaveCount(
+        game === 'Bowling Solitaire' ? 7 : 5,
+      );
       if (game === 'Aces Up') {
         const card = await page.locator('[data-pile-id="aces0"] .playing-card').boundingBox();
         expect(card).not.toBeNull();
