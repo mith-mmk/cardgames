@@ -634,6 +634,7 @@ function createFallbackSession(definition: GameDefinition, seed: string): GameSe
     elapsedSeconds: 0,
     won: false,
     canUndo: false,
+    meta: {},
   };
   const history: GameSnapshot[] = [];
   const transfer = (source: string, cardId: string, destination: string) => {
@@ -792,6 +793,10 @@ export function createSession(gameId: string, seed = `${Date.now()}`): GameSessi
         elapsedSeconds,
         won: state.status === 'won',
         canUndo: true,
+        meta:
+          typeof state.meta === 'object' && state.meta !== null
+            ? (structuredClone(state.meta) as Record<string, unknown>)
+            : {},
       };
     };
     const legalMoves = () =>

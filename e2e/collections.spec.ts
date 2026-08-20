@@ -267,6 +267,27 @@ test('keeps the Clock layout centred without an internal scrollbar', async ({ pa
   await expect(board).toBeVisible();
 });
 
+test('keeps Poker Squares placement under player control and shows score state', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Poker Squares', exact: true }).click();
+  const board = page.locator('.grid-board');
+  await expect(board).toBeVisible();
+  await expect(page.locator('.table-stats')).toContainText('Score 0');
+  await expect(page.locator('.table-stats')).toContainText('Draw the next card');
+
+  await page.locator('.pile-stock').click();
+  await expect(page.locator('.pile-waste .playing-card.face-up')).toHaveCount(1);
+  await expect(page.locator('.table-stats')).toContainText('Place the drawn card');
+
+  const selectedCell = page.locator('[data-pile-id="g24"]');
+  await selectedCell.click();
+  await expect(selectedCell.locator('.playing-card.face-up')).toHaveCount(1);
+  await expect(page.locator('.pile-waste .playing-card')).toHaveCount(0);
+  await expect(page.locator('.table-stats')).toContainText('Draw the next card');
+});
+
 test('keeps representative games usable in compact mobile landscape', async ({
   page,
 }, testInfo) => {

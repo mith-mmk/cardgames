@@ -152,6 +152,20 @@ export function pileLayout(pile: Pile, piles: Pile[]): CSSProperties {
     };
   }
 
+  const gridPiles = tableaux.filter((item) => /^g\d+$/.test(item.id));
+  const gridSide = Math.sqrt(gridPiles.length);
+  if (Number.isInteger(gridSide) && gridPiles.length && /^g\d+$/.test(pile.id)) {
+    const index = Number(pile.id.slice(1));
+    const row = Math.floor(index / gridSide);
+    const column = index % gridSide;
+    const gridGap = compact ? Math.max(48, Math.round(window.innerWidth / (gridSide + 2))) : 108;
+    return {
+      left: `calc(50% - var(--card-w) / 2 + ${(column - (gridSide - 1) / 2) * gridGap}px)`,
+      top: `${(compact ? 64 : 142) + row * (compact ? 58 : 132)}px`,
+      right: 'auto',
+    };
+  }
+
   const columns = tableaux
     .map((item) => item.id)
     .sort(

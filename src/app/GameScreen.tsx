@@ -60,8 +60,17 @@ export function GameScreen({
   }, []);
   const snapshot = session.getSnapshot();
   const piles = snapshot.piles;
+  const gridLayout = snapshot.meta.layout as { size?: unknown } | undefined;
+  const gridSize = Number(gridLayout?.size);
+  const isGridScoring =
+    Number.isInteger(gridSize) &&
+    gridSize > 0 &&
+    piles.filter((pile) => /^g\d+$/.test(pile.id)).length === gridSize;
+  const gridScore = Number(snapshot.meta.score ?? 0);
+  const gridPhase = snapshot.meta.phase === 'place' ? t.placeDrawnCard : t.drawNextCard;
   const compactLandscape = isCompactLandscape();
   const isWideLayout =
+    !piles.some((pile) => /^g\d+$/.test(pile.id)) &&
     !['clock', 'spider', 'pyramid'].includes(definition.id) &&
     (piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
       piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4);
@@ -245,7 +254,17 @@ export function GameScreen({
           (move.type === 'draw' && move.from === pile.id) ||
           (move.type === 'recycle' && move.to === pile.id),
       );
-      if (stockMove) return act(() => session.dispatch(stockMove));
+      if (stockMove) {
+        act(() => session.dispatch(stockMove));
+        if (isGridScoring && stockMove.type === 'draw' && stockMove.to === 'waste') {
+          const drawn = session
+            .getSnapshot()
+            .piles.find((item) => item.id === 'waste')
+            ?.cards.at(-1);
+          if (drawn) act(() => session.select('waste', drawn.id));
+        }
+        return;
+      }
     }
     if (selected && cardId && selected.cardId === cardId) {
       const single = moves.find(
@@ -319,8 +338,16 @@ export function GameScreen({
             <span>
               {t.time} <b>{clock(snapshot.elapsedSeconds)}</b>
             </span>
+            {isGridScoring && (
+              <span>
+                {t.score} <b>{gridScore}</b>
+              </span>
+            )}
+            {isGridScoring && <span className="game-phase">{gridPhase}</span>}
           </div>
-          <div className={`board ${isDenseBoard ? 'dense-board' : ''}`}>
+          <div
+            className={`board ${isDenseBoard ? 'dense-board' : ''} ${isGridScoring ? 'grid-board' : ''}`}
+          >
             {piles.map((pile) => (
               <div
                 className={`pile dynamic-pile pile-${pile.kind} ${isPyramid && isPyramidPile(pile) && !pile.cards.length ? 'is-empty-pyramid-pile' : ''} ${isPyramid && isPyramidPile(pile) && !isPyramidExposed(pile) ? 'is-covered-pyramid-pile' : ''} ${dropTarget === pile.id ? 'is-drop-target' : ''} ${legalTargetIds.has(pile.id) ? 'is-legal-target' : ''}`}

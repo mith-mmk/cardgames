@@ -27,6 +27,7 @@ export type GameSnapshot = {
   elapsedSeconds: number;
   won: boolean;
   canUndo: boolean;
+  meta: Record<string, unknown>;
 };
 export type GameDefinition = {
   id: string;

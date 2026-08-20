@@ -5,11 +5,14 @@ import {
   acesUp,
   accordion,
   bowlingSolitaire,
+  cribbageSquares,
   giza,
   pokerSquares,
+  scoreCribbageHand,
+  scorePokerHand,
   triPeaks,
 } from './removalScoringGames';
-import type { GameDefinition, GameState, Move } from './types';
+import type { Card, GameDefinition, GameState, Move } from './types';
 
 const definitions = Object.values(REMOVAL_SCORING_GAMES) as GameDefinition[];
 const allCards = (state: GameState) => Object.values(state.piles).flatMap((item) => item.cards);
@@ -86,14 +89,19 @@ describe('removal and scoring wave', () => {
     ).toBeTruthy();
   });
 
-  it('Poker Squares scores after filling its grid and rejects a non-draw move', () => {
+  it('Poker Squares deals to waste and lets the player choose any empty grid square', () => {
     const state = pokerSquares.create('poker-score');
-    let current = state;
-    while (pokerSquares.legalMoves(current).length) {
-      current = pokerSquares.applyMove(current, pokerSquares.legalMoves(current)[0]).state;
-    }
-    expect(current.meta.score).toEqual(expect.any(Number));
-    expect(pokerSquares.isWon(current)).toBe(true);
+    const draw = pokerSquares.legalMoves(state)[0];
+    expect(draw).toMatchObject({ type: 'draw', from: 'stock', to: 'waste' });
+    const dealt = pokerSquares.applyMove(state, draw).state;
+    expect(dealt.piles.waste.cards).toHaveLength(1);
+    const placements = pokerSquares.legalMoves(dealt).filter((move) => move.type === 'transfer');
+    expect(placements).toHaveLength(25);
+    const chosen = placements.at(-1);
+    expect(chosen).toMatchObject({ from: 'waste', to: 'g24' });
+    const placed = pokerSquares.applyMove(dealt, chosen!).state;
+    expect(placed.piles.g24.cards).toHaveLength(1);
+    expect(placed.piles.waste.cards).toHaveLength(0);
     expect(
       pokerSquares.applyMove(state, {
         type: 'remove',
@@ -102,6 +110,39 @@ describe('removal and scoring wave', () => {
         cardIds: ['missing'],
       }).error,
     ).toBeTruthy();
+  });
+
+  it('scores Poker Squares with the published poker hand schedule', () => {
+    const royalFlush: Card[] = [1, 10, 11, 12, 13].map((rank) => ({
+      id: `heart-${rank}`,
+      rank: rank as Card['rank'],
+      suit: 'hearts',
+      faceUp: true,
+    }));
+    expect(scorePokerHand(royalFlush)).toEqual({ label: 'Royal flush', score: 100 });
+    const fourOfAKind: Card[] = ['spades', 'hearts', 'diamonds', 'clubs'].map((suit, index) => ({
+      id: `nine-${suit}`,
+      rank: 9,
+      suit: suit as Card['suit'],
+      faceUp: Boolean(index),
+    }));
+    fourOfAKind.push({ id: 'two-spades', rank: 2, suit: 'spades', faceUp: true });
+    expect(scorePokerHand(fourOfAKind)).toEqual({ label: 'Four of a kind', score: 50 });
+  });
+
+  it('scores Cribbage Squares completed four-card lines', () => {
+    const fourFives: Card[] = ['spades', 'hearts', 'diamonds', 'clubs'].map((suit) => ({
+      id: `five-${suit}`,
+      rank: 5,
+      suit: suit as Card['suit'],
+      faceUp: true,
+    }));
+    expect(scoreCribbageHand(fourFives)).toEqual({ label: 'Cribbage hand', score: 20 });
+    const state = cribbageSquares.create('cribbage-choice');
+    const dealt = cribbageSquares.applyMove(state, cribbageSquares.legalMoves(state)[0]).state;
+    expect(
+      cribbageSquares.legalMoves(dealt).filter((move) => move.type === 'transfer'),
+    ).toHaveLength(16);
   });
 
   it.each(definitions)('$id supports undo and deterministic retry', (definition) => {

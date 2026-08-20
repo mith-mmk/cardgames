@@ -400,27 +400,106 @@ function createGridState(id: string, layout: string, size: number, seed: string)
   stock.cards.forEach((card) => {
     card.faceUp = false;
   });
-  return makeState(id, seed, [pile('removed', 'removed'), ...cells, stock], {
-    options: { layout },
-    layout: { type: layout, size },
-    score: 0,
-  });
+  return makeState(
+    id,
+    seed,
+    [pile('removed', 'removed'), ...cells, pile('waste', 'waste'), stock],
+    {
+      options: { layout },
+      layout: { type: layout, size },
+      score: 0,
+      scoreDetails: [],
+      phase: 'draw',
+    },
+  );
 }
 
-function scoreGrid(state: GameState): number {
+type ScoreLine = { line: string; label: string; score: number };
+type GridScore = { score: number; details: ScoreLine[] };
+
+function gridLines(state: GameState): Array<{ line: string; cards: Card[] }> {
   const size = Object.keys(state.piles).filter((id) => id.startsWith('g')).length;
   const side = Math.sqrt(size);
-  const values = Array.from(
-    { length: size },
-    (_, index) => top(state.piles[`g${index}`])?.rank ?? 0,
-  );
-  let score = 0;
+  const cardAt = (index: number) => top(state.piles[`g${index}`]);
+  const lines: Array<{ line: string; cards: Card[] }> = [];
   for (let row = 0; row < side; row += 1) {
-    const ranks = values.slice(row * side, row * side + side);
-    if (new Set(ranks).size === 5) score += 5;
-    if (ranks.every((rank) => rank > 0)) score += 1;
+    const cards = Array.from({ length: side }, (_, column) => cardAt(row * side + column));
+    if (cards.every((card): card is Card => Boolean(card)))
+      lines.push({ line: `R${row + 1}`, cards });
   }
-  return score;
+  for (let column = 0; column < side; column += 1) {
+    const cards = Array.from({ length: side }, (_, row) => cardAt(row * side + column));
+    if (cards.every((card): card is Card => Boolean(card)))
+      lines.push({ line: `C${column + 1}`, cards });
+  }
+  return lines;
+}
+
+export function scorePokerHand(cards: readonly Card[]): Omit<ScoreLine, 'line'> {
+  if (cards.length !== 5) return { label: 'Incomplete', score: 0 };
+  const ranks = cards.map((card) => card.rank);
+  const counts = [
+    ...new Map(ranks.map((rank) => [rank, ranks.filter((item) => item === rank).length])).values(),
+  ].sort((left, right) => right - left);
+  const unique = [...new Set(ranks)].sort((left, right) => left - right);
+  const royal = unique.join(',') === '1,10,11,12,13';
+  const straight =
+    unique.length === 5 &&
+    (royal ||
+      unique.every((rank, index) => index === 0 || rank === unique[index - 1] + 1) ||
+      unique.join(',') === '1,2,3,4,5');
+  const flush = cards.every((card) => card.suit === cards[0].suit);
+  if (royal && flush) return { label: 'Royal flush', score: 100 };
+  if (straight && flush) return { label: 'Straight flush', score: 75 };
+  if (counts[0] === 4) return { label: 'Four of a kind', score: 50 };
+  if (counts[0] === 3 && counts[1] === 2) return { label: 'Full house', score: 25 };
+  if (flush) return { label: 'Flush', score: 20 };
+  if (straight) return { label: 'Straight', score: 15 };
+  if (counts[0] === 3) return { label: 'Three of a kind', score: 10 };
+  if (counts[0] === 2 && counts[1] === 2) return { label: 'Two pair', score: 5 };
+  if (counts[0] === 2) return { label: 'Pair', score: 2 };
+  return { label: 'High card', score: 0 };
+}
+
+export function scoreCribbageHand(cards: readonly Card[]): Omit<ScoreLine, 'line'> {
+  if (cards.length !== 4) return { label: 'Incomplete', score: 0 };
+  let score = 0;
+  for (let mask = 1; mask < 1 << cards.length; mask += 1) {
+    const total = cards.reduce(
+      (sum, card, index) => sum + (mask & (1 << index) ? Math.min(card.rank, 10) : 0),
+      0,
+    );
+    if (total === 15) score += 2;
+  }
+  const counts = new Map<number, number>();
+  cards.forEach((card) => counts.set(card.rank, (counts.get(card.rank) ?? 0) + 1));
+  counts.forEach((count) => {
+    score += count > 1 ? count * (count - 1) : 0;
+  });
+  const ranks = [...counts.keys()].sort((left, right) => left - right);
+  let runStart = 0;
+  while (runStart < ranks.length) {
+    let runEnd = runStart;
+    while (runEnd + 1 < ranks.length && ranks[runEnd + 1] === ranks[runEnd] + 1) runEnd += 1;
+    const length = runEnd - runStart + 1;
+    if (length >= 3) {
+      const multiplicity = ranks
+        .slice(runStart, runEnd + 1)
+        .reduce((product, rank) => product * (counts.get(rank) ?? 1), 1);
+      score += length * multiplicity;
+    }
+    runStart = runEnd + 1;
+  }
+  if (cards.every((card) => card.suit === cards[0].suit)) score += 4;
+  return { label: 'Cribbage hand', score };
+}
+
+function scoreGrid(state: GameState, cribbage: boolean): GridScore {
+  const details = gridLines(state).map(({ line, cards }) => ({
+    line,
+    ...(cribbage ? scoreCribbageHand(cards) : scorePokerHand(cards)),
+  }));
+  return { score: details.reduce((total, detail) => total + detail.score, 0), details };
 }
 
 function makeGridScoringGame(
@@ -438,21 +517,38 @@ function makeGridScoringGame(
       return createGridState(id, layout, size, seed);
     },
     legalMoves(state): Move[] {
+      if (state.piles.waste.cards.length) {
+        const card = top(state.piles.waste);
+        return card
+          ? Object.values(state.piles)
+              .filter((item) => item.kind === 'tableau' && item.cards.length === 0)
+              .map((item) => ({
+                type: 'transfer' as const,
+                from: 'waste',
+                to: item.id,
+                cardIds: [card.id],
+              }))
+          : [];
+      }
       if (!state.piles.stock.cards.length) return [];
-      return Object.values(state.piles)
-        .filter((item) => item.kind === 'tableau' && item.cards.length === 0)
-        .map((item) => ({ type: 'draw', from: 'stock', to: item.id, count: 1 }));
+      return [{ type: 'draw', from: 'stock', to: 'waste', count: 1 }];
     },
     applyMove(state, move): ApplyResult {
       return checked(state, move, definition.legalMoves(state), () => {
-        if (move.type !== 'draw') return { state, error: 'Draw into an empty square' };
-        const next = cloneState(state);
-        const card = next.piles.stock.cards.pop();
-        if (!card) return { state, error: 'No cards remain' };
-        card.faceUp = true;
-        next.piles[move.to].cards.push(card);
-        next.moveCount += 1;
-        next.meta.score = cribbage ? scoreGrid(next) * 2 : scoreGrid(next);
+        if (move.type === 'draw') {
+          const result = draw(state, 'stock', 'waste', 1);
+          if (!result.error) result.state.meta.phase = 'place';
+          return result;
+        }
+        if (move.type !== 'transfer')
+          return { state, error: 'Place the drawn card in an empty square' };
+        const result = transfer(state, move.from, move.to, move.cardIds);
+        if (result.error) return result;
+        const next = result.state;
+        const scored = scoreGrid(next, cribbage);
+        next.meta.score = scored.score;
+        next.meta.scoreDetails = scored.details;
+        next.meta.phase = definition.isWon(next) ? 'complete' : 'draw';
         if (definition.isWon(next)) next.status = 'won';
         return { state: next };
       });

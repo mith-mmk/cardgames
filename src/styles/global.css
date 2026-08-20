@@ -467,6 +467,15 @@ footer {
 .dense-board {
   min-height: 720px;
 }
+.grid-board {
+  min-height: 820px;
+}
+.grid-board .pile-tableau {
+  border: 1px dashed #75a18866;
+}
+.game-phase {
+  color: #dceccf;
+}
 .pile {
   position: absolute;
   width: var(--card-w);
@@ -1720,6 +1729,10 @@ footer {
 
   .dense-board {
     min-height: 420px;
+  }
+
+  .grid-board {
+    min-height: 400px;
   }
 
   .game-screen.large-cards {

@@ -19,7 +19,7 @@ function playerChoiceIsPreserved(move: Move): boolean {
 }
 
 describe('game interaction audit', () => {
-  it('records grid games whose placement choice is collapsed by the shared board', () => {
+  it('keeps grid-game placement as a player choice after the stock deal', () => {
     const affected = definitions.flatMap((definition) => {
       const state = firstPlayableState(definition);
       if (!state) return [];
@@ -31,6 +31,6 @@ describe('game interaction audit', () => {
         .map(() => definition.id);
     });
 
-    expect([...new Set(affected)].sort()).toEqual(['cribbage-squares', 'poker-squares']);
+    expect([...new Set(affected)].sort()).toEqual([]);
   });
 });
