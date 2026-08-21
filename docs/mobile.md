@@ -18,3 +18,7 @@ iPad orientation arrays contain only:
 Do not add portrait orientations. On a macOS host with Xcode, CocoaPods, an
 Apple Developer team, and a connected trusted device, run `npm run tauri:ios:dev`.
 Use `npm run tauri:ios:verify` to validate the generated plist before review.
+
+To compile the native iOS integration without a signing identity, run
+`npm run tauri:ios:sim:build`. It creates an arm64 Simulator archive but does
+not create an IPA or replace the physical-device signing check.

@@ -48,8 +48,8 @@ targets:
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        CFBundleShortVersionString: 0.6.0
-        CFBundleVersion: "0.6.0"
+        CFBundleShortVersionString: 0.6.9
+        CFBundleVersion: "0.6.9"
     entitlements:
       path: solitaire-collections_iOS/solitaire-collections_iOS.entitlements
     scheme:

@@ -6,6 +6,10 @@ authors = ["Solitaire Collections contributors"]
 edition = "2021"
 rust-version = "1.77"
 
+[lib]
+name = "solitaire_collections_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
 [build-dependencies]
 tauri-build = { version = "2.4", features = [] }
 

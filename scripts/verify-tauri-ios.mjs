@@ -3,6 +3,30 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const appleRoot = join('src-tauri', 'gen', 'apple');
+const tauriConfig = JSON.parse(readFileSync(join('src-tauri', 'tauri.conf.json'), 'utf8'));
+
+const cargoMetadata = JSON.parse(
+  execFileSync(
+    'cargo',
+    [
+      'metadata',
+      '--manifest-path',
+      join('src-tauri', 'Cargo.toml'),
+      '--no-deps',
+      '--format-version',
+      '1',
+    ],
+    { encoding: 'utf8' },
+  ),
+);
+const cargoPackage = cargoMetadata.packages.find((entry) => entry.name === 'solitaire-collections');
+const mobileLibrary = cargoPackage?.targets.find((target) =>
+  ['staticlib', 'cdylib', 'rlib'].every((crateType) => target.crate_types.includes(crateType)),
+);
+if (!mobileLibrary)
+  throw new Error(
+    'iOS requires a Rust library target with staticlib, cdylib, and rlib crate types.',
+  );
 
 function findInfoPlists(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -21,6 +45,12 @@ if (!existsSync(appleRoot)) {
 const infoPlists = findInfoPlists(appleRoot);
 if (!infoPlists.length) throw new Error('No iOS Info.plist was generated.');
 
+function plistString(content, key) {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = content.match(new RegExp(`<key>${escapedKey}</key>\\s*<string>([^<]+)</string>`));
+  return match?.[1];
+}
+
 for (const path of infoPlists) {
   const content = readFileSync(path, 'utf8');
   for (const orientation of [
@@ -31,7 +61,20 @@ for (const path of infoPlists) {
   }
   if (content.includes('UIInterfaceOrientationPortrait'))
     throw new Error(`${path} must not enable portrait orientation.`);
+  for (const key of ['CFBundleShortVersionString', 'CFBundleVersion']) {
+    if (plistString(content, key) !== tauriConfig.version)
+      throw new Error(`${path} ${key} must match Tauri version ${tauriConfig.version}.`);
+  }
   if (process.platform === 'darwin') execFileSync('plutil', ['-lint', path], { stdio: 'pipe' });
+}
+
+const project = readFileSync(join(appleRoot, 'project.yml'), 'utf8');
+for (const line of [
+  `CFBundleShortVersionString: ${tauriConfig.version}`,
+  `CFBundleVersion: "${tauriConfig.version}"`,
+]) {
+  if (!project.includes(line))
+    throw new Error(`src-tauri/gen/apple/project.yml must keep ${line}.`);
 }
 
 const validation =
