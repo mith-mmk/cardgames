@@ -2848,6 +2848,7 @@ dependencies = [
 name = "solitaire-collections"
 version = "0.6.9"
 dependencies = [
+ "objc2",
  "serde",
  "serde_json",
  "tauri",

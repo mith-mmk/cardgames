@@ -14,6 +14,7 @@
 		4FE7DC04542ACB3A5BCBA6AA /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 8E5A8AD98656CBC79DE42190 /* assets */; };
 		67D8D8E34999B0A7790CA409 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 95C2B0333E623A5DD7840AD1 /* CoreGraphics.framework */; };
 		69E57178D9763093D96FFF7C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0DD0EA96952DF01011E6ADED /* Assets.xcassets */; };
+		9822D6D650E8C0835B201EE0 /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = FE34A31515E736AB69995FE9 /* libapp.a */; };
 		A90F0CD3D88128F01BB4E64C /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83112C2EBD1E14E8B3C62F70 /* QuartzCore.framework */; };
 		AC8B7CC5ED48C9115C8C8FD3 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 461F67B960304B5E0835749B /* Metal.framework */; };
 		D0D5530A1EE1766048AEEB9C /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 114421BBB39AF7EB5A5DE4B9 /* MetalKit.framework */; };
@@ -35,10 +36,12 @@
 		83112C2EBD1E14E8B3C62F70 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		8E5A8AD98656CBC79DE42190 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
 		95C2B0333E623A5DD7840AD1 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		9AAAC746EC5469BF0BD6C691 /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
 		B728B89646D3CC298936C0E3 /* solitaire-collections_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "solitaire-collections_iOS.entitlements"; sourceTree = "<group>"; };
 		DB57A7E48FFB40EAA1CD8730 /* solitaire-collections_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "solitaire-collections_iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DCC05888A025FEAC46DDCABF /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		DEAF37B69D11F10CBDE5FB15 /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		FE34A31515E736AB69995FE9 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,9 +63,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		08C04DFF70F9CB85FC3BC8A1 /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				FE34A31515E736AB69995FE9 /* libapp.a */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
+		4C0155D222492ECB352B8724 /* arm64 */ = {
+			isa = PBXGroup;
+			children = (
+				08C04DFF70F9CB85FC3BC8A1 /* debug */,
+			);
+			path = arm64;
+			sourceTree = "<group>";
+		};
 		5B45303AC953D0A33701F3EB /* src */ = {
 			isa = PBXGroup;
 			children = (
+				9AAAC746EC5469BF0BD6C691 /* lib.rs */,
 				DEAF37B69D11F10CBDE5FB15 /* main.rs */,
 			);
 			name = src;
@@ -136,6 +156,7 @@
 		C2D8C6E0866E4D2D87B8E30B /* Externals */ = {
 			isa = PBXGroup;
 			children = (
+				4C0155D222492ECB352B8724 /* arm64 */,
 			);
 			path = Externals;
 			sourceTree = "<group>";
@@ -146,6 +167,13 @@
 				93E23B1CB6367EF8FE32E9AC /* solitaire-collections */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		"TEMP_D2232793-2C48-4A0B-A5A5-9966C814E0FD" /* x86_64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = x86_64;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -209,6 +237,7 @@
 				69E57178D9763093D96FFF7C /* Assets.xcassets in Resources */,
 				E19B35D0382FD4CB56DFABA0 /* LaunchScreen.storyboard in Resources */,
 				4FE7DC04542ACB3A5BCBA6AA /* assets in Resources */,
+				9822D6D650E8C0835B201EE0 /* libapp.a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

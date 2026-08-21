@@ -1650,6 +1650,34 @@ footer {
   min-height: 0;
   overflow: hidden;
 }
+.game-clock .clock-source-pile {
+  border-color: #9fc8a8;
+}
+.game-clock .clock-result-pile {
+  border: 0;
+  pointer-events: none;
+}
+.game-clock .clock-result-pile .pile-label {
+  display: none;
+}
+.game-clock .clock-source-pile .pile-label {
+  inset: auto auto calc(100% + 4px) 50%;
+  width: 22px;
+  height: 22px;
+  transform: translateX(-50%);
+  border: 1px solid #9fc8a899;
+  border-radius: 50%;
+  background: #102b21;
+  color: #edf5de;
+  font:
+    700 11px/20px ui-monospace,
+    'SFMono-Regular',
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  pointer-events: none;
+}
 
 /* Accordion keeps its logical sequence while empty source piles collapse. */
 .game-accordion .board {
@@ -1893,6 +1921,14 @@ footer {
 
   .game-bowling-solitaire .board {
     min-height: 0;
+  }
+
+  .game-clock .clock-source-pile .pile-label {
+    bottom: calc(100% + 2px);
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+    line-height: 16px;
   }
 
   .game-accordion .board {

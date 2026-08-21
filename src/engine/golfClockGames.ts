@@ -69,7 +69,7 @@ export const golf: GameDefinition = {
     Array.from({ length: 7 }, (_, i) => state.piles[`t${i}`].cards.length === 0).every(Boolean),
 };
 
-/** Clock: twelve numbered piles plus the centre (13); the exposed card selects the next pile. */
+/** Clock: reveal each source pile into the matching hour's completed-card pile. */
 export const clock: GameDefinition = {
   id: 'clock',
   name: 'Clock',
@@ -77,14 +77,14 @@ export const clock: GameDefinition = {
   create(seed = DEFAULT_SEED): GameState {
     const deck = shuffledDeck(seed);
     const piles = [
-      pile('removed', 'removed'),
       ...Array.from({ length: 13 }, (_, i) => pile(`clock${i + 1}`, 'tableau')),
+      ...Array.from({ length: 13 }, (_, i) => pile(`clockResult${i + 1}`, 'foundation')),
     ];
     deck.forEach((card, index) => {
-      const target = piles[(index % 13) + 1];
+      const target = piles[index % 13];
       target.cards.push(card);
     });
-    top(piles[13])!.faceUp = true;
+    top(piles[12])!.faceUp = true;
     return makeState('clock', seed, piles, { activePile: 'clock13' });
   },
   legalMoves(state) {
@@ -92,7 +92,14 @@ export const clock: GameDefinition = {
     const source = state.piles[activeId];
     const card = source && top(source);
     if (!card || !card.faceUp) return [];
-    return [{ type: 'transfer', from: activeId, to: `clock${card.rank}`, cardIds: [card.id] }];
+    return [
+      {
+        type: 'transfer',
+        from: activeId,
+        to: `clockResult${card.rank}`,
+        cardIds: [card.id],
+      },
+    ];
   },
   applyMove(state, move) {
     return checked(state, move, this.legalMoves(state), () => {
@@ -104,10 +111,11 @@ export const clock: GameDefinition = {
         return { state, error: 'Card is not exposed' };
       const card = source.cards.pop()!;
       card.faceUp = true;
-      next.piles.removed.cards.push(card);
-      const newTop = top(target);
+      target.cards.push(card);
+      const nextSource = next.piles[`clock${card.rank}`];
+      const newTop = nextSource && top(nextSource);
       if (newTop) newTop.faceUp = true;
-      next.meta.activePile = target.id;
+      next.meta.activePile = nextSource?.id;
       next.moveCount += 1;
       if (this.isWon(next)) next.status = 'won';
       else if (!newTop) next.status = 'lost';

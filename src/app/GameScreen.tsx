@@ -8,7 +8,7 @@ import { ScoreDetails } from './ScoreDetails';
 import { interpolate, text } from './i18n';
 import { storage } from './persistence';
 import type { Card, GameDefinition, GameSession, Language, Pile } from './types';
-import { clock, isCompactLandscape, pileLayout } from './ui';
+import { clock, isCompactLandscape, pileLayout, rankName } from './ui';
 import type { ThemeAsset } from './ui';
 
 export function GameScreen({
@@ -105,6 +105,10 @@ export function GameScreen({
     (piles.filter((pile) => pile.kind === 'tableau').length >= 9 ||
       piles.filter((pile) => pile.kind === 'cell' || pile.kind === 'reserve').length > 4);
   const isClock = definition.id === 'clock';
+  const clockPileRank = (pile: Pile) => {
+    const match = isClock && pile.id.match(/^clock(?:Result)?(\d+)$/);
+    return match ? Number(match[1]) : undefined;
+  };
   const isPyramid = ['pyramid', 'giza', 'cheops'].includes(definition.id);
   const isCheops = definition.id === 'cheops';
   const isDenseBoard =
@@ -159,6 +163,7 @@ export function GameScreen({
     const isCoveredTriPeaks =
       isTriPeaks && isTriPeaksPile(pile) && (!pile.cards.length || !isTriPeaksExposed(pile));
     return (
+      !(isClock && /^clockResult\d+$/.test(pile.id)) &&
       !pile.cards.length &&
       !isCoveredPyramid &&
       !isCoveredTriPeaks &&
@@ -231,7 +236,7 @@ export function GameScreen({
   const transferMovesForCard = (pileId: string, cardId: string) =>
     legalMoves().filter((move) => transferMoveMatchesCard(move, pileId, cardId));
   const pointerDown = (pileId: string, cardId: string, event: ReactPointerEvent<HTMLElement>) => {
-    if (isBowling) return;
+    if (isBowling || isClock) return;
     if (!event.isPrimary || event.button !== 0 || pointerDrag.current) return;
     const sourcePile = piles.find((pile) => pile.id === pileId);
     const cardIndex = sourcePile?.cards.findIndex((item) => item.id === cardId) ?? -1;
@@ -339,6 +344,10 @@ export function GameScreen({
   const dispatchForSelection = (pile: Pile, cardId?: string) => {
     const selected = snapshot.selected;
     const moves = legalMoves();
+    if (isClock && cardId) {
+      const clockMove = moves.find((move) => transferMoveMatchesCard(move, pile.id, cardId));
+      if (clockMove) return act(() => session.dispatch(clockMove));
+    }
     if (isBowling && cardId) {
       if (/^bowlBall\d+$/.test(pile.id)) {
         const selectBall = moves.find(
@@ -510,7 +519,7 @@ export function GameScreen({
           >
             {piles.map((pile) => (
               <div
-                className={`pile dynamic-pile pile-${pile.kind} ${isPyramid && isPyramidPile(pile) && !pile.cards.length ? 'is-empty-pyramid-pile' : ''} ${isPyramid && isPyramidPile(pile) && !isPyramidExposed(pile) ? 'is-covered-pyramid-pile' : ''} ${isTriPeaks && isTriPeaksPile(pile) && !pile.cards.length ? 'is-empty-tri-peaks-pile' : ''} ${isTriPeaks && isTriPeaksPile(pile) && !isTriPeaksExposed(pile) ? 'is-covered-tri-peaks-pile' : ''} ${dropTarget === pile.id ? 'is-drop-target' : ''} ${legalTargetIds.has(pile.id) ? 'is-legal-target' : ''}`}
+                className={`pile dynamic-pile pile-${pile.kind} ${isClock && /^clock\d+$/.test(pile.id) ? 'clock-source-pile' : ''} ${isClock && /^clockResult\d+$/.test(pile.id) ? 'clock-result-pile' : ''} ${isPyramid && isPyramidPile(pile) && !pile.cards.length ? 'is-empty-pyramid-pile' : ''} ${isPyramid && isPyramidPile(pile) && !isPyramidExposed(pile) ? 'is-covered-pyramid-pile' : ''} ${isTriPeaks && isTriPeaksPile(pile) && !pile.cards.length ? 'is-empty-tri-peaks-pile' : ''} ${isTriPeaks && isTriPeaksPile(pile) && !isTriPeaksExposed(pile) ? 'is-covered-tri-peaks-pile' : ''} ${dropTarget === pile.id ? 'is-drop-target' : ''} ${legalTargetIds.has(pile.id) ? 'is-legal-target' : ''}`}
                 data-pile-id={pile.id}
                 style={{
                   ...pileLayout(pile, piles, layoutType),
@@ -521,9 +530,13 @@ export function GameScreen({
                             (Math.sqrt(8 * Number(pile.id.replace(/^giza|^p/, '')) + 1) - 1) / 2,
                           ) + 1
                         : 0
-                      : isTriPeaks && isTriPeaksPile(pile)
-                        ? Math.floor(Number(pile.id.slice(3)) / 3) + 1
-                        : undefined,
+                      : isClock && /^clock\d+$/.test(pile.id)
+                        ? 2
+                        : isClock && /^clockResult\d+$/.test(pile.id)
+                          ? 1
+                          : isTriPeaks && isTriPeaksPile(pile)
+                            ? Math.floor(Number(pile.id.slice(3)) / 3) + 1
+                            : undefined,
                 }}
                 key={pile.id}
                 role={isPileKeyboardTarget(pile) ? 'button' : undefined}
@@ -539,7 +552,13 @@ export function GameScreen({
                 onClick={() => dispatchForSelection(pile)}
               >
                 <span className="pile-label">
-                  {pile.kind === 'foundation' ? '◇' : pile.kind === 'stock' ? '↻' : ''}
+                  {clockPileRank(pile)
+                    ? rankName(clockPileRank(pile)!)
+                    : pile.kind === 'foundation'
+                      ? '◇'
+                      : pile.kind === 'stock'
+                        ? '↻'
+                        : ''}
                 </span>
                 {pile.cards.map((card, index) => (
                   <span
@@ -558,7 +577,9 @@ export function GameScreen({
                                     piles.filter((item) => item.kind === 'tableau').length < 20 &&
                                     !isClock
                                   ? `${index * (compactLandscape ? (card.faceUp ? 30 : 16) : 30)}px`
-                                  : 0,
+                                  : isClock && /^clockResult\d+$/.test(pile.id)
+                                    ? `${index * (compactLandscape ? 3 : 5)}px`
+                                    : 0,
                       zIndex: index,
                     }}
                     key={card.id}

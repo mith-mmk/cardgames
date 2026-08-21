@@ -310,8 +310,8 @@ const fallbackGames: GameDefinition[] = [
     name: { ja: 'クロック', en: 'Clock' },
     family: { ja: '特殊配置', en: 'Special layouts' },
     description: {
-      ja: '時計盤の12山と中央から、カードの数字が示す山へ順に移します。',
-      en: 'Move the exposed card to the clock pile named by its rank until every card is revealed.',
+      ja: '表向きの札をタップし、数字の時刻へ自動配置して全札を表にします。',
+      en: 'Tap each exposed card to place it at its matching hour and reveal every card.',
     },
     difficulty: 4,
     decks: 1,

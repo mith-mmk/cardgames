@@ -43,6 +43,7 @@ targets:
         NSLocalNetworkUsageDescription: Solitaire Collections connects to the development server on your local network while you test the app.
         UILaunchStoryboardName: LaunchScreen
         UIRequiredDeviceCapabilities: [arm64, metal]
+        UIRequiresFullScreen: true
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight

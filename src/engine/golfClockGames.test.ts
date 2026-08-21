@@ -43,7 +43,7 @@ describe('Golf and Clock', () => {
 
   it('Clock starts with twelve outer piles and a central active pile', () => {
     const state = clock.create('clock-layout');
-    expect(Object.keys(state.piles).filter((id) => id.startsWith('clock'))).toHaveLength(13);
+    expect(Object.keys(state.piles).filter((id) => /^clock\d+$/.test(id))).toHaveLength(13);
     expect(state.meta.activePile).toBe('clock13');
     expect(
       Array.from({ length: 13 }, (_, index) => state.piles[`clock${index + 1}`].cards.length),
@@ -57,18 +57,45 @@ describe('Golf and Clock', () => {
     ).toBeTruthy();
     if (!move || move.type !== 'transfer') throw new Error('Clock must expose a transfer move');
     const next = clock.applyMove(state, move).state;
-    expect(next.meta.activePile).toBe(move.to);
-    expect(next.piles.removed.cards).toHaveLength(1);
-    expect(next.piles[move.to].cards.at(-1)?.faceUp).toBe(true);
+    const nextPileId = `clock${state.piles[move.from].cards.at(-1)?.rank}`;
+    expect(next.meta.activePile).toBe(nextPileId);
+    expect(next.piles[move.to].cards).toHaveLength(1);
+    expect(next.piles[move.to].cards[0].id).toBe(move.cardIds[0]);
+    expect(next.piles[nextPileId].cards.at(-1)?.faceUp).toBe(true);
+    expect(allCards(next)).toHaveLength(52);
     const nextMove = clock.legalMoves(next)[0];
     expect(nextMove?.type).toBe('transfer');
     if (nextMove?.type === 'transfer') expect(nextMove.cardIds[0]).not.toBe(move.cardIds[0]);
   });
 
+  it('Clock loses only when a required next source pile is exhausted before all cards move home', () => {
+    const state = clock.create('clock-exhausted-source');
+    const source = Object.values(state.piles).find(
+      (pile) =>
+        /^clock\d+$/.test(pile.id) &&
+        pile.id !== 'clock13' &&
+        pile.cards.at(-1)?.rank !== Number(pile.id.slice(5)),
+    );
+    if (!source) throw new Error('Expected a non-self-targeting Clock source');
+    state.meta.activePile = source.id;
+    source.cards.at(-1)!.faceUp = true;
+    const targetSource = state.piles[`clock${source.cards.at(-1)!.rank}`];
+    state.piles[`clockResult${source.cards.at(-1)!.rank}`].cards.push(
+      ...targetSource.cards.splice(0),
+    );
+
+    const result = clock.applyMove(state, clock.legalMoves(state)[0]);
+    expect(result.error).toBeUndefined();
+    expect(result.state.status).toBe('lost');
+    expect(allCards(result.state)).toHaveLength(52);
+  });
+
   it('recognizes a Clock game after every clock pile has been cleared', () => {
     const state = clock.create('clock-win');
     for (let index = 1; index <= 13; index += 1)
-      state.piles.removed.cards.push(...state.piles[`clock${index}`].cards.splice(0));
+      state.piles[`clockResult${index}`].cards.push(
+        ...state.piles[`clock${index}`].cards.splice(0),
+      );
     expect(clock.isWon(state)).toBe(true);
   });
 

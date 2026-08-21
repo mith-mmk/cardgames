@@ -1,8 +1,11 @@
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const appleRoot = join('src-tauri', 'gen', 'apple');
+const entrypointSource = join(appleRoot, 'Sources', 'solitaire-collections', 'main.mm');
+const rustLibrary = join('src-tauri', 'src', 'lib.rs');
 const tauriConfig = JSON.parse(readFileSync(join('src-tauri', 'tauri.conf.json'), 'utf8'));
 
 const cargoMetadata = JSON.parse(
@@ -45,6 +48,19 @@ if (!existsSync(appleRoot)) {
 const infoPlists = findInfoPlists(appleRoot);
 if (!infoPlists.length) throw new Error('No iOS Info.plist was generated.');
 
+const sourceIcons = join('src-tauri', 'icons', 'ios');
+const generatedIcons = join(appleRoot, 'Assets.xcassets', 'AppIcon.appiconset');
+if (!existsSync(sourceIcons) || !existsSync(generatedIcons))
+  throw new Error('The source or generated iOS AppIcon asset catalog is missing.');
+for (const name of readdirSync(sourceIcons).filter((entry) => entry.endsWith('.png'))) {
+  const source = join(sourceIcons, name);
+  const generated = join(generatedIcons, name);
+  if (!existsSync(generated)) throw new Error(`The generated iOS AppIcon is missing ${name}.`);
+  const digest = (path) => createHash('sha256').update(readFileSync(path)).digest('hex');
+  if (digest(source) !== digest(generated))
+    throw new Error(`The generated iOS AppIcon ${name} does not match the source asset.`);
+}
+
 function plistString(content, key) {
   const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const match = content.match(new RegExp(`<key>${escapedKey}</key>\\s*<string>([^<]+)</string>`));
@@ -61,6 +77,8 @@ for (const path of infoPlists) {
   }
   if (content.includes('UIInterfaceOrientationPortrait'))
     throw new Error(`${path} must not enable portrait orientation.`);
+  if (!content.includes('<key>UIRequiresFullScreen</key>\n\t<true/>'))
+    throw new Error(`${path} must require full screen to keep iPad play landscape-only.`);
   for (const key of ['CFBundleShortVersionString', 'CFBundleVersion']) {
     if (plistString(content, key) !== tauriConfig.version)
       throw new Error(`${path} ${key} must match Tauri version ${tauriConfig.version}.`);
@@ -75,10 +93,16 @@ for (const line of [
   `CFBundleShortVersionString: ${tauriConfig.version}`,
   `CFBundleVersion: "${tauriConfig.version}"`,
   'NSLocalNetworkUsageDescription: Solitaire Collections connects to the development server on your local network while you test the app.',
+  'UIRequiresFullScreen: true',
 ]) {
   if (!project.includes(line))
     throw new Error(`src-tauri/gen/apple/project.yml must keep ${line}.`);
 }
+
+if (readFileSync(entrypointSource, 'utf8').includes('InstallLandscapeOrientationLock();'))
+  throw new Error(`${entrypointSource} must not configure orientation before Tauri creates its view.`);
+if (!readFileSync(rustLibrary, 'utf8').includes('setSupportedInterfaceOrientations: 24usize'))
+  throw new Error(`${rustLibrary} must configure the Tauri iOS view controller directly.`);
 
 const validation =
   process.platform === 'darwin' ? 'including plutil syntax checks' : 'with XML checks';

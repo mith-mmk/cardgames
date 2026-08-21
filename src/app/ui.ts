@@ -303,24 +303,17 @@ export function pileLayout(pile: Pile, piles: Pile[], layoutType = ''): CSSPrope
     };
   }
 
-  if (['stock', 'waste', 'cell', 'reserve'].includes(pile.kind)) {
-    return topPosition(topIndex(pile));
-  }
-  if (pile.kind === 'foundation') {
-    return topPosition(topIndex(pile));
-  }
-  if (pile.kind === 'removed') {
-    return topPosition(topIndex(pile));
-  }
-
   const clockPiles = tableaux.filter((item) => /^clock\d+$/.test(item.id));
-  if (clockPiles.length === 13 && /^clock\d+$/.test(pile.id)) {
-    const index = Number(pile.id.slice(5)) - 1;
+  const clockPile = pile.id.match(/^clock(?:Result)?(\d+)$/);
+  if (clockPiles.length === 13 && clockPile) {
+    const index = Number(clockPile[1]) - 1;
+    const completedPile = pile.id.startsWith('clockResult');
     if (index === 12)
       return {
         left: 'calc(50% - var(--card-w) / 2)',
         top: 'calc(50% - var(--card-h) / 2)',
         right: 'auto',
+        transform: completedPile ? 'translate(18%, 18%)' : undefined,
       };
     const positions = [
       [0, -34],
@@ -341,7 +334,18 @@ export function pileLayout(pile: Pile, piles: Pile[], layoutType = ''): CSSPrope
       left: `calc(50% + ${x}% - var(--card-w) / 2)`,
       top: `calc(50% + ${y}% - var(--card-h) / 2)`,
       right: 'auto',
+      transform: completedPile ? 'translate(18%, 18%)' : undefined,
     };
+  }
+
+  if (['stock', 'waste', 'cell', 'reserve'].includes(pile.kind)) {
+    return topPosition(topIndex(pile));
+  }
+  if (pile.kind === 'foundation') {
+    return topPosition(topIndex(pile));
+  }
+  if (pile.kind === 'removed') {
+    return topPosition(topIndex(pile));
   }
 
   const isPyramid = tableaux.length >= 20 && tableaux.every((item) => /^p\d+$/.test(item.id));

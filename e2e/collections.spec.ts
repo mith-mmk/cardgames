@@ -286,6 +286,54 @@ test('keeps the Clock layout centred without an internal scrollbar', async ({ pa
   await expect(board).toBeVisible();
 });
 
+test('keeps Clock cards visible and advances the rank-selected hour on an iPad landscape', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chrome', 'requires a coarse-pointer mobile viewport');
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Clock', exact: true }).click();
+
+  const table = await page.locator('.game-layout-clock .table-area').boundingBox();
+  expect(table).not.toBeNull();
+  const sourcePiles = page.locator('.game-clock .clock-source-pile');
+  await expect(sourcePiles).toHaveCount(13);
+  for (const box of await sourcePiles.evaluateAll((piles) =>
+    piles.map((pile) => {
+      const rect = pile.getBoundingClientRect();
+      return { bottom: rect.bottom, left: rect.left, right: rect.right, top: rect.top };
+    }),
+  )) {
+    expect(box.left).toBeGreaterThanOrEqual(table!.x - 1);
+    expect(box.right).toBeLessThanOrEqual(table!.x + table!.width + 1);
+    expect(box.top).toBeGreaterThanOrEqual(table!.y - 1);
+    expect(box.bottom).toBeLessThanOrEqual(table!.y + table!.height + 1);
+  }
+
+  const active = page.locator('[data-pile-id="clock13"] .playing-card.face-up');
+  const rank = await active.getAttribute('data-rank');
+  const hours: Record<string, number> = {
+    A: 1,
+    '2': 2,
+    '3': 3,
+    '4': 4,
+    '5': 5,
+    '6': 6,
+    '7': 7,
+    '8': 8,
+    '9': 9,
+    '10': 10,
+    J: 11,
+    Q: 12,
+    K: 13,
+  };
+  expect(rank).toBeTruthy();
+  await active.click();
+  await expect(
+    page.locator(`[data-pile-id="clockResult${hours[rank!]}"] .playing-card`),
+  ).toHaveCount(1);
+});
+
 test('keeps Poker Squares placement under player control and shows score state', async ({
   page,
 }) => {
