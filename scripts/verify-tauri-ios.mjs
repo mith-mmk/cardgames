@@ -65,6 +65,8 @@ for (const path of infoPlists) {
     if (plistString(content, key) !== tauriConfig.version)
       throw new Error(`${path} ${key} must match Tauri version ${tauriConfig.version}.`);
   }
+  if (!plistString(content, 'NSLocalNetworkUsageDescription'))
+    throw new Error(`${path} must describe why development builds access the local network.`);
   if (process.platform === 'darwin') execFileSync('plutil', ['-lint', path], { stdio: 'pipe' });
 }
 
@@ -72,6 +74,7 @@ const project = readFileSync(join(appleRoot, 'project.yml'), 'utf8');
 for (const line of [
   `CFBundleShortVersionString: ${tauriConfig.version}`,
   `CFBundleVersion: "${tauriConfig.version}"`,
+  'NSLocalNetworkUsageDescription: Solitaire Collections connects to the development server on your local network while you test the app.',
 ]) {
   if (!project.includes(line))
     throw new Error(`src-tauri/gen/apple/project.yml must keep ${line}.`);

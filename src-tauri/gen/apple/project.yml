@@ -40,6 +40,7 @@ targets:
       path: solitaire-collections_iOS/Info.plist
       properties:
         LSRequiresIPhoneOS: true
+        NSLocalNetworkUsageDescription: Solitaire Collections connects to the development server on your local network while you test the app.
         UILaunchStoryboardName: LaunchScreen
         UIRequiredDeviceCapabilities: [arm64, metal]
         UISupportedInterfaceOrientations:

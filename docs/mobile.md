@@ -22,3 +22,17 @@ Use `npm run tauri:ios:verify` to validate the generated plist before review.
 To compile the native iOS integration without a signing identity, run
 `npm run tauri:ios:sim:build`. It creates an arm64 Simulator archive but does
 not create an IPA or replace the physical-device signing check.
+
+The iOS scripts explicitly use `src-tauri/target` for `CARGO_TARGET_DIR` so
+Cargo never writes architecture-specific artifacts to the repository root. If
+invoking Tauri directly, set
+`CARGO_TARGET_DIR="$PWD/src-tauri/target"`; a project-root value can cause a
+permission error while Cargo creates the architecture-specific build directory.
+
+To deploy to a physical device, provide the selected Apple Developer Team only
+for that command. Do not place the team ID, signing certificate, or provisioning
+profile in the repository:
+
+```sh
+APPLE_DEVELOPMENT_TEAM="<TEAM_ID>" npm run tauri:ios:dev
+```
