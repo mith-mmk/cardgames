@@ -73,6 +73,7 @@ export function CardView({
   return (
     <button
       className={`playing-card ${card.faceUp ? 'face-up' : 'face-down'} ${selected ? 'is-selected' : ''} ${dragSource ? 'is-drag-source' : ''}`}
+      data-card-id={card.id}
       data-rank={card.faceUp ? rankName(card.rank) : undefined}
       aria-label={
         card.faceUp

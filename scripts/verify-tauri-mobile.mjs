@@ -8,6 +8,8 @@ if (config.bundle?.active !== true || config.bundle?.targets !== 'all') {
   throw new Error('Tauri desktop bundling must remain enabled for all targets.');
 }
 
+execFileSync(process.execPath, ['scripts/verify-tauri-android.mjs'], { stdio: 'inherit' });
+
 const cli = join(
   dirname(fileURLToPath(import.meta.url)),
   '..',

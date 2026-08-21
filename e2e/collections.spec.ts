@@ -622,7 +622,11 @@ test('scores a Cribbage Solitaire set after selecting two cards from each hand f
   await expect(page.locator('.game-phase')).toContainText('Use the stock');
 });
 
-test('selects a Bowling ball and a valid adjacent pin group before knocking', async ({ page }) => {
+test('selects a Bowling ball and a valid adjacent pin group before knocking', async ({
+  page,
+}, testInfo) => {
+  if (testInfo.project.name === 'mobile-chrome')
+    await page.setViewportSize({ width: 568, height: 320 });
   await page.goto('/');
   await page.getByRole('button', { name: 'Bowling Solitaire', exact: true }).click();
   await expect(page.locator('[data-pile-id^="bowlPin"] .playing-card.face-up')).toHaveCount(10);
@@ -726,6 +730,34 @@ test('selects a Bowling ball and a valid adjacent pin group before knocking', as
   await knock.click();
   for (const pin of choice!.pins)
     await expect(page.locator(`[data-pile-id="${pin}"] .playing-card`)).toHaveCount(0);
+});
+
+test('keeps the selected Bowling ball as the compact-landscape touch target', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chrome', 'requires a coarse-pointer mobile viewport');
+  for (const viewport of [
+    { width: 568, height: 320 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Bowling Solitaire', exact: true }).click();
+    await page.locator('[data-pile-id="bowlBall0"] .card-slot:last-child .playing-card').click();
+
+    const activeBall = page.locator('[data-pile-id="bowlingActive"] .playing-card.face-up');
+    await expect(activeBall).toBeVisible();
+    await expect(activeBall).toBeInViewport();
+    const hitTargetPile = await activeBall.evaluate((card) => {
+      const rect = card.getBoundingClientRect();
+      const element = document.elementFromPoint(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
+      );
+      return element?.closest<HTMLElement>('[data-pile-id]')?.dataset.pileId;
+    });
+    expect(hitTargetPile).toBe('bowlingActive');
+  }
 });
 
 test('deals Aces Up as a four-column round and keeps empty columns as move targets', async ({
@@ -925,7 +957,7 @@ test('changes the theme and card back in settings', async ({ page }) => {
 test('opens localized how-to-play help for the active game', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: '日本語', exact: true }).click();
-  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
+  await page.getByRole('button', { name: 'クロンダイク', exact: true }).click();
   await page.getByRole('button', { name: '遊び方' }).click();
   const japaneseDialog = page.getByRole('dialog');
   await expect(japaneseDialog).toContainText('クロンダイク の遊び方');

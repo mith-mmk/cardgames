@@ -20,3 +20,7 @@ src-tauri/icons/generated/
 !.env.example
 *.log
 *.local
+# Local Android signing material
+*.jks
+*.keystore
+key.properties

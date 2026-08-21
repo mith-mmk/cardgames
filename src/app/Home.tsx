@@ -101,6 +101,7 @@ export function Home({
           <article
             className="game-tile"
             key={game.id}
+            data-game-id={game.id}
             style={{ '--accent': game.accent } as CSSProperties}
             role="button"
             tabIndex={0}
@@ -148,7 +149,7 @@ export function Home({
       </div>
       {filtered.length === 0 && <p className="empty-state">{t.noResults}</p>}
       <footer>
-        <span>Solitaire Collections · v0.6.9</span>
+        <span>Solitaire Collections · v0.6.10</span>
         <span>{t.offlineByDesign}</span>
       </footer>
     </main>

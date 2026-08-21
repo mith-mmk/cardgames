@@ -1,6 +1,6 @@
 {
   "name": "solitaire-collections",
-  "version": "0.6.9",
+  "version": "0.6.10",
   "private": true,
   "description": "An offline, cross-platform collection of solitaire card games.",
   "type": "module",
@@ -17,6 +17,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "tauri:mobile:verify": "node scripts/verify-tauri-mobile.mjs",
+    "tauri:android:dev": "tauri android dev",
+    "tauri:android:build": "tauri android build",
+    "tauri:android:verify": "node scripts/verify-tauri-android.mjs",
     "tauri:ios:init": "tauri ios init",
     "tauri:ios:sync-assets": "node scripts/sync-tauri-ios-assets.mjs",
     "tauri:ios:dev": "npm run tauri:ios:sync-assets && env CARGO_TARGET_DIR=\"$PWD/src-tauri/target\" tauri ios dev",

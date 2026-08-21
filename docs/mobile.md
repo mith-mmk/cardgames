@@ -2,10 +2,30 @@
 
 ## Android
 
-The Android target lives in `src-tauri/gen/android` and is committed so native
-orientation and application settings can be reviewed with the web UI changes.
-`MainActivity` is locked to `sensorLandscape`, allowing either landscape
-direction while rejecting portrait. Do not build this target in this release.
+The Android target in `src-tauri/gen/android` is a versioned Tauri 2 native
+shell for the shared React UI. `MainActivity` is locked to `sensorLandscape`,
+allowing either landscape direction while rejecting portrait on phones. It uses
+edge-to-edge rendering with a dark system-bar treatment; the web UI supplies
+the safe-area insets and its compact landscape board layout.
+
+Release builds disable clear-text traffic. The debug build alone permits it so
+Tauri can connect to the local Vite server during development.
+
+Before a device or emulator run, install the Android SDK/NDK and Rust Android
+targets required by Tauri. Then use:
+
+```sh
+npm run tauri:android:verify
+npm run tauri:android:dev
+```
+
+`npm run tauri:android:build` creates a local Android package when the SDK,
+signing configuration, and release workflow are ready. It does not publish to
+Google Play and no signing material belongs in this repository.
+
+For repeatable local packaging, use `build-android.bat` on Windows or
+`./build-android.sh` on POSIX. Each wrapper runs the Android static validation
+before invoking `tauri android build`.
 
 ## iOS
 

@@ -461,7 +461,7 @@ export function GameScreen({
       className={`game-screen game-${definition.id} motion-${preferences.motion} ${preferences.largeCards ? 'large-cards' : ''} ${compactLandscape ? 'compact-landscape' : ''}`}
     >
       <header className="game-topbar">
-        <button className="back-button" onClick={onBack}>
+        <button className="back-button" onClick={onBack} aria-label={t.back}>
           <span className="game-nav-icon" aria-hidden="true">
             ←
           </span>
@@ -473,7 +473,12 @@ export function GameScreen({
           <span className="game-family">{definition.family[language]}</span>
         </div>
         <div className="game-top-actions">
-          <button className="icon-button" onClick={() => setHelpOpen(true)} aria-label={t.help}>
+          <button
+            className="icon-button"
+            data-control="help"
+            onClick={() => setHelpOpen(true)}
+            aria-label={t.help}
+          >
             <span className="game-nav-icon" aria-hidden="true">
               ?
             </span>
@@ -496,7 +501,7 @@ export function GameScreen({
         >
           <div className="table-stats">
             <span>
-              {t.moves} <b>{snapshot.moves}</b>
+              {t.moves} <b data-move-count>{snapshot.moves}</b>
             </span>
             <span>
               {t.time} <b>{clock(snapshot.elapsedSeconds)}</b>
@@ -533,19 +538,21 @@ export function GameScreen({
                 style={{
                   ...pileLayout(pile, piles, layoutType),
                   zIndex:
-                    isPyramid && isPyramidPile(pile)
-                      ? pile.cards.length
-                        ? Math.floor(
-                            (Math.sqrt(8 * Number(pile.id.replace(/^giza|^p/, '')) + 1) - 1) / 2,
-                          ) + 1
-                        : 0
-                      : isClock && /^clock\d+$/.test(pile.id)
-                        ? 2
-                        : isClock && /^clockResult\d+$/.test(pile.id)
-                          ? 1
-                          : isTriPeaks && isTriPeaksPile(pile)
-                            ? Math.floor(Number(pile.id.slice(3)) / 3) + 1
-                            : undefined,
+                    isBowling && pile.id === 'bowlingActive'
+                      ? 200
+                      : isPyramid && isPyramidPile(pile)
+                        ? pile.cards.length
+                          ? Math.floor(
+                              (Math.sqrt(8 * Number(pile.id.replace(/^giza|^p/, '')) + 1) - 1) / 2,
+                            ) + 1
+                          : 0
+                        : isClock && /^clock\d+$/.test(pile.id)
+                          ? 2
+                          : isClock && /^clockResult\d+$/.test(pile.id)
+                            ? 1
+                            : isTriPeaks && isTriPeaksPile(pile)
+                              ? Math.floor(Number(pile.id.slice(3)) / 3) + 1
+                              : undefined,
                 }}
                 key={pile.id}
                 role={isPileKeyboardTarget(pile) ? 'button' : undefined}
@@ -660,11 +667,12 @@ export function GameScreen({
                 </button>
               </>
             )}
-            <button className="game-control primary-control" onClick={showHint}>
+            <button className="game-control primary-control" data-control="hint" onClick={showHint}>
               ✧ <span>{t.hint}</span>
             </button>
             <button
               className="game-control"
+              data-control="auto"
               onClick={() => {
                 const completed = session.autoComplete();
                 notify(completed ? t.autoCompleted : t.nothingToAutoComplete);
@@ -678,6 +686,7 @@ export function GameScreen({
           <div className="game-control-group game-control-group-session">
             <button
               className="game-control"
+              data-control="undo"
               disabled={!snapshot.canUndo}
               onClick={() => act(() => session.undo())}
             >
@@ -686,6 +695,7 @@ export function GameScreen({
             </button>
             <button
               className="game-control"
+              data-control="retry"
               onClick={() => {
                 setCelebrationDismissed(false);
                 act(() => session.retry());
@@ -695,6 +705,7 @@ export function GameScreen({
             </button>
             <button
               className="game-control"
+              data-control="new-game"
               onClick={() => {
                 setCelebrationDismissed(false);
                 onNewGame();

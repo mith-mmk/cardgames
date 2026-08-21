@@ -1900,6 +1900,16 @@ footer {
     padding: 6px 0;
   }
 
+  /* The desktop wide-board toolbar occupies row 1. Restore document order
+     on compact landscape so the table keeps the usable row above controls. */
+  .game-wide-layout .table-area {
+    grid-row: 1;
+  }
+
+  .game-wide-layout .game-controls {
+    grid-row: 2;
+  }
+
   .table-area,
   .game-layout-clock .table-area {
     min-height: 0;
@@ -1987,6 +1997,15 @@ footer {
     grid-template-columns: repeat(5, minmax(44px, 1fr));
     gap: 5px;
     padding: 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Bowling adds Knock and Next ball to the standard five actions. Keep all
+     seven targets on the fixed action row instead of creating an unreachable
+     second row on phone-height landscapes. */
+  .game-bowling-solitaire .game-controls {
+    grid-template-columns: repeat(7, minmax(44px, 1fr));
   }
 
   .game-control-group,

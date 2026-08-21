@@ -1,4 +1,15 @@
-# Apple release procedure
+# Release procedures
+
+## Android local package
+
+1. Install the Android SDK/NDK and the Rust Android targets required by Tauri.
+2. Run `npm run tauri:android:verify` before opening a device or emulator.
+3. Use `npm run tauri:android:dev` for landscape-only device validation. For a
+   local package, run `build-android.bat` on Windows or `./build-android.sh` on
+   POSIX hosts; both verify the native target before running `tauri android build`.
+
+Keep keystores, signing passwords, and Play Console credentials outside the
+repository. A locally built APK/AAB is not published automatically.
 
 ## macOS direct distribution
 
