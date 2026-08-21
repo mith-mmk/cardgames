@@ -818,6 +818,59 @@ test('starts Klondike and draws from the stock', async ({ page }) => {
   await expect(page.locator('.table-stats')).toContainText('1');
 });
 
+test('keeps iPad game navigation below system chrome with large labelled touch targets', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chrome', 'requires a coarse-pointer mobile viewport');
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
+
+  const header = page.locator('.game-topbar');
+  const back = header.locator('.back-button');
+  const help = header.getByRole('button', { name: /遊び方|How to play/ });
+  const settings = header.getByRole('button', { name: /設定|Settings/ });
+  const headerBox = await header.boundingBox();
+  expect(headerBox).not.toBeNull();
+
+  for (const button of [back, help, settings]) {
+    const box = await button.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThanOrEqual(56);
+    expect(box!.height).toBeGreaterThanOrEqual(56);
+    expect(box!.y).toBeGreaterThanOrEqual(8);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(headerBox!.y + headerBox!.height + 1);
+    await expect(button.locator('.game-nav-label')).toBeVisible();
+  }
+
+  const tableBox = await page.locator('.table-area').boundingBox();
+  expect(tableBox).not.toBeNull();
+  expect(tableBox!.y).toBeGreaterThanOrEqual(headerBox!.y + headerBox!.height);
+});
+
+test('keeps phone game navigation compact with reachable touch targets', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chrome', 'requires a coarse-pointer mobile viewport');
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Klondike', exact: true }).click();
+
+  const header = page.locator('.game-topbar');
+  const buttons = [
+    header.locator('.back-button'),
+    header.getByRole('button', { name: /遊び方|How to play/ }),
+    header.getByRole('button', { name: /設定|Settings/ }),
+  ];
+  for (const button of buttons) {
+    const box = await button.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThanOrEqual(48);
+    expect(box!.height).toBeGreaterThanOrEqual(48);
+  }
+  await expect(header.locator('.game-top-actions .game-nav-label').first()).toBeHidden();
+});
+
 test('draws when the face-down stock card itself is clicked', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Klondike', exact: true }).click();

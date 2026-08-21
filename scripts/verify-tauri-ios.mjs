@@ -100,7 +100,9 @@ for (const line of [
 }
 
 if (readFileSync(entrypointSource, 'utf8').includes('InstallLandscapeOrientationLock();'))
-  throw new Error(`${entrypointSource} must not configure orientation before Tauri creates its view.`);
+  throw new Error(
+    `${entrypointSource} must not configure orientation before Tauri creates its view.`,
+  );
 if (!readFileSync(rustLibrary, 'utf8').includes('setSupportedInterfaceOrientations: 24usize'))
   throw new Error(`${rustLibrary} must configure the Tauri iOS view controller directly.`);
 

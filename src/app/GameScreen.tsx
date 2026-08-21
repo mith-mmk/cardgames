@@ -462,7 +462,10 @@ export function GameScreen({
     >
       <header className="game-topbar">
         <button className="back-button" onClick={onBack}>
-          ← <span>{t.back}</span>
+          <span className="game-nav-icon" aria-hidden="true">
+            ←
+          </span>
+          <span className="game-nav-label">{t.back}</span>
         </button>
         <div className="game-title">
           <span className="game-dot" style={{ background: definition.accent }} />
@@ -471,10 +474,16 @@ export function GameScreen({
         </div>
         <div className="game-top-actions">
           <button className="icon-button" onClick={() => setHelpOpen(true)} aria-label={t.help}>
-            ?
+            <span className="game-nav-icon" aria-hidden="true">
+              ?
+            </span>
+            <span className="game-nav-label">{t.help}</span>
           </button>
           <button className="icon-button" onClick={onSettings} aria-label={t.settings}>
-            ⚙
+            <span className="game-nav-icon" aria-hidden="true">
+              ⚙
+            </span>
+            <span className="game-nav-label">{t.settings}</span>
           </button>
         </div>
       </header>
